@@ -25,7 +25,10 @@ pub mod pgm {
     use std::fs::File;
     use std::io::{BufRead, BufReader};
 
-    pub fn pgm_reader(path: String) -> (Vec<Vec<f64>>, usize, usize) {
+    pub fn pgm_reader(path: String,
+                        normalize: bool,
+                        scale_factor: f64) -> (Vec<Vec<f64>>, usize, usize) {
+        println!("Image path: {}", path);
         let mut f = BufReader::new(File::open(path).unwrap());
 
         let mut num_line = String::new();
@@ -58,7 +61,11 @@ pub mod pgm {
         let mut matrix = vec![vec![0f64; width]; height];
         for i in 0..height {
             for j in 0..width {
-                matrix[i][j] = array[i * width + j] / max_intensity;
+                if normalize == true {
+                    matrix[i][j] = array[i * width + j] / max_intensity;
+                } else {
+                    matrix[i][j] = array[i * width + j] / scale_factor;
+                }
             }
         }
         return (matrix, width, height);
