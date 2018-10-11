@@ -24,5 +24,10 @@
 mod pgm_reader;
 
 fn main() {
-    pgm_reader::pgm::pgm_reader("./images/disp2_ascii.pgm".to_string());
+    let (right_image, r_width, r_height) =
+        pgm_reader::pgm::pgm_reader("./images/disp2_ascii.pgm".to_string());
+    let (left_image, l_width, l_height) =
+        pgm_reader::pgm::pgm_reader("./images/disp6_ascii.pgm".to_string());
+    assert_eq!(r_width, l_width);
+    assert_eq!(r_height, l_height);
 }

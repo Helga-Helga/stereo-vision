@@ -25,7 +25,7 @@ pub mod pgm {
     use std::fs::File;
     use std::io::{BufRead, BufReader};
 
-    pub fn pgm_reader(path: String) {
+    pub fn pgm_reader(path: String) -> (Vec<Vec<f64>>, usize, usize) {
         let mut f = BufReader::new(File::open(path).unwrap());
 
         let mut num_line = String::new();
@@ -61,5 +61,6 @@ pub mod pgm {
                 matrix[i][j] = array[i * width + j] / max_intensity;
             }
         }
+        return (matrix, width, height);
     }
 }
