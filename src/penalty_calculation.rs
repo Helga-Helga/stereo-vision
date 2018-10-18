@@ -34,14 +34,14 @@ pub mod penalty {
                     if l_column + 1 < width
                     && disparity_map[l_row][l_column + 1] >= 0 {
                         penalty +=
-                            edge_weight(disparity_map[l_row][l_column],
-                                        disparity_map[l_row][l_column + 1]);
+                            2 * edge_weight(disparity_map[l_row][l_column],
+                                            disparity_map[l_row][l_column + 1]);
                     }
                     if l_row + 1 < height
                     && disparity_map[l_row + 1][l_column] >= 0 {
                         penalty +=
-                            edge_weight(disparity_map[l_row][l_column],
-                                        disparity_map[l_row + 1][l_column]);
+                            2 * edge_weight(disparity_map[l_row][l_column],
+                                            disparity_map[l_row + 1][l_column]);
                     }
                     let r_column: i32 = l_column as i32 - disparity_map[l_row][l_column] as i32;
                     if r_column > 0 {
