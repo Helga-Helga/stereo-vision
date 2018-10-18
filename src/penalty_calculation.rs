@@ -22,35 +22,32 @@
  * SOFTWARE.
  */
 pub mod penalty {
-    pub fn penalty_calculation(left_image: Vec<Vec<f64>>,
-                                right_image: Vec<Vec<f64>>,
-                                disparity_map: Vec<Vec<f64>>,
+    pub fn penalty_calculation(left_image: Vec<Vec<i32>>,
+                                right_image: Vec<Vec<i32>>,
+                                disparity_map: Vec<Vec<i32>>,
                                 height: usize,
-                                width: usize) -> f64 {
-        let mut penalty: f64 = 0.;
+                                width: usize) -> i32 {
+        let mut penalty: i32 = 0;
         for l_row in 0..height {
             for l_column in 0..width {
-                if disparity_map[l_row][l_column] > 0. {
+                if disparity_map[l_row][l_column] >= 0 {
                     if l_column + 1 < width
-                    && disparity_map[l_row][l_column + 1] > 0.
-                    && disparity_map[l_row][l_column] > disparity_map[l_row][l_column + 1] + 1. {
-                        penalty = 1.0f64 / 0.0f64;
-                        break;
-                    }
-                    if l_row + 1 < height
-                    && l_column + 1 < width
-                    && disparity_map[l_row + 1][l_column] > 0. {
+                    && disparity_map[l_row][l_column + 1] >= 0 {
                         penalty +=
                             (disparity_map[l_row][l_column] - disparity_map[l_row][l_column + 1])
-                            .powf(2.);
+                            .abs();
+                    }
+                    if l_row + 1 < height
+                    && disparity_map[l_row + 1][l_column] >= 0 {
                         penalty +=
                             (disparity_map[l_row][l_column] - disparity_map[l_row + 1][l_column])
-                            .powf(2.);
+                            .abs();
                     }
-                    let r_column = l_column + disparity_map[l_row][l_column] as usize;
-                    if r_column < left_image[l_row].len() {
-                        penalty += (left_image[l_row][l_column] - right_image[l_row][r_column])
-                                .powf(2.);
+                    let r_column: i32 = l_column as i32 - disparity_map[l_row][l_column] as i32;
+                    if r_column > 0 {
+                        penalty +=
+                            (left_image[l_row][l_column] - right_image[l_row][r_column as usize])
+                            .pow(2);
                     }
                 }
             }

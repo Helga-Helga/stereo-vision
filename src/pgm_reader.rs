@@ -27,7 +27,7 @@ pub mod pgm {
 
     pub fn pgm_reader(path: String,
                         normalize: bool,
-                        scale_factor: f64) -> (Vec<Vec<f64>>, usize, usize) {
+                        scale_factor: i32) -> (Vec<Vec<i32>>, usize, usize) {
         println!("Image path: {}", path);
         let mut f = BufReader::new(File::open(path).unwrap());
 
@@ -46,11 +46,11 @@ pub mod pgm {
         let height: usize = sizes[1];
         num_line = String::new();
         f.read_line(&mut num_line).unwrap();
-        let max_intensity: f64 = num_line.trim().parse().unwrap();
+        let max_intensity: i32 = num_line.trim().parse().unwrap();
         println!("Maximum intensity: {}", max_intensity);
 
         let lines: Vec<String> = f.lines().map(|l| l.unwrap().trim().to_string()).collect();
-        let array: Vec<f64> = lines
+        let array: Vec<i32> = lines
             .join(" ")
             .trim()
             .split(char::is_whitespace)
@@ -58,7 +58,7 @@ pub mod pgm {
             .collect();
         assert_eq!(width * height, array.len());
 
-        let mut matrix = vec![vec![0f64; width]; height];
+        let mut matrix = vec![vec![0i32; width]; height];
         for i in 0..height {
             for j in 0..width {
                 if normalize == true {
