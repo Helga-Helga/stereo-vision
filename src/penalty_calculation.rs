@@ -34,25 +34,33 @@ pub mod penalty {
                     if l_column + 1 < width
                     && disparity_map[l_row][l_column + 1] >= 0 {
                         penalty +=
-                            (disparity_map[l_row][l_column] - disparity_map[l_row][l_column + 1])
-                            .abs();
+                            edge_weight(disparity_map[l_row][l_column],
+                                        disparity_map[l_row][l_column + 1]);
                     }
                     if l_row + 1 < height
                     && disparity_map[l_row + 1][l_column] >= 0 {
                         penalty +=
-                            (disparity_map[l_row][l_column] - disparity_map[l_row + 1][l_column])
-                            .abs();
+                            edge_weight(disparity_map[l_row][l_column],
+                                        disparity_map[l_row + 1][l_column]);
                     }
                     let r_column: i32 = l_column as i32 - disparity_map[l_row][l_column] as i32;
                     if r_column > 0 {
                         penalty +=
-                            (left_image[l_row][l_column] - right_image[l_row][r_column as usize])
-                            .pow(2);
+                            node_weight(left_image[l_row][l_column],
+                                        right_image[l_row][r_column as usize]);
                     }
                 }
             }
         }
         println!("Penalty: {}", penalty);
         return penalty;
+    }
+
+    pub fn node_weight(left_intensity: i32, right_intensity: i32) -> i32 {
+        return (left_intensity - right_intensity).pow(2);
+    }
+
+    pub fn edge_weight(disparity1: i32, disparity2: i32) -> i32 {
+        return (disparity1 - disparity2).abs();
     }
 }
