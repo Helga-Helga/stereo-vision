@@ -60,7 +60,7 @@ pub mod penalty {
         return (left_intensity - right_intensity).pow(2);
     }
 
-    pub fn edge_weight(disparity1: i32, disparity2: i32) -> i32 {
-        return (disparity1 - disparity2).abs();
+    pub fn edge_weight(disparity_pixel: i32, disparity_neighbour: i32) -> i32 {
+        return (disparity_pixel - disparity_neighbour).abs();
     }
 }
