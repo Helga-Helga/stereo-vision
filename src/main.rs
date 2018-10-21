@@ -23,6 +23,7 @@
  */
 mod pgm_reader;
 mod penalty_calculation;
+mod diffusion;
 
 fn main() {
     let (right_image, r_width, r_height) =
@@ -36,5 +37,6 @@ fn main() {
     assert_eq!(r_width, d_width);
     assert_eq!(r_height, d_height);
     let _penalty = penalty_calculation::penalty
-        ::penalty_calculation(left_image, right_image, disparity_map, r_height, r_width);
+        ::penalty_calculation(&left_image, &right_image, &disparity_map, r_height, r_width);
+    diffusion::diffusion::diffusion(r_height, r_width);
 }
