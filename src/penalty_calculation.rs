@@ -22,9 +22,9 @@
  * SOFTWARE.
  */
 pub mod penalty {
-    pub fn penalty_calculation(left_image: Vec<Vec<i32>>,
-                                right_image: Vec<Vec<i32>>,
-                                disparity_map: Vec<Vec<i32>>,
+    pub fn penalty_calculation(left_image: &Vec<Vec<i32>>,
+                                right_image: &Vec<Vec<i32>>,
+                                disparity_map: &Vec<Vec<i32>>,
                                 height: usize,
                                 width: usize) -> i32 {
         let mut penalty: i32 = 0;
