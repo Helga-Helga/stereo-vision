@@ -24,6 +24,7 @@
 mod pgm_reader;
 mod penalty_calculation;
 mod diffusion;
+mod penalty_graph;
 
 fn main() {
     let (right_image, r_width, r_height) =
