@@ -1,7 +1,7 @@
 /*
  * MIT License
  *
- * Copyright (c) 2018 Helga-Helga
+ * Copyright (c) 2018 Olga Laviagina
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -24,6 +24,7 @@
 mod pgm_reader;
 mod penalty_calculation;
 mod diffusion;
+mod penalty_graph;
 
 fn main() {
     let (right_image, r_width, r_height) =
