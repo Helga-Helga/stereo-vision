@@ -127,13 +127,9 @@ pub mod crossing_out_graph {
                 if j >= d && min_penalty_vertex > self.penalty_graph.lookup_table[self.penalty_graph.left_image[i][j]
                 as usize][self.penalty_graph.right_image[i][j - d] as usize]
                 + self.sum_of_potentials(max_disparity, i, j, d) {
-                    println!("inside: j: {}, d: {}", j, d);
                     min_penalty_vertex = self.penalty_graph.lookup_table[self.penalty_graph.left_image[i][j]
                         as usize][self.penalty_graph.right_image[i][j - d] as usize]
                         + self.sum_of_potentials(max_disparity, i, j, d);
-                    println!("min_vertex: {}", min_penalty_vertex);
-                    println!("left: {}", self.penalty_graph.left_image[i][j] as usize);
-                    println!("right: {}", self.penalty_graph.right_image[i][j - d] as usize);
                 }
             }
             min_penalty_vertex
@@ -185,6 +181,40 @@ pub mod crossing_out_graph {
                     }
                 }
             min_penalty_edge
+        }
+
+        pub fn crossing_out(&mut self, max_disparity: usize) {
+            let mut change_indicator = true;
+            while change_indicator {
+                change_indicator = false;
+                for i in 0..self.penalty_graph.left_image.len() {
+                    for j in 0..self.penalty_graph.left_image[0].len() {
+                        for d in 0..max_disparity {
+                            if !self.vertices[i][j][d] {
+                                for n in 0..3 {
+                                    for n_d in 0..max_disparity {
+                                        self.edges[i][j][d][n][n_d] = false;
+                                        change_indicator = true;
+                                    }
+                                }
+                            }
+                            for n in 0..3 {
+                                let mut edge_exist = false;
+                                for n_d in 0..max_disparity {
+                                    if self.edges[i][j][d][n][n_d] {
+                                        edge_exist = true;
+                                    }
+                                }
+                                if !edge_exist {
+                                    self.vertices[i][j][d] = false;
+                                    change_indicator = true;
+                                    continue;
+                                }
+                            }
+                        }
+                    }
+                }
+            }
         }
     }
 
