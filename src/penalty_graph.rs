@@ -25,11 +25,11 @@ pub mod penalty_graph {
     use std::f64;
 
     #[derive(Debug)]
-    struct PenaltyGraph {
-     lookup_table: Vec<Vec<f64>>,
-     potentials: Vec<Vec<Vec<f64>>>,
-     left_image: Vec<Vec<u32>>,
-     right_image: Vec<Vec<u32>>
+    pub struct PenaltyGraph {
+     pub lookup_table: Vec<Vec<f64>>,
+     pub potentials: Vec<Vec<Vec<Vec<f64>>>>,
+     pub left_image: Vec<Vec<u32>>,
+     pub right_image: Vec<Vec<u32>>
     }
 
     impl PenaltyGraph {
@@ -45,7 +45,7 @@ pub mod penalty_graph {
                 }
             }
             self.potentials =
-                vec![vec![vec![0f64; max_disparity]; left_image[0].len()]; left_image.len()];
+                vec![vec![vec![vec![0f64; max_disparity]; max_disparity]; left_image[0].len()]; left_image.len()];
             self.left_image = left_image;
             self.right_image = right_image;
         }
@@ -93,7 +93,7 @@ pub mod penalty_graph {
         let right_image = vec![vec![0u32; 1]; 1];
         let disparity_map = vec![vec![0usize; 1]; 1];
         let mut penalty_graph = PenaltyGraph {lookup_table : vec![vec![0.; 256]; 256],
-                                              potentials : vec![vec![vec![0f64; 5]; 5]; 5],
+                                              potentials : vec![vec![vec![vec![0f64; 5]; 5]; 5]; 5],
                                               left_image : vec![vec![0; 1]; 1],
                                               right_image : vec![vec![0; 1]; 1]};
         penalty_graph.initialize(left_image, right_image, 1);
@@ -106,7 +106,7 @@ pub mod penalty_graph {
         let right_image = [[1, 0].to_vec(), [0, 0].to_vec()].to_vec();
         let disparity_map = vec![vec![1usize; 2]; 2];
         let mut penalty_graph = PenaltyGraph {lookup_table : vec![vec![0.; 256]; 256],
-                                              potentials : vec![vec![vec![0f64; 5]; 5]; 5],
+                                              potentials : vec![vec![vec![vec![0f64; 5]; 5]; 5]; 5],
                                               left_image : vec![vec![0; 2]; 2],
                                               right_image : vec![vec![0; 2]; 2]};
         penalty_graph.initialize(left_image, right_image, 2);
@@ -119,7 +119,7 @@ pub mod penalty_graph {
         let right_image = [[1, 0].to_vec(), [0, 0].to_vec()].to_vec();
         let disparity_map = [[0, 1].to_vec(), [0, 1].to_vec()].to_vec();
         let mut penalty_graph = PenaltyGraph {lookup_table : vec![vec![0.; 256]; 256],
-                                              potentials : vec![vec![vec![0f64; 5]; 5]; 5],
+                                              potentials : vec![vec![vec![vec![0f64; 5]; 5]; 5]; 5],
                                               left_image : vec![vec![0; 2]; 2],
                                               right_image : vec![vec![0; 2]; 2]};
         penalty_graph.initialize(left_image, right_image, 2);

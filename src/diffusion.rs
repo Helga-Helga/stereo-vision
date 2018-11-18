@@ -105,12 +105,12 @@
      pub fn neighbour_exists(vertice_i: i32, vertice_j: i32, neighbour: usize,
                              height: i32, width: i32) -> bool {
          match neighbour {
-             0 => if vertice_j - 1 >= 0 {
+             0 => if vertice_j > 0 {
                     return true
                 } else {
                     return false
                 },
-             1 => if vertice_i - 1 >= 0 {
+             1 => if vertice_i > 0 {
                     return true
                 } else {
                     return false
@@ -127,6 +127,22 @@
                 },
              _ => panic!(),
          }
+     }
+
+     pub fn neighbour_index(i: usize, j: usize, neighbour: usize) -> (usize, usize, usize) {
+    /*
+    i: row of pixel in left image
+    j: column of pixel in left image
+    neighbour: number of pixel neighbour (from 0 to 3)
+    Returns coordinates of neighbour and number of pixel for neighbour
+    */
+        match neighbour {
+            0 => return (i, j - 1, 2),
+            1 => return (i - 1, j, 3),
+            2 => return (i, j + 1, 0),
+            3 => return (i + 1, j, 1),
+            _ => panic!("Non-existent neighbour index: {}", neighbour),
+        }
      }
 
      #[test]
