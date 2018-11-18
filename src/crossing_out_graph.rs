@@ -85,26 +85,39 @@ pub mod crossing_out_graph {
         */
             for i in 0..self.penalty_graph.left_image.len() {
                 for j in 0..self.penalty_graph.left_image[0].len() {
-                    for n in 0..4 {
-                        if neighbour_exists(i as i32, j as i32, n,
-                                            self.penalty_graph.left_image.len() as i32,
-                                            self.penalty_graph.left_image[0].len() as i32) {
-                            let (n_i, n_j, n_index) = neighbour_index(i, j, n);
-                            let min_penalty_edge = self.min_penalty_edge(max_disparity, i, j, n, n_i, n_j, n_index);
-                            for d in 0..max_disparity {
-                                for n_d in 0..max_disparity {
-                                    if self.penalty_graph.lookup_table[d][n_d]
+                    for d in 0..max_disparity {
+                        if j >= d {
+                            for n in 0..4 {
+                                if neighbour_exists(i as i32, j as i32, n,
+                                                    self.penalty_graph.left_image.len() as i32,
+                                                    self.penalty_graph.left_image[0].len() as i32) {
+                                    let (n_i, n_j, n_index) = neighbour_index(i, j, n);
+                                    let min_penalty_edge =
+                                    self.min_penalty_edge(max_disparity, i, j, n, n_i, n_j, n_index);
+                                    for n_d in 0..max_disparity {
+                                        if self.penalty_graph.lookup_table[d][n_d]
                                         - self.penalty_graph.potentials[i][j][d][n_d]
                                         - self.penalty_graph.potentials[n_i][n_j][n_d][d]
                                         >= min_penalty_edge
-                                    && self.penalty_graph.lookup_table[d][n_d]
+                                        && self.penalty_graph.lookup_table[d][n_d]
                                         - self.penalty_graph.potentials[i][j][d][n_d]
                                         - self.penalty_graph.potentials[n_i][n_j][n_d][d]
                                         <= min_penalty_edge + epsilon {
-                                        self.edges[i][j][d][n][n_d] = true;
-                                    } else {
+                                            self.edges[i][j][d][n][n_d] = true;
+                                        } else {
+                                            self.edges[i][j][d][n][n_d] = false;
+                                        }
+                                    }
+                                } else {
+                                    for n_d in 0..max_disparity {
                                         self.edges[i][j][d][n][n_d] = false;
                                     }
+                                }
+                            }
+                        } else {
+                            for n in 0..4 {
+                                for n_d in 0..max_disparity {
+                                    self.edges[i][j][d][n][n_d] = false;
                                 }
                             }
                         }
@@ -192,23 +205,33 @@ pub mod crossing_out_graph {
                         for d in 0..max_disparity {
                             if !self.vertices[i][j][d] {
                                 for n in 0..3 {
-                                    for n_d in 0..max_disparity {
-                                        self.edges[i][j][d][n][n_d] = false;
-                                        change_indicator = true;
+                                    if neighbour_exists(i as i32, j as i32, n,
+                                                        self.penalty_graph.left_image.len() as i32,
+                                                        self.penalty_graph.left_image[0].len() as i32) {
+                                        for n_d in 0..max_disparity {
+                                            if self.edges[i][j][d][n][n_d] {
+                                                self.edges[i][j][d][n][n_d] = false;
+                                                change_indicator = true;
+                                            }
+                                        }
                                     }
                                 }
                             }
                             for n in 0..3 {
-                                let mut edge_exist = false;
-                                for n_d in 0..max_disparity {
-                                    if self.edges[i][j][d][n][n_d] {
-                                        edge_exist = true;
+                                if neighbour_exists(i as i32, j as i32, n,
+                                                    self.penalty_graph.left_image.len() as i32,
+                                                    self.penalty_graph.left_image[0].len() as i32) {
+                                    let mut edge_exist = false;
+                                    for n_d in 0..max_disparity {
+                                        if self.edges[i][j][d][n][n_d] {
+                                            edge_exist = true;
+                                        }
                                     }
-                                }
-                                if !edge_exist {
-                                    self.vertices[i][j][d] = false;
-                                    change_indicator = true;
-                                    continue;
+                                    if !edge_exist && self.vertices[i][j][d] {
+                                        self.vertices[i][j][d] = false;
+                                        change_indicator = true;
+                                        continue;
+                                    }
                                 }
                             }
                         }
@@ -263,5 +286,17 @@ pub mod crossing_out_graph {
         vertices[0][1][0] = false;
         crossing_out_graph.initialize(max_disparity, 1.);
         assert_eq!(vertices, crossing_out_graph.vertices);
+        let mut edges = vec![vec![vec![vec![vec![false; max_disparity]; 4]; max_disparity]; 2]; 1];
+        edges[0][0][0][2][0] = true;
+        edges[0][0][0][2][1] = true;
+        edges[0][1][0][0][0] = true;
+        edges[0][1][0][0][1] = true;
+        edges[0][1][1][0][0] = true;
+        edges[0][1][1][0][1] = true;
+        crossing_out_graph.crossing_out(max_disparity);
+        assert_eq!(vertices, crossing_out_graph.vertices);
+        edges[0][1][0][0][0] = false;
+        edges[0][1][0][0][1] = false;
+        assert_eq!(edges, crossing_out_graph.edges);
     }
 }
