@@ -54,7 +54,7 @@
         for i in 0..height {
             for j in 0..width {
                 for n in 0..4 {
-                    if !neighbour_exists(i as i32, j as i32, n, height as i32, width as i32) {
+                    if !neighbour_exists(i, j, n, height, width) {
                         continue;
                     }
                     for d in 0..max_disparity {
@@ -102,8 +102,8 @@
          changed
      }
 
-     pub fn neighbour_exists(vertice_i: i32, vertice_j: i32, neighbour: usize,
-                             height: i32, width: i32) -> bool {
+     pub fn neighbour_exists(vertice_i: usize, vertice_j: usize, neighbour: usize,
+                             height: usize, width: usize) -> bool {
          match neighbour {
              0 => if vertice_j > 0 {
                     return true

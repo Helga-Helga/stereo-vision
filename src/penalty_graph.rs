@@ -23,6 +23,8 @@
  */
 pub mod penalty_graph {
     use std::f64;
+    use super::super::diffusion::diffusion::neighbour_exists;
+    use super::super::diffusion::diffusion::neighbour_index;
 
     #[derive(Debug)]
     pub struct PenaltyGraph {
@@ -39,8 +41,8 @@ pub mod penalty_graph {
                        max_disparity: usize) {
             assert_eq!(left_image.len(), right_image.len());
             assert_eq!(left_image[0].len(), right_image[0].len());
-            for i in 0..255 {
-                for j in 0..255 {
+            for i in 0..256 {
+                for j in 0..256 {
                     self.lookup_table[i][j] = (i as i32 - j as i32).abs() as f64;
                 }
             }
@@ -65,25 +67,42 @@ pub mod penalty_graph {
                     if j >= disparity_map[i][j] as usize {
                         penalty +=
                         self.vertex_penalty(self.left_image[i][j] as usize,
-                                            self.right_image[i][j - disparity_map[i][j]] as usize);
+                                            self.right_image[i][j - disparity_map[i][j]] as usize) +
+                        self.sum_of_potentials(i, j, disparity_map[i][j]);
                     } else {
                         penalty += f64::INFINITY;
                     }
-                    if i > 0 {
-                        penalty += self.edge_penalty(disparity_map[i][j], disparity_map[i - 1][j]);
-                    }
-                    if j > 0 {
-                        penalty += self.edge_penalty(disparity_map[i][j], disparity_map[i][j - 1]);
-                    }
-                    if i + 1 < self.left_image.len() {
-                        penalty += self.edge_penalty(disparity_map[i][j], disparity_map[i + 1][j]);
-                    }
-                    if j + 1 < self.left_image[0].len() {
-                        penalty += self.edge_penalty(disparity_map[i][j], disparity_map[i][j + 1]);
+                    for n in 0..4 {
+                        if neighbour_exists(i, j, n, self.left_image.len(), self.left_image[0].len()) {
+                            let (n_i, n_j, n_index) = neighbour_index(i, j, n);
+                            penalty +=
+                                self.edge_penalty(disparity_map[i][j], disparity_map[n_i][n_j]) -
+                                self.potentials[i][j][n][disparity_map[i][j]] -
+                                self.potentials[n_i][n_j][n_index][disparity_map[n_i][n_j]];
+                        }
                     }
                 }
             }
             penalty
+        }
+
+        pub fn sum_of_potentials(&self, i: usize, j: usize, d: usize) -> f64 {
+        /*
+        max_disparity: maximum possible disparity value
+        i: number of pixel row in image
+        j: number of pixel column in image
+        d: disparity of pixel (i, j)
+        Returns the sum of potentials between pixel (i, j) with disparity d and all its neighbours
+        */
+            let mut sum = 0.;
+            for n in 0..4 {
+                if neighbour_exists(i, j, n,
+                                    self.left_image.len(),
+                                    self.left_image[0].len()) {
+                    sum += self.potentials[i][j][n][d];
+                }
+            }
+            sum
         }
     }
 
