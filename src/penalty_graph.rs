@@ -120,7 +120,7 @@ pub mod penalty_graph {
     }
 
     #[test]
-    fn test_penalty_four_pixels() {
+    fn test_penalty_four_pixels_inf() {
         let left_image = [[1, 1].to_vec(), [0, 0].to_vec()].to_vec();
         let right_image = [[1, 0].to_vec(), [0, 0].to_vec()].to_vec();
         let disparity_map = vec![vec![1usize; 2]; 2];
@@ -133,7 +133,7 @@ pub mod penalty_graph {
     }
 
     #[test]
-    fn test_penalty_four_pixels_zero() {
+    fn test_penalty_four_pixels() {
         let left_image = [[1, 1].to_vec(), [0, 0].to_vec()].to_vec();
         let right_image = [[1, 0].to_vec(), [0, 0].to_vec()].to_vec();
         let disparity_map = [[0, 1].to_vec(), [0, 1].to_vec()].to_vec();
@@ -143,5 +143,8 @@ pub mod penalty_graph {
                                               right_image : vec![vec![0; 2]; 2]};
         penalty_graph.initialize(left_image, right_image, 2);
         assert_eq!(4., penalty_graph.penalty(disparity_map));
+        penalty_graph.potentials[0][0][2][0] = 1.;
+        let new_disparity_map = [[0, 1].to_vec(), [0, 1].to_vec()].to_vec();
+        assert_eq!(3., penalty_graph.penalty(new_disparity_map));
     }
  }
