@@ -29,7 +29,7 @@ pub mod crossing_out_graph {
 
     #[derive(Debug)]
     pub struct CrossingOutGraph {
-        penalty_graph: PenaltyGraph,
+        pub penalty_graph: PenaltyGraph,
         // A vertice is defined by pixel coordinates (i, j) and disparity value d
         vertices: Vec<Vec<Vec<bool>>>,
         // And edge is defined by a vertex (i, j, d),
@@ -86,36 +86,28 @@ pub mod crossing_out_graph {
             for i in 0..self.penalty_graph.left_image.len() {
                 for j in 0..self.penalty_graph.left_image[0].len() {
                     for d in 0..max_disparity {
-                        if j >= d {
-                            for n in 0..4 {
-                                if neighbour_exists(i, j, n,
-                                                    self.penalty_graph.left_image.len(),
-                                                    self.penalty_graph.left_image[0].len()) {
-                                    let (n_i, n_j, n_index) = neighbour_index(i, j, n);
-                                    let min_penalty_edge =
-                                    self.min_penalty_edge(max_disparity, i, j, n, n_i, n_j, n_index);
-                                    for n_d in 0..max_disparity {
-                                        if self.penalty_graph.lookup_table[d][n_d]
-                                        - self.penalty_graph.potentials[i][j][n][d]
-                                        - self.penalty_graph.potentials[n_i][n_j][n_index][n_d]
-                                        >= min_penalty_edge
-                                        && self.penalty_graph.lookup_table[d][n_d]
-                                        - self.penalty_graph.potentials[i][j][n][d]
-                                        - self.penalty_graph.potentials[n_i][n_j][n_index][n_d]
-                                        <= min_penalty_edge + epsilon {
-                                            self.edges[i][j][d][n][n_d] = true;
-                                        } else {
-                                            self.edges[i][j][d][n][n_d] = false;
-                                        }
-                                    }
-                                } else {
-                                    for n_d in 0..max_disparity {
+                        for n in 0..4 {
+                            if neighbour_exists(i, j, n,
+                                                self.penalty_graph.left_image.len(),
+                                                self.penalty_graph.left_image[0].len()) {
+                                let (n_i, n_j, n_index) = neighbour_index(i, j, n);
+                                let min_penalty_edge =
+                                self.min_penalty_edge(max_disparity, i, j, n, n_i, n_j, n_index);
+                                for n_d in 0..max_disparity {
+                                    if self.penalty_graph.lookup_table[d][n_d]
+                                    - self.penalty_graph.potentials[i][j][n][d]
+                                    - self.penalty_graph.potentials[n_i][n_j][n_index][n_d]
+                                    >= min_penalty_edge
+                                    && self.penalty_graph.lookup_table[d][n_d]
+                                    - self.penalty_graph.potentials[i][j][n][d]
+                                    - self.penalty_graph.potentials[n_i][n_j][n_index][n_d]
+                                    <= min_penalty_edge + epsilon {
+                                        self.edges[i][j][d][n][n_d] = true;
+                                    } else {
                                         self.edges[i][j][d][n][n_d] = false;
                                     }
                                 }
-                            }
-                        } else {
-                            for n in 0..4 {
+                            } else {
                                 for n_d in 0..max_disparity {
                                     self.edges[i][j][d][n][n_d] = false;
                                 }

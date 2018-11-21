@@ -26,6 +26,7 @@ mod penalty_calculation;
 mod diffusion;
 mod penalty_graph;
 mod crossing_out_graph;
+mod epsilon_search;
 
 fn main() {
     let (right_image, r_width, r_height) =
