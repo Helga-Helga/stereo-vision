@@ -45,7 +45,7 @@ pub mod penalty_graph {
                 }
             }
             self.potentials =
-                vec![vec![vec![vec![0f64; max_disparity]; max_disparity]; left_image[0].len()]; left_image.len()];
+                vec![vec![vec![vec![0f64; max_disparity]; 4]; left_image[0].len()]; left_image.len()];
             self.left_image = left_image;
             self.right_image = right_image;
         }
@@ -93,7 +93,7 @@ pub mod penalty_graph {
         let right_image = vec![vec![0u32; 1]; 1];
         let disparity_map = vec![vec![0usize; 1]; 1];
         let mut penalty_graph = PenaltyGraph {lookup_table : vec![vec![0.; 256]; 256],
-                                              potentials : vec![vec![vec![vec![0f64; 5]; 5]; 5]; 5],
+                                              potentials : vec![vec![vec![vec![0f64; 5]; 4]; 5]; 5],
                                               left_image : vec![vec![0; 1]; 1],
                                               right_image : vec![vec![0; 1]; 1]};
         penalty_graph.initialize(left_image, right_image, 1);
@@ -106,7 +106,7 @@ pub mod penalty_graph {
         let right_image = [[1, 0].to_vec(), [0, 0].to_vec()].to_vec();
         let disparity_map = vec![vec![1usize; 2]; 2];
         let mut penalty_graph = PenaltyGraph {lookup_table : vec![vec![0.; 256]; 256],
-                                              potentials : vec![vec![vec![vec![0f64; 5]; 5]; 5]; 5],
+                                              potentials : vec![vec![vec![vec![0f64; 5]; 4]; 5]; 5],
                                               left_image : vec![vec![0; 2]; 2],
                                               right_image : vec![vec![0; 2]; 2]};
         penalty_graph.initialize(left_image, right_image, 2);
@@ -119,7 +119,7 @@ pub mod penalty_graph {
         let right_image = [[1, 0].to_vec(), [0, 0].to_vec()].to_vec();
         let disparity_map = [[0, 1].to_vec(), [0, 1].to_vec()].to_vec();
         let mut penalty_graph = PenaltyGraph {lookup_table : vec![vec![0.; 256]; 256],
-                                              potentials : vec![vec![vec![vec![0f64; 5]; 5]; 5]; 5],
+                                              potentials : vec![vec![vec![vec![0f64; 5]; 4]; 5]; 5],
                                               left_image : vec![vec![0; 2]; 2],
                                               right_image : vec![vec![0; 2]; 2]};
         penalty_graph.initialize(left_image, right_image, 2);
