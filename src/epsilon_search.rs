@@ -27,7 +27,7 @@ pub mod epsilon_search {
     use super::super::diffusion::diffusion::neighbour_index;
 
     pub fn create_array_of_epsilons(mut crossing_out_graph: CrossingOutGraph,
-                                    max_disparity: usize) -> Vec<f64> {
+                                    max_disparity: usize, tolerance: f64) -> Vec<f64> {
     /*
     crossing_out_graph: CrossingOutGraph
     max_disparity: maximum possible disparity
@@ -69,6 +69,55 @@ pub mod epsilon_search {
                 }
             }
         }
-        return array;
+        array.sort_by(|a, b| a.partial_cmp(b).unwrap());
+        dedup_f64(&mut array, tolerance);
+        array
+    }
+
+    fn dedup_f64(array: &mut Vec<f64>, tolerance: f64){
+    /*
+    array: sorted array of floats
+    tolerance: if array[i + 1] of array differs from array[i] less than by tolerance,
+    then array[i + 1] is removed from array
+    tolerance is the biggest possible value,
+    with which two elements of array can be considered as equal
+    Returns input sorted array of floats, but without duplicates (with some precision)
+    */
+        for i in 0..array.len() {
+            println!("i: {}", i);
+            if i + 1 < array.len() {
+                println!("array[i]: {}, array[i+1]: {}", array[i], array[i+1]);
+                if array[i + 1] - array[i] <= tolerance {
+                    println!("removed");
+                    array.remove(i + 1);
+                    dedup_f64(array, tolerance);
+                } else {
+                    continue;
+                }
+            } else {
+                break;
+            }
+        }
+    }
+
+    #[test]
+    fn test_dedup_f64() {
+        let mut array = [1., 1.5, 2., 3.].to_vec();
+        dedup_f64(&mut array, 1.);
+        assert_eq!([1., 3.].to_vec(), array);
+    }
+
+    #[test]
+    fn test_dedup_f64_one_element() {
+        let mut array = [0.].to_vec();
+        dedup_f64(&mut array, 0.);
+        assert_eq!([0.].to_vec(), array);
+    }
+
+    #[test]
+    fn test_dedup_f64_no_remove() {
+        let mut array = [1., 1.5, 2., 3.].to_vec();
+        dedup_f64(&mut array, 0.);
+        assert_eq!([1., 1.5, 2., 3.].to_vec(), array);
     }
 }
