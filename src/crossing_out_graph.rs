@@ -213,6 +213,56 @@ pub mod crossing_out_graph {
                 }
             }
         }
+
+        pub fn is_not_empty(&self, max_disparity: usize) -> bool {
+        /*
+        max_disparity: maximum possible value of disparity
+        Returns true if there are vertices and edges in a given graph
+        */
+            if self.vertices_exist(max_disparity) && self.edges_exist(max_disparity) {
+                true
+            } else {
+                false
+            }
+        }
+
+        pub fn vertices_exist(&self, max_disparity: usize) -> bool {
+        /*
+        max_disparity: maximum possible value of disparity for a pixel
+        Returns true if there is at least one vertex in a graph
+        */
+            for i in 0..self.penalty_graph.left_image.len() {
+                for j in 0..self.penalty_graph.left_image[0].len() {
+                    for d in 0..max_disparity {
+                        if self.vertices[i][j][d] {
+                            return true;
+                        }
+                    }
+                }
+            }
+            false
+        }
+
+        pub fn edges_exist(&self, max_disparity: usize) -> bool {
+        /*
+        max_disparity: maximum possible value of disparity for a pixel
+        Returns true if there is at least one edge in a graph
+        */
+            for i in 0..self.penalty_graph.left_image.len() {
+                for j in 0..self.penalty_graph.left_image[0].len() {
+                    for d in 0..max_disparity {
+                        for n in 0..4 {
+                            for n_d in 0..max_disparity {
+                                if self.edges[i][j][d][n][n_d] {
+                                    return true;
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            false
+        }
     }
 
     #[test]
@@ -243,8 +293,8 @@ pub mod crossing_out_graph {
         let max_disparity = 2;
         let mut penalty_graph = PenaltyGraph {lookup_table : vec![vec![0.; 256]; 256],
                                               potentials : vec![vec![vec![vec![0f64; max_disparity]; 4]; 2]; 1],
-                                              left_image : vec![vec![0u32; 2]; 1],
-                                              right_image : vec![vec![0u32; 2]; 1]};
+                                              left_image : vec![vec![0u32; 2]; 2],
+                                              right_image : vec![vec![0u32; 2]; 2]};
         penalty_graph.initialize(left_image, right_image, max_disparity);
         let vertices = vec![vec![vec![true; max_disparity]; 2]; 1];
         let edges = vec![vec![vec![vec![vec![true; max_disparity]; 4]; max_disparity]; 2]; 1];
@@ -272,5 +322,33 @@ pub mod crossing_out_graph {
         edges[0][1][0][0][0] = false;
         edges[0][1][0][0][1] = false;
         assert_eq!(edges, crossing_out_graph.edges);
+        assert!(true, crossing_out_graph.vertices_exist(max_disparity));
+        assert!(true, crossing_out_graph.edges_exist(max_disparity));
+        assert!(true, crossing_out_graph.is_not_empty(max_disparity));
+    }
+
+    #[test]
+    fn test_empty_crossing_out_graph() {
+        let left_image = vec![vec![0u32; 2]; 1];
+        let right_image = vec![vec![0u32; 2]; 1];
+        let max_disparity = 1;
+        let mut penalty_graph = PenaltyGraph {lookup_table : vec![vec![0.; 256]; 256],
+                                              potentials : vec![vec![vec![vec![0f64; max_disparity]; 4]; 2]; 1],
+                                              left_image : vec![vec![0u32; 2]; 1],
+                                              right_image : vec![vec![0u32; 2]; 1]};
+        penalty_graph.initialize(left_image, right_image, max_disparity);
+        let mut vertices = vec![vec![vec![true; max_disparity]; 2]; 1];
+        vertices[0][0][0] = false;
+        let mut edges = vec![vec![vec![vec![vec![false; max_disparity]; 4]; max_disparity]; 2]; 1];
+        edges[0][0][0][2][0] = true;
+        let mut crossing_out_graph = CrossingOutGraph {penalty_graph : penalty_graph,
+                                                       vertices: vertices,
+                                                       edges : edges};
+        crossing_out_graph.crossing_out(max_disparity);
+        println!("{:?}", crossing_out_graph.vertices);
+        println!("{:?}", crossing_out_graph.edges);
+        assert!(!crossing_out_graph.vertices_exist(max_disparity));
+        assert!(!crossing_out_graph.edges_exist(max_disparity));
+        assert!(!crossing_out_graph.is_not_empty(max_disparity));
     }
 }
