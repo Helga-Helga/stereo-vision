@@ -84,11 +84,8 @@ pub mod epsilon_search {
     Returns input sorted array of floats, but without duplicates (with some precision)
     */
         for i in 0..array.len() {
-            println!("i: {}", i);
             if i + 1 < array.len() {
-                println!("array[i]: {}, array[i+1]: {}", array[i], array[i+1]);
                 if array[i + 1] - array[i] <= tolerance {
-                    println!("removed");
                     array.remove(i + 1);
                     dedup_f64(array, tolerance);
                 } else {
