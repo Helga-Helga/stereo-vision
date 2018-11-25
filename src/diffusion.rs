@@ -22,86 +22,6 @@
  * SOFTWARE.
  */
  pub mod diffusion {
-     const MAX_DISPARITY: usize = 5;
-
-     pub fn diffusion(height: usize, width: usize) {
-
-        let mut vertices = vec![vec![vec![true; MAX_DISPARITY]; width]; height];
-        let mut edges =
-            vec![vec![vec![vec![vec![true; MAX_DISPARITY]; 4]; MAX_DISPARITY]; width]; height];
-        crossing_out(height, width, &mut vertices, &mut edges, MAX_DISPARITY);
-     }
-
-     pub fn crossing_out(height: usize,
-                         width: usize,
-                         vertices: &mut Vec<Vec<Vec<bool>>>,
-                         edges: &mut Vec<Vec<Vec<Vec<Vec<bool>>>>>,
-                         max_disparity: usize) {
-        let mut changed = true;
-        while changed {
-            let changed_e = crossing_out_edges(height, width, &vertices, edges, max_disparity);
-            let changed_v = crossing_out_vertices(height, width, vertices, &edges, max_disparity);
-            changed = changed_e || changed_v;
-        }
-    }
-
-     pub fn crossing_out_vertices(height: usize,
-                                  width: usize,
-                                  vertices: &mut Vec<Vec<Vec<bool>>>,
-                                  edges: &Vec<Vec<Vec<Vec<Vec<bool>>>>>,
-                                  max_disparity: usize) -> bool {
-        let mut changed = false;
-        for i in 0..height {
-            for j in 0..width {
-                for n in 0..4 {
-                    if !neighbour_exists(i, j, n, height, width) {
-                        continue;
-                    }
-                    for d in 0..max_disparity {
-                        let mut edge_exists = false;
-                        for d_n in 0..max_disparity {
-                            if edges[i][j][d][n][d_n] {
-                                edge_exists = true;
-                                break;
-                            }
-                        }
-                        if vertices[i][j][d] && !edge_exists {
-                            vertices[i][j][d] = false;
-                            changed = true;
-                        }
-                    }
-                }
-            }
-        }
-        changed
-     }
-
-     pub fn crossing_out_edges(height: usize,
-                               width: usize,
-                               vertices: &Vec<Vec<Vec<bool>>>,
-                               edges: &mut Vec<Vec<Vec<Vec<Vec<bool>>>>>,
-                               max_disparity: usize) -> bool {
-         let mut changed = false;
-         for i in 0..height {
-             for j in 0..width {
-                 for d in 0..max_disparity {
-                     for n in 0..4 {
-                         for d_n in 0..max_disparity {
-                             if !edges[i][j][d][n][d_n] {
-                                 continue;
-                             }
-                             if !vertices[i][j][d] {
-                                 edges[i][j][d][n][d_n] = false;
-                                 changed = true;
-                             }
-                         }
-                     }
-                 }
-             }
-         }
-         changed
-     }
-
      pub fn neighbour_exists(vertice_i: usize, vertice_j: usize, neighbour: usize,
                              height: usize, width: usize) -> bool {
          match neighbour {
@@ -143,34 +63,5 @@
             3 => return (i + 1, j, 1),
             _ => panic!("Non-existent neighbour index: {}", neighbour),
         }
-     }
-
-     #[test]
-     fn crossing_out_works_1() {
-         let height = 2;
-         let width = 2;
-         let max_disparity = 2;
-         let mut vertices = vec![vec![vec![true; max_disparity]; width]; height];
-         let mut edges =
-             vec![vec![vec![vec![vec![false; max_disparity]; 4]; max_disparity]; width]; height];
-         edges[0][0][0][3][0] = true;
-         edges[1][0][0][1][0] = true;
-         edges[0][0][1][3][1] = true;
-         edges[1][0][1][1][1] = true;
-         edges[0][0][0][2][0] = true;
-         edges[0][1][0][0][0] = true;
-         edges[0][1][1][3][1] = true;
-         edges[1][1][1][1][1] = true;
-         edges[1][0][0][2][0] = true;
-         edges[1][1][0][0][0] = true;
-         edges[0][1][0][3][0] = true;
-         edges[1][1][0][1][0] = true;
-         crossing_out(height, width, &mut vertices, &mut edges, max_disparity);
-         for i in 0..height {
-             for j in 0..width {
-                 assert_eq!(vertices[i][j][0], true);
-                 assert_eq!(vertices[i][j][1], false);
-             }
-         }
      }
  }

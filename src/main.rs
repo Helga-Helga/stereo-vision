@@ -22,7 +22,6 @@
  * SOFTWARE.
  */
 mod pgm_reader;
-mod penalty_calculation;
 mod diffusion;
 mod penalty_graph;
 mod crossing_out_graph;
@@ -39,7 +38,4 @@ fn main() {
         pgm_reader::pgm::pgm_reader("./images/disparity.pgm".to_string(), false, 1);
     assert_eq!(r_width, d_width);
     assert_eq!(r_height, d_height);
-    let _penalty = penalty_calculation::penalty
-        ::penalty_calculation(&left_image, &right_image, &disparity_map, r_height, r_width);
-    diffusion::diffusion::diffusion(r_height, r_width);
 }
