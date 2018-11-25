@@ -97,6 +97,34 @@ pub mod epsilon_search {
         }
     }
 
+    fn median_index(array: &Vec<f64>) -> usize {
+    /*
+    array: sorted array without duplicates
+    Returns an index of array median
+    */
+        array.len() / 2
+    }
+
+    pub fn search_for_epsilon(mut crossing_out_graph: CrossingOutGraph, array: Vec<f64>,
+                              max_disparity: usize) -> f64 {
+        let mut epsilon = array[median_index(&array)];
+        crossing_out_graph.initialize_with_epsilon(max_disparity, epsilon);
+        crossing_out_graph.crossing_out(max_disparity);
+        if array.len() > 1 {
+            if crossing_out_graph.is_not_empty(max_disparity) {
+                return search_for_epsilon(crossing_out_graph,
+                                          array[0..median_index(&array)].to_vec(),
+                                          max_disparity);
+            } else {
+                return search_for_epsilon(crossing_out_graph,
+                                          array[median_index(&array)..array.len() - 1].to_vec(),
+                                          max_disparity);
+            }
+        } else {
+            return epsilon;
+        }
+    }
+
     #[test]
     fn test_dedup_f64() {
         let mut array = [1., 1.5, 2., 3.].to_vec();
