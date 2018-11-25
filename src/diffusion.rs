@@ -21,35 +21,49 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
- pub mod diffusion {
-     pub fn neighbour_exists(vertice_i: usize, vertice_j: usize, neighbour: usize,
-                             height: usize, width: usize) -> bool {
-         match neighbour {
-             0 => if vertice_j > 0 {
-                    return true
-                } else {
-                    return false
-                },
-             1 => if vertice_i > 0 {
-                    return true
-                } else {
-                    return false
-                },
-             2 => if vertice_j + 1 < width {
-                     return true
-                } else {
-                    return false
-                },
-             3 => if vertice_i + 1 < height {
-                    return true
-                } else {
-                    return false
-                },
-             _ => panic!(),
-         }
-     }
+pub mod diffusion {
+    pub fn neighbour_exists(pixel_i: usize, pixel_j: usize, neighbour: usize,
+                            height: usize, width: usize) -> bool {
+    /*
+    pixel_i: number of current pixel row in image
+    pixel_j: number of current pixel column in image
+    neighbour: number of pixel neighbour (from 0 to 3)
+    height: height of image
+    width: width of image
+    Each pixel has maximum 4 neighbours:
+    - 0 for the left neighbour
+    - 1 for the top neighbour
+    - 2 for the right neighbour
+    - 3 for the bottom neighbour
+    Pixel can have less than 4 neighbours if it is in the eage of an image.
+    Returns `true` if neighbour exists, `false` if not.
+    */
+        match neighbour {
+            0 => if pixel_j > 0 {
+                return true
+            } else {
+                return false
+            },
+            1 => if pixel_i > 0 {
+                return true
+            } else {
+                return false
+            },
+            2 => if pixel_j + 1 < width {
+                return true
+            } else {
+                return false
+            },
+            3 => if pixel_i + 1 < height {
+                return true
+            } else {
+                return false
+            },
+            _ => panic!(),
+        }
+    }
 
-     pub fn neighbour_index(i: usize, j: usize, neighbour: usize) -> (usize, usize, usize) {
+    pub fn neighbour_index(i: usize, j: usize, neighbour: usize) -> (usize, usize, usize) {
     /*
     i: row of pixel in left image
     j: column of pixel in left image
@@ -63,5 +77,5 @@
             3 => return (i + 1, j, 1),
             _ => panic!("Non-existent neighbour index: {}", neighbour),
         }
-     }
- }
+    }
+}
