@@ -27,19 +27,19 @@ pub mod epsilon_search {
     use super::super::diffusion::diffusion::neighbour_index;
 
     pub fn create_array_of_epsilons(mut crossing_out_graph: CrossingOutGraph,
-                                    max_disparity: usize, tolerance: f64) -> Vec<f64> {
+                                    tolerance: f64) -> Vec<f64> {
     /*
     crossing_out_graph: CrossingOutGraph
-    max_disparity: maximum possible disparity
     Returns array of differences between
     - minimum vertex weight and other vertex weights in a pixel for each pixel and
     - minimum edge weight and other edge weights between two neighbour pixels
     */
         let mut array: Vec<f64> = Vec::new();
+        let max_disparity = crossing_out_graph.penalty_graph.max_disparity;
         for i in 0..crossing_out_graph.penalty_graph.left_image.len() {
             for j in 0..crossing_out_graph.penalty_graph.left_image[0].len() {
                 let min_penalty_vertex =
-                    crossing_out_graph.min_penalty_vertex(i, j, max_disparity);
+                    crossing_out_graph.min_penalty_vertex(i, j);
                 for d in 0..max_disparity {
                     // Differences for vertices
                     if j >= d {
@@ -57,7 +57,7 @@ pub mod epsilon_search {
                             let (n_i, n_j, n_index) = neighbour_index(i, j, n);
                             let min_penalty_edge =
                             crossing_out_graph
-                            .min_penalty_edge(max_disparity, i, j, n, n_i, n_j, n_index);
+                            .min_penalty_edge(i, j, n, n_i, n_j, n_index);
                             for n_d in 0..max_disparity {
                                 array.push(crossing_out_graph.penalty_graph.lookup_table[d][n_d]
                                     - crossing_out_graph.penalty_graph.potentials[i][j][n][d]
@@ -105,20 +105,17 @@ pub mod epsilon_search {
         array.len() / 2
     }
 
-    pub fn search_for_epsilon(mut crossing_out_graph: CrossingOutGraph, array: Vec<f64>,
-                              max_disparity: usize) -> f64 {
+    pub fn search_for_epsilon(mut crossing_out_graph: CrossingOutGraph, array: Vec<f64>) -> f64 {
         let mut epsilon = array[median_index(&array)];
-        crossing_out_graph.initialize_with_epsilon(max_disparity, epsilon);
-        crossing_out_graph.crossing_out(max_disparity);
+        crossing_out_graph.initialize_with_epsilon(epsilon);
+        crossing_out_graph.crossing_out();
         if array.len() > 1 {
-            if crossing_out_graph.is_not_empty(max_disparity) {
+            if crossing_out_graph.is_not_empty() {
                 return search_for_epsilon(crossing_out_graph,
-                                          array[0..median_index(&array)].to_vec(),
-                                          max_disparity);
+                                          array[0..median_index(&array)].to_vec());
             } else {
                 return search_for_epsilon(crossing_out_graph,
-                                          array[median_index(&array)..array.len() - 1].to_vec(),
-                                          max_disparity);
+                                          array[median_index(&array)..array.len() - 1].to_vec());
             }
         } else {
             return epsilon;

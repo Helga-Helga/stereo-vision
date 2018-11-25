@@ -31,7 +31,8 @@ pub mod penalty_graph {
      pub lookup_table: Vec<Vec<f64>>,
      pub potentials: Vec<Vec<Vec<Vec<f64>>>>,
      pub left_image: Vec<Vec<u32>>,
-     pub right_image: Vec<Vec<u32>>
+     pub right_image: Vec<Vec<u32>>,
+     pub max_disparity: usize,
     }
 
     impl PenaltyGraph {
@@ -51,6 +52,7 @@ pub mod penalty_graph {
                 potentials: vec![vec![vec![vec![0f64; max_disparity]; 4]; left_image[0].len()]; left_image.len()],
                 left_image: left_image,
                 right_image: right_image,
+                max_disparity: max_disparity,
             }
         }
 
@@ -90,7 +92,6 @@ pub mod penalty_graph {
 
         pub fn sum_of_potentials(&self, i: usize, j: usize, d: usize) -> f64 {
         /*
-        max_disparity: maximum possible disparity value
         i: number of pixel row in image
         j: number of pixel column in image
         d: disparity of pixel (i, j)
