@@ -35,21 +35,23 @@ pub mod penalty_graph {
     }
 
     impl PenaltyGraph {
-        pub fn initialize(&mut self,
-                       left_image: Vec<Vec<u32>>,
-                       right_image: Vec<Vec<u32>>,
-                       max_disparity: usize) {
+        pub fn initialize(left_image: Vec<Vec<u32>>,
+                          right_image: Vec<Vec<u32>>,
+                          max_disparity: usize) -> Self {
             assert_eq!(left_image.len(), right_image.len());
             assert_eq!(left_image[0].len(), right_image[0].len());
+            let mut lookup_table: Vec<Vec<f64>> = vec![vec![0f64; 256]; 256];
             for i in 0..256 {
                 for j in 0..256 {
-                    self.lookup_table[i][j] = (i as i32 - j as i32).abs() as f64;
+                    lookup_table[i][j] = (i as i32 - j as i32).abs() as f64;
                 }
             }
-            self.potentials =
-                vec![vec![vec![vec![0f64; max_disparity]; 4]; left_image[0].len()]; left_image.len()];
-            self.left_image = left_image;
-            self.right_image = right_image;
+            Self {
+                lookup_table: lookup_table,
+                potentials: vec![vec![vec![vec![0f64; max_disparity]; 4]; left_image[0].len()]; left_image.len()],
+                left_image: left_image,
+                right_image: right_image,
+            }
         }
 
         pub fn vertex_penalty(&self, left_intensity: usize, right_intensity: usize) -> f64 {
@@ -111,11 +113,8 @@ pub mod penalty_graph {
         let left_image = vec![vec![0u32; 1]; 1];
         let right_image = vec![vec![0u32; 1]; 1];
         let disparity_map = vec![vec![0usize; 1]; 1];
-        let mut penalty_graph = PenaltyGraph {lookup_table : vec![vec![0.; 256]; 256],
-                                              potentials : vec![vec![vec![vec![0f64; 1]; 4]; 1]; 1],
-                                              left_image : vec![vec![0; 1]; 1],
-                                              right_image : vec![vec![0; 1]; 1]};
-        penalty_graph.initialize(left_image, right_image, 1);
+        let penalty_graph = PenaltyGraph::initialize(left_image, right_image, 1);
+        println!("{:?}", penalty_graph.potentials);
         assert_eq!(0., penalty_graph.penalty(disparity_map));
     }
 
@@ -124,11 +123,7 @@ pub mod penalty_graph {
         let left_image = [[1, 1].to_vec(), [0, 0].to_vec()].to_vec();
         let right_image = [[1, 0].to_vec(), [0, 0].to_vec()].to_vec();
         let disparity_map = vec![vec![1usize; 2]; 2];
-        let mut penalty_graph = PenaltyGraph {lookup_table : vec![vec![0.; 256]; 256],
-                                              potentials : vec![vec![vec![vec![0f64; 2]; 4]; 2]; 2],
-                                              left_image : vec![vec![0; 2]; 2],
-                                              right_image : vec![vec![0; 2]; 2]};
-        penalty_graph.initialize(left_image, right_image, 2);
+        let penalty_graph = PenaltyGraph::initialize(left_image, right_image, 2);
         assert_eq!(f64::INFINITY, penalty_graph.penalty(disparity_map));
     }
 
@@ -137,11 +132,7 @@ pub mod penalty_graph {
         let left_image = [[1, 1].to_vec(), [0, 0].to_vec()].to_vec();
         let right_image = [[1, 0].to_vec(), [0, 0].to_vec()].to_vec();
         let disparity_map = [[0, 1].to_vec(), [0, 1].to_vec()].to_vec();
-        let mut penalty_graph = PenaltyGraph {lookup_table : vec![vec![0.; 256]; 256],
-                                              potentials : vec![vec![vec![vec![0f64; 2]; 4]; 2]; 2],
-                                              left_image : vec![vec![0; 2]; 2],
-                                              right_image : vec![vec![0; 2]; 2]};
-        penalty_graph.initialize(left_image, right_image, 2);
+        let mut penalty_graph = PenaltyGraph::initialize(left_image, right_image, 2);
         assert_eq!(4., penalty_graph.penalty(disparity_map));
         penalty_graph.potentials[0][0][2][0] = 1.;
         let new_disparity_map = [[0, 1].to_vec(), [0, 1].to_vec()].to_vec();
