@@ -26,8 +26,18 @@ pub mod pgm {
     use std::io::{BufRead, BufReader};
 
     pub fn pgm_reader(path: String,
-                        normalize: bool,
-                        scale_factor: i32) -> (Vec<Vec<i32>>, usize, usize) {
+                      normalize: bool,
+                      scale_factor: i32) -> (Vec<Vec<i32>>, usize, usize) {
+    /*
+    path: path of an image in file system
+    normalize: `true` for intensity normalization by 1, `false`: not to change values from file
+    If before normalization intensity was between 0 and 255,
+    then after it intensity will be between 0 and 1.
+    To do normalixation all values are divided by maximum intensity value.
+    scale_factor: all values from file are divided by scale_factor
+    Returns a matrix of data (pixel intensities or true disparities from file),
+    number of columns and number of rows in matrix
+    */
         println!("Image path: {}", path);
         let mut f = BufReader::new(File::open(path).unwrap());
 

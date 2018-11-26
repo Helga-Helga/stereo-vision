@@ -57,6 +57,11 @@ pub mod penalty_graph {
         }
 
         pub fn vertex_penalty(&self, left_intensity: usize, right_intensity: usize) -> f64 {
+        /*
+        left_intensity: intensity of a pixel in the left image
+        right_intensity: intensity of a pixel in the right image
+        Returns an absolute value of left and right intensity defference
+        */
             self.lookup_table[left_intensity][right_intensity] as f64
         }
 

@@ -49,13 +49,18 @@ pub mod crossing_out_graph {
         }
 
         pub fn initialize_with_epsilon(&mut self, epsilon: f64) {
+        /*
+        epsilon: precision with which vertices and edges exist
+        Leave in the graph only those vertices and edges whoose
+        penalties differ from minimum penalty in the group not more than by epsilon
+        */
             self.initialize_vertices(epsilon);
             self.initialize_edges(epsilon);
         }
 
         pub fn initialize_vertices(&mut self, epsilon: f64) {
         /*
-        epsilon: precision with what vertices exist
+        epsilon: precision with which vertices exist
         (vertex = 1 if its penalty differs from minimum not more that by epsilon, else: vertex = 0)
         Fills self.vertices with true or false according to this rule
         */
@@ -178,6 +183,12 @@ pub mod crossing_out_graph {
         }
 
         pub fn crossing_out(&mut self) {
+        /*
+        Crosses out (makes `false`) a vertex, if an edge, that contains the vertex, is `false`.
+        Crosses out an edge, if a vertex, that is connected with the edge, is `false`.
+        Crossing out is finished when nothing was changed during one iteration
+
+        */
             let mut change_indicator = true;
             while change_indicator {
                 change_indicator = false;
