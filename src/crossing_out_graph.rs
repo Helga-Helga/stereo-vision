@@ -160,9 +160,9 @@ pub mod crossing_out_graph {
         n_i: row of pixel neighbour in left image
         n_j: column of pixel neighbour in left image
         n_index: index of pixel for neighbour (from 0 to 3)
-        returns min_{k'} g*_{tt'}(d, d'), where t is pixel (i, j), t' is it neighbour,
-        g*_{tt'}(d, d') = g_{tt'}(d, d') - phi_{tt'}(k) - phi_{t't}(k),
-        where phi are potentials
+        returns min_{d'} g*_{tt'}(d, d'), where t is pixel (i, j), t' is it neighbour,
+        g*_{tt'}(d, d') = g_{tt'}(d, d') - phi_{tt'}(d) - phi_{t't}(d'),
+        where phi are potentials, d' = n_d -- disparity in neighbour
         So, we have fixed pixel and its neighbour;
         and search for minimum edge penalty (with potentials) between them
         based on pixel disparity and neighbour disparity
