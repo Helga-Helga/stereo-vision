@@ -204,8 +204,7 @@ pub mod penalty_graph {
         a vertex in pixel t with penalty k_t and a vertex in neighbour pixel t' with penalty k_t'
         */
         let vertex_penalty: f64 =
-            self.vertex_penalty(self.left_image[i][j] as usize,
-            self.right_image[i][j - d] as usize);
+            self.vertex_penalty_with_potentials(i, j, d);
         let number_of_neighbours: f64 =
             number_of_neighbours(i, j, n, self.left_image.len(), self.left_image[0].len()) as f64;
         self.potentials[i][j][n][d] = self.min_edge_between_neighbours(i, j, n, d) -
