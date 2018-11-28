@@ -25,6 +25,7 @@ pub mod penalty_graph {
     use std::f64;
     use super::super::diffusion::diffusion::neighbour_exists;
     use super::super::diffusion::diffusion::neighbour_index;
+    use super::super::diffusion::diffusion::number_of_neighbours;
 
     #[derive(Debug)]
     pub struct PenaltyGraph {
@@ -66,10 +67,24 @@ pub mod penalty_graph {
         }
 
         pub fn edge_penalty(&self, disparity: usize, disparity_neighbour: usize) -> f64 {
+        /*
+        disparity: disparity of a pixel (a shift of a pixel between left and right images)
+        disparity_neighbour: disparity of a neighbour
+        Returns an absolute value of pixel dispatity and its neighbour disparity
+        */
             self.lookup_table[disparity][disparity_neighbour] as f64
         }
 
         pub fn penalty(&self, disparity_map: Vec<Vec<usize>>) -> f64 {
+        /*
+        disparity_map: matrix of the same size as an image,
+        in cell (i, j) contains disparity of pixel (i, j)
+        Returns a general penalty: sum_t f_t(k_t) + sum_{tt' in tau} g_{tt'}(k_t, k_t'), where
+        f_t(k_t) is a penalty of vertex in pixel t with disparity k_t,
+        tau is a set of neighbours, if tt' in tau, then they are neighbours,
+        g_{tt'}(k_t, k_t') is a penalty of edge that connects
+        a vertice in pixel t with disparity k_t and a neighbour pixel t' with disparity k_t'
+        */
             let mut penalty: f64 = 0.;
             for i in 0..self.left_image.len() {
                 for j in 0..self.left_image[0].len() {
@@ -111,6 +126,68 @@ pub mod penalty_graph {
                 }
             }
             sum
+        }
+
+        pub fn min_edge_between_neighbours(&self, i: usize, j: usize, n: usize, d: usize) -> f64 {
+        /*
+        (i, j): coordinate of a pixel in an image
+        n: number of a neighbour (from 0 to 3)
+        d: disparity of pixel (i, j)
+        Returns min_{n_d} g_{tt'}(d, n_d), where t = (i, j), t' is a neighbour of t,
+        n_d is a disparity in pixel t'
+        */
+            let mut result: f64 = 0.;
+            let (n_i, n_j, n_index) = neighbour_index(i, j, n);
+            for n_d in 0..self.max_disparity {
+                if result > self.lookup_table[d][n_d] - self.potentials[i][j][n][d] -
+                            self.potentials[n_i][n_j][n_index][n_d] {
+                    result =
+                        self.lookup_table[d][n_d] -
+                        self.potentials[i][j][n][d] -
+                        self.potentials[n_i][n_j][n_index][n_d];
+                }
+            }
+            result
+        }
+
+        pub fn sum_min_edges(&self, i: usize, j: usize, d: usize) -> f64 {
+        /*
+        (i, j): coordnate of a pixel in an image
+        d: disparity in pixel (i, j)
+        Used equation: sum_{t' in N(t)} min_{n_d} g_{tt'}(d, n_d),
+        where t = (i, j), t' is a neighbour of t, N(t) is a set of neighbours of pixel t,
+        n_d is disparity in pixel t'.
+        Returns the sum of minimum edges from pixel to all its neighbours
+        */
+            let mut result: f64 = 0.;
+            for n in 0..4 {
+                if neighbour_exists(i, j, n, self.left_image.len(), self.left_image[0].len()) {
+                    result += self.min_edge_between_neighbours(i, j, n, d);
+                }
+            }
+            result
+        }
+
+        pub fn update_potential(&mut self, i: usize, j: usize, d: usize, n: usize){
+        /*
+        (i, j): coordinate of pixel t in an image
+        d: disparity in pixel t
+        n: number of pixel neighbour (from 0 to 3)
+        Returns phi_{tt'}(k_t) = min_{k_t'} g_{tt'}(k_t, k_t') -
+        - [f_t(k_t) + sum_{t' in N(t)} min_{k_t'} g_{tt'}(k_t, k_t')] / [|N(t)| + 1], where
+        t' is n`th neighbour of pixel t,
+        N(t) is a set of neighbours of pixel t
+        f_t(k_t) is a penalty of vertex in pixel t with disparity k_t
+        g_{tt'}(k_t, k_t') is a penalty of an edge between
+        a vertex in pixel t with penalty k_t and a vertex in neighbour pixel t' with penalty k_t'
+        */
+        let vertex_penalty: f64 =
+            self.vertex_penalty(self.left_image[i][j] as usize,
+            self.right_image[i][j - d] as usize);
+        let number_of_neighbours: f64 =
+            number_of_neighbours(i, j, n, self.left_image.len(), self.left_image[0].len()) as f64;
+        self.potentials[i][j][n][d] = self.min_edge_between_neighbours(i, j, n, d) -
+            (vertex_penalty + self.sum_min_edges(i, j, d)) / (number_of_neighbours + 1.)
         }
     }
 
