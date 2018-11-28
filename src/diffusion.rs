@@ -78,4 +78,22 @@ pub mod diffusion {
             _ => panic!("Non-existent neighbour index: {}", neighbour),
         }
     }
+
+    pub fn number_of_neighbours(i: usize, j: usize, n: usize, height: usize, width: usize) ->
+        usize {
+    /*
+    (i, j): coordinate of pixel in an image
+    n: number of neighbour pixel (from 0 to 3)
+    height, width: size of image
+    Returns number of neighbours for pixel (i, j).
+    Maximum number of neighbours is 4, minimum is 2
+    */
+        let mut number_of_neighbours: usize = 0;
+        for neighbour in 0..4 {
+            if neighbour_exists(i, j, neighbour, height, width) {
+                number_of_neighbours += 1;
+            }
+        }
+        number_of_neighbours
+    }
 }
