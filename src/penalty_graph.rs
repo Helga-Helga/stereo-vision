@@ -66,6 +66,20 @@ pub mod penalty_graph {
             self.lookup_table[left_intensity][right_intensity] as f64
         }
 
+        pub fn vertex_penalty_with_potentials(&self, i: usize, j: usize, d: usize)
+            -> f64 {
+        /*
+        (i, j): coordinate of pixel t in image
+        d: k_t, disparity of pixel t = (i, j)
+        Returns f*_t(k_t) = f_t(k_t) + sum_{t': tt' in tau} phi_{tt'}(k_t), where
+        t' is a neighbour of pixel t
+        tau is a set of all neighbours
+        phi_{tt'}(k_t) is a potential
+        */
+            self.vertex_penalty(self.left_image[i][j] as usize,
+                    self.right_image[i][j - d] as usize) + self.sum_of_potentials(i, j, d)
+        }
+
         pub fn edge_penalty(&self, disparity: usize, disparity_neighbour: usize) -> f64 {
         /*
         disparity: disparity of a pixel (a shift of a pixel between left and right images)
@@ -89,10 +103,7 @@ pub mod penalty_graph {
             for i in 0..self.left_image.len() {
                 for j in 0..self.left_image[0].len() {
                     if j >= disparity_map[i][j] as usize {
-                        penalty +=
-                        self.vertex_penalty(self.left_image[i][j] as usize,
-                                            self.right_image[i][j - disparity_map[i][j]] as usize) +
-                        self.sum_of_potentials(i, j, disparity_map[i][j]);
+                        penalty += self.vertex_penalty_with_potentials(i, j, disparity_map[i][j]);
                     } else {
                         penalty += f64::INFINITY;
                     }

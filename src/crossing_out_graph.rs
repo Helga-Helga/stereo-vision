@@ -69,15 +69,11 @@ pub mod crossing_out_graph {
                     let min_penalty_vertex = self.min_penalty_vertex(i, j);
                     for d in 0..self.penalty_graph.max_disparity {
                         if j >= d
-                        && self.penalty_graph.lookup_table[self.penalty_graph.left_image[i][j]
-                            as usize][self.penalty_graph.right_image[i][j-d] as usize]
-                            + self.penalty_graph.sum_of_potentials(i, j, d)
-                            >= min_penalty_vertex
-                        && self.penalty_graph.lookup_table[self.penalty_graph.left_image[i][j]
-                            as usize][self.penalty_graph.right_image[i][j-d] as usize]
-                            + self.penalty_graph.sum_of_potentials(i, j, d)
-                            <= min_penalty_vertex + epsilon {
-                                self.vertices[i][j][d] = true;
+                        && self.penalty_graph.vertex_penalty_with_potentials(i, j, d) >=
+                            min_penalty_vertex
+                        && self.penalty_graph.vertex_penalty_with_potentials(i, j, d) <=
+                            min_penalty_vertex + epsilon {
+                            self.vertices[i][j][d] = true;
                         } else {
                             self.vertices[i][j][d] = false;
                         }
@@ -141,12 +137,10 @@ pub mod crossing_out_graph {
         */
             let mut min_penalty_vertex: f64 = f64::INFINITY;
             for d in 0..self.penalty_graph.max_disparity {
-                if j >= d && min_penalty_vertex > self.penalty_graph.lookup_table[self.penalty_graph.left_image[i][j]
-                as usize][self.penalty_graph.right_image[i][j - d] as usize]
-                + self.penalty_graph.sum_of_potentials(i, j, d) {
-                    min_penalty_vertex = self.penalty_graph.lookup_table[self.penalty_graph.left_image[i][j]
-                        as usize][self.penalty_graph.right_image[i][j - d] as usize]
-                        + self.penalty_graph.sum_of_potentials(i, j, d);
+                if j >= d && min_penalty_vertex >
+                    self.penalty_graph.vertex_penalty_with_potentials(i, j, d) {
+                    min_penalty_vertex =
+                        self.penalty_graph.vertex_penalty_with_potentials(i, j, d);
                 }
             }
             min_penalty_vertex
@@ -160,9 +154,9 @@ pub mod crossing_out_graph {
         n_i: row of pixel neighbour in left image
         n_j: column of pixel neighbour in left image
         n_index: index of pixel for neighbour (from 0 to 3)
-        returns min_{d'} g*_{tt'}(d, d'), where t is pixel (i, j), t' is it neighbour,
-        g*_{tt'}(d, d') = g_{tt'}(d, d') - phi_{tt'}(d) - phi_{t't}(d'),
-        where phi are potentials, d' = n_d -- disparity in neighbour
+        returns min_{k'} g*_{tt'}(d, d'), where t is pixel (i, j), t' is it neighbour,
+        g*_{tt'}(d, d') = g_{tt'}(d, d') - phi_{tt'}(k) - phi_{t't}(k),
+        where phi are potentials
         So, we have fixed pixel and its neighbour;
         and search for minimum edge penalty (with potentials) between them
         based on pixel disparity and neighbour disparity
