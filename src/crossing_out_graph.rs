@@ -66,7 +66,7 @@ pub mod crossing_out_graph {
         */
             for i in 0..self.penalty_graph.left_image.len() {
                 for j in 0..self.penalty_graph.left_image[0].len() {
-                    let min_penalty_vertex = self.min_penalty_vertex(i, j);
+                    let min_penalty_vertex = self.penalty_graph.min_penalty_vertex(i, j);
                     for d in 0..self.penalty_graph.max_disparity {
                         if j >= d
                         && self.penalty_graph.vertex_penalty_with_potentials(i, j, d) >=
@@ -101,7 +101,7 @@ pub mod crossing_out_graph {
                                                 self.penalty_graph.left_image[0].len()) {
                                 let (n_i, n_j, n_index) = neighbour_index(i, j, n);
                                 let min_penalty_edge =
-                                self.min_penalty_edge(i, j, n, n_i, n_j, n_index);
+                                self.penalty_graph.min_penalty_edge(i, j, n, n_i, n_j, n_index);
                                 for n_d in 0..self.penalty_graph.max_disparity {
                                     if self.penalty_graph.edge_penalty_with_potential(i, j, n, d,
                                         n_i, n_j, n_index, n_d) >= min_penalty_edge
@@ -121,53 +121,6 @@ pub mod crossing_out_graph {
                     }
                 }
             }
-        }
-
-        pub fn min_penalty_vertex(&mut self, i: usize, j: usize) -> f64 {
-        /*
-        i: number of pixel row in image
-        j: number of pixel column in image
-        (i, j) defines pixel (its coordinate in image)
-        Returns minimum penalty of given pixel (updated by potentials):
-        look over each possible diparity value of pixel and choose minimum value of vertex penalty
-        */
-            let mut min_penalty_vertex: f64 = f64::INFINITY;
-            for d in 0..self.penalty_graph.max_disparity {
-                if j >= d && min_penalty_vertex >
-                    self.penalty_graph.vertex_penalty_with_potentials(i, j, d) {
-                    min_penalty_vertex =
-                        self.penalty_graph.vertex_penalty_with_potentials(i, j, d);
-                }
-            }
-            min_penalty_vertex
-        }
-
-        pub fn min_penalty_edge(&mut self, i: usize, j: usize, n: usize,
-                                n_i: usize, n_j: usize, n_index: usize) -> f64 {
-        /*
-        i: row of pixel in left image
-        j: column of pixel in left image
-        n_i: row of pixel neighbour in left image
-        n_j: column of pixel neighbour in left image
-        n_index: index of pixel for neighbour (from 0 to 3)
-        returns min_{k'} g*_{tt'}(d, d'), where t is pixel (i, j), t' is it neighbour,
-        g*_{tt'}(d, d') = g_{tt'}(d, d') - phi_{tt'}(k) - phi_{t't}(k),
-        where phi are potentials
-        So, we have fixed pixel and its neighbour;
-        and search for minimum edge penalty (with potentials) between them
-        based on pixel disparity and neighbour disparity
-        */
-            let mut min_penalty_edge: f64 = f64::INFINITY;
-                for d in 0..self.penalty_graph.max_disparity {
-                    for n_d in 0..self.penalty_graph.max_disparity {
-                        if min_penalty_edge > self.penalty_graph
-                            .edge_penalty_with_potential(i, j, n, d, n_i, n_j, n_index, n_d) {
-                            min_penalty_edge = self.penalty_graph.
-                                edge_penalty_with_potential(i, j, n, d, n_i, n_j, n_index, n_d);
-                        }
-                    }
-                }
-            min_penalty_edge
         }
 
         pub fn crossing_out(&mut self) {
@@ -279,9 +232,9 @@ pub mod crossing_out_graph {
         let vertices = vec![vec![vec![true; max_disparity]; 2]; 1];
         let edges = vec![vec![vec![vec![vec![true; max_disparity]; 4]; max_disparity]; 2]; 1];
         let mut crossing_out_graph = CrossingOutGraph::initialize(penalty_graph, vertices, edges);
-        let min_penalty_edge = crossing_out_graph.min_penalty_edge(0, 0, 2, 0, 1, 0);
+        let min_penalty_edge = crossing_out_graph.penalty_graph.min_penalty_edge(0, 0, 2, 0, 1, 0);
         assert_eq!(0., min_penalty_edge);
-        let min_penalty_vertex = crossing_out_graph.min_penalty_vertex(0, 0);
+        let min_penalty_vertex = crossing_out_graph.penalty_graph.min_penalty_vertex(0, 0);
         assert_eq!(0., min_penalty_vertex);
     }
 
@@ -294,10 +247,10 @@ pub mod crossing_out_graph {
         let vertices = vec![vec![vec![true; max_disparity]; 2]; 1];
         let edges = vec![vec![vec![vec![vec![true; max_disparity]; 4]; max_disparity]; 2]; 1];
         let mut crossing_out_graph = CrossingOutGraph::initialize(penalty_graph, vertices, edges);
-        let min_penalty_edge = crossing_out_graph.min_penalty_edge(0, 0, 2, 0, 1, 0);
+        let min_penalty_edge = crossing_out_graph.penalty_graph.min_penalty_edge(0, 0, 2, 0, 1, 0);
         assert_eq!(0., min_penalty_edge);
-        assert_eq!(3., crossing_out_graph.min_penalty_vertex(0, 0));
-        assert_eq!(1., crossing_out_graph.min_penalty_vertex(0, 1));
+        assert_eq!(3., crossing_out_graph.penalty_graph.min_penalty_vertex(0, 0));
+        assert_eq!(1., crossing_out_graph.penalty_graph.min_penalty_vertex(0, 1));
         let mut vertices = vec![vec![vec![true; max_disparity]; 2]; 1];
         vertices[0][0][1] = false;
         vertices[0][1][0] = false;

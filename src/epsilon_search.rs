@@ -40,7 +40,7 @@ pub mod epsilon_search {
         for i in 0..crossing_out_graph.penalty_graph.left_image.len() {
             for j in 0..crossing_out_graph.penalty_graph.left_image[0].len() {
                 let min_penalty_vertex =
-                    crossing_out_graph.min_penalty_vertex(i, j);
+                    crossing_out_graph.penalty_graph.min_penalty_vertex(i, j);
                 for d in 0..max_disparity {
                     // Differences for vertices
                     if j >= d {
@@ -57,7 +57,7 @@ pub mod epsilon_search {
                                             crossing_out_graph.penalty_graph.left_image[0].len()) {
                             let (n_i, n_j, n_index) = neighbour_index(i, j, n);
                             let min_penalty_edge =
-                            crossing_out_graph
+                            crossing_out_graph.penalty_graph
                             .min_penalty_edge(i, j, n, n_i, n_j, n_index);
                             for n_d in 0..max_disparity {
                                 array.push(crossing_out_graph.penalty_graph.lookup_table[d][n_d]

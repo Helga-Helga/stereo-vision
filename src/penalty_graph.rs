@@ -162,7 +162,7 @@ pub mod penalty_graph {
         Returns min_{n_d} g_{tt'}(d, n_d), where t = (i, j), t' is a neighbour of t,
         n_d is a disparity in pixel t'
         */
-            let mut result: f64 = 0.;
+            let mut result: f64 = f64::INFINITY;
             let (n_i, n_j, n_index) = neighbour_index(i, j, n);
             for n_d in 0..self.max_disparity {
                 if result > self.edge_penalty_with_potential(i, j, n, d, n_i, n_j, n_index, n_d) {
@@ -190,7 +190,7 @@ pub mod penalty_graph {
             result
         }
 
-        pub fn update_potential(&mut self, i: usize, j: usize, d: usize, n: usize){
+        pub fn update_potential(&mut self, i: usize, j: usize, d: usize, n: usize) {
         /*
         (i, j): coordinate of pixel t in an image
         d: disparity in pixel t
@@ -209,6 +209,97 @@ pub mod penalty_graph {
             number_of_neighbours(i, j, n, self.left_image.len(), self.left_image[0].len()) as f64;
         self.potentials[i][j][n][d] = self.min_edge_between_neighbours(i, j, n, d) -
             (vertex_penalty + self.sum_min_edges(i, j, d)) / (number_of_neighbours + 1.)
+        }
+
+        pub fn diffusion_act(&mut self) {
+        /*
+        Find the most light edges from a current object to all of its neighbours.
+        Then make equivalent problem conversion,
+        so that the weight of the most light edges become the same
+        */
+            for i in 0..self.left_image.len() {
+                for j in 0..self.left_image[0].len() {
+                    for d in 0..self.max_disparity {
+                        for n in 0..self.max_disparity {
+                            if neighbour_exists(i, j, n, self.left_image.len(),
+                                                self.left_image[0].len()) {
+                                self.update_potential(i, j, d, n);
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        pub fn min_penalty_vertex(&self, i: usize, j: usize) -> f64 {
+        /*
+        i: number of pixel row in image
+        j: number of pixel column in image
+        (i, j) defines pixel (its coordinate in image)
+        Returns minimum penalty of given pixel (updated by potentials):
+        look over each possible diparity value of pixel and choose minimum value of vertex penalty
+        */
+            let mut min_penalty_vertex: f64 = f64::INFINITY;
+            for d in 0..self.max_disparity {
+                if j >= d && min_penalty_vertex >
+                    self.vertex_penalty_with_potentials(i, j, d) {
+                    min_penalty_vertex =
+                        self.vertex_penalty_with_potentials(i, j, d);
+                }
+            }
+            min_penalty_vertex
+        }
+
+        pub fn min_penalty_edge(&self, i: usize, j: usize, n: usize,
+                                n_i: usize, n_j: usize, n_index: usize) -> f64 {
+        /*
+        i: row of pixel in left image
+        j: column of pixel in left image
+        n_i: row of pixel neighbour in left image
+        n_j: column of pixel neighbour in left image
+        n_index: index of pixel for neighbour (from 0 to 3)
+        returns min_{d, d'} g*_{tt'}(d, d'), where t is pixel (i, j), t' is it neighbour,
+        g*_{tt'}(d, d') = g_{tt'}(d, d') - phi_{tt'}(d) - phi_{t't}(d'),
+        where phi are potentials
+        So, we have fixed pixel and its neighbour;
+        and search for minimum edge penalty (with potentials) between them
+        based on pixel disparity and neighbour disparity
+        */
+            let mut min_penalty_edge: f64 = f64::INFINITY;
+                for d in 0..self.max_disparity {
+                    for n_d in 0..self.max_disparity {
+                        if min_penalty_edge > self.edge_penalty_with_potential(i, j, n, d, n_i,
+                                                                               n_j, n_index, n_d) {
+                            min_penalty_edge = self.edge_penalty_with_potential(i, j, n, d, n_i,
+                                                                                n_j, n_index, n_d);
+                        }
+                    }
+                }
+            min_penalty_edge
+        }
+
+        pub fn energy(&self) -> f64 {
+        /*
+        Returns the value of energy for the problem:
+        E = sum_t min_{k_t} f_t(k_t) + sum_{tt' in tau} min_{k_t, k_t'} g_{tt'}(k_t, k_t')
+        It takes the most light vertices in each object
+        and the most light edges between each pair of neighbour objects and
+        computes a sum of its penalties
+        */
+            let mut energy: f64 = 0.;
+            for i in 0..self.left_image.len() {
+                for j in 0..self.left_image[0].len() {
+                    energy += self.min_penalty_vertex(i, j);
+                    for n in 0..4 {
+                        if neighbour_exists(i, j, n, self.left_image.len(),
+                                            self.left_image[0].len()) {
+                            let (n_i, n_j, n_index) = neighbour_index(i, j, n);
+                            energy += self.min_penalty_edge(i, j, n, n_i, n_j, n_index);
+                        }
+                    }
+                }
+            }
+            energy
         }
     }
 
