@@ -89,6 +89,21 @@ pub mod penalty_graph {
             self.lookup_table[disparity][disparity_neighbour] as f64
         }
 
+        pub fn edge_penalty_with_potential(&self, i: usize, j: usize, n: usize, d: usize,
+            n_i: usize, n_j: usize, n_index: usize, n_d: usize) -> f64 {
+        /*
+        (i, j): coordinate of pixel t in image
+        d: disparity of pixel t
+        n: number of neighbour t' for pixel t (from 0 to 3)
+        (n_i, n_j): coordinate or a neighbout t' in image
+        n_d: disparity of pixel t' in image
+        n_index: number of neighbour t for pixel t' (from 0 to 3)
+        Returns g*_{tt'}(k_t, k_t') = g_{tt'}(k_t, k_t') - phi_{tt'}(k_t) - phi_{t't}(k_t')
+        */
+            self.edge_penalty(d, n_d) - self.potentials[i][j][n][d] -
+                self.potentials[n_i][n_j][n_index][n_d]
+        }
+
         pub fn penalty(&self, disparity_map: Vec<Vec<usize>>) -> f64 {
         /*
         disparity_map: matrix of the same size as an image,
@@ -111,9 +126,9 @@ pub mod penalty_graph {
                         if neighbour_exists(i, j, n, self.left_image.len(), self.left_image[0].len()) {
                             let (n_i, n_j, n_index) = neighbour_index(i, j, n);
                             penalty +=
-                                self.edge_penalty(disparity_map[i][j], disparity_map[n_i][n_j]) -
-                                self.potentials[i][j][n][disparity_map[i][j]] -
-                                self.potentials[n_i][n_j][n_index][disparity_map[n_i][n_j]];
+                                self.edge_penalty_with_potential(i, j, n, disparity_map[i][j], n_i,
+                                                                 n_j, n_index,
+                                                                 disparity_map[n_i][n_j]);
                         }
                     }
                 }
@@ -150,12 +165,8 @@ pub mod penalty_graph {
             let mut result: f64 = 0.;
             let (n_i, n_j, n_index) = neighbour_index(i, j, n);
             for n_d in 0..self.max_disparity {
-                if result > self.lookup_table[d][n_d] - self.potentials[i][j][n][d] -
-                            self.potentials[n_i][n_j][n_index][n_d] {
-                    result =
-                        self.lookup_table[d][n_d] -
-                        self.potentials[i][j][n][d] -
-                        self.potentials[n_i][n_j][n_index][n_d];
+                if result > self.edge_penalty_with_potential(i, j, n, d, n_i, n_j, n_index, n_d) {
+                    result = self.edge_penalty_with_potential(i, j, n, d, n_i, n_j, n_index, n_d);
                 }
             }
             result
@@ -163,7 +174,7 @@ pub mod penalty_graph {
 
         pub fn sum_min_edges(&self, i: usize, j: usize, d: usize) -> f64 {
         /*
-        (i, j): coordnate of a pixel in an image
+        (i, j): coordinate of a pixel in an image
         d: disparity in pixel (i, j)
         Used equation: sum_{t' in N(t)} min_{n_d} g_{tt'}(d, n_d),
         where t = (i, j), t' is a neighbour of t, N(t) is a set of neighbours of pixel t,

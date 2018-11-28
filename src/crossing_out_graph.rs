@@ -103,14 +103,10 @@ pub mod crossing_out_graph {
                                 let min_penalty_edge =
                                 self.min_penalty_edge(i, j, n, n_i, n_j, n_index);
                                 for n_d in 0..self.penalty_graph.max_disparity {
-                                    if self.penalty_graph.lookup_table[d][n_d]
-                                    - self.penalty_graph.potentials[i][j][n][d]
-                                    - self.penalty_graph.potentials[n_i][n_j][n_index][n_d]
-                                    >= min_penalty_edge
-                                    && self.penalty_graph.lookup_table[d][n_d]
-                                    - self.penalty_graph.potentials[i][j][n][d]
-                                    - self.penalty_graph.potentials[n_i][n_j][n_index][n_d]
-                                    <= min_penalty_edge + epsilon {
+                                    if self.penalty_graph.edge_penalty_with_potential(i, j, n, d,
+                                        n_i, n_j, n_index, n_d) >= min_penalty_edge
+                                    && self.penalty_graph.edge_penalty_with_potential(i, j, n, d,
+                                            n_i, n_j, n_index, n_d) <= min_penalty_edge + epsilon {
                                         self.edges[i][j][d][n][n_d] = true;
                                     } else {
                                         self.edges[i][j][d][n][n_d] = false;
@@ -164,12 +160,10 @@ pub mod crossing_out_graph {
             let mut min_penalty_edge: f64 = f64::INFINITY;
                 for d in 0..self.penalty_graph.max_disparity {
                     for n_d in 0..self.penalty_graph.max_disparity {
-                        if min_penalty_edge > self.penalty_graph.lookup_table[d][n_d]
-                        - self.penalty_graph.potentials[i][j][n][d]
-                        - self.penalty_graph.potentials[n_i][n_j][n_index][n_d] {
-                            min_penalty_edge = self.penalty_graph.lookup_table[d][n_d]
-                            - self.penalty_graph.potentials[i][j][n][d]
-                            - self.penalty_graph.potentials[n_i][n_j][n_index][n_d];
+                        if min_penalty_edge > self.penalty_graph
+                            .edge_penalty_with_potential(i, j, n, d, n_i, n_j, n_index, n_d) {
+                            min_penalty_edge = self.penalty_graph.
+                                edge_penalty_with_potential(i, j, n, d, n_i, n_j, n_index, n_d);
                         }
                     }
                 }
