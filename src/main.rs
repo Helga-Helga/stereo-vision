@@ -29,13 +29,15 @@ mod epsilon_search;
 
 fn main() {
     let (right_image, r_width, r_height) =
-        pgm_reader::pgm::pgm_reader("./images/right.pgm".to_string(), true, 0);
+        pgm_reader::pgm::pgm_reader("./images/right.pgm".to_string());
     let (left_image, l_width, l_height) =
-        pgm_reader::pgm::pgm_reader("./images/left.pgm".to_string(), true, 0);
+        pgm_reader::pgm::pgm_reader("./images/left.pgm".to_string());
     assert_eq!(r_width, l_width);
     assert_eq!(r_height, l_height);
-    let (disparity_map , d_width, d_height) =
-        pgm_reader::pgm::pgm_reader("./images/disparity.pgm".to_string(), false, 1);
-    assert_eq!(r_width, d_width);
-    assert_eq!(r_height, d_height);
+    // let (disparity_map , d_width, d_height) =
+    //     pgm_reader::pgm::pgm_reader("./images/disparity.pgm".to_string(), false, 1);
+    // assert_eq!(r_width, d_width);
+    // assert_eq!(r_height, d_height);
+    let mut pgraph = penalty_graph::penalty_graph::PenaltyGraph::initialize(left_image, right_image, 5);
+    pgraph.diffusion();
 }
