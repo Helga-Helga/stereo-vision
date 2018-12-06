@@ -25,9 +25,7 @@ pub mod pgm {
     use std::fs::File;
     use std::io::{BufRead, BufReader};
 
-    pub fn pgm_reader(path: String,
-                      normalize: bool,
-                      scale_factor: i32) -> (Vec<Vec<i32>>, usize, usize) {
+    pub fn pgm_reader(path: String) -> (Vec<Vec<u32>>, usize, usize) {
     /*
     path: path of an image in file system
     normalize: `true` for intensity normalization by 1, `false`: not to change values from file
@@ -56,7 +54,7 @@ pub mod pgm {
         let height: usize = sizes[1];
         num_line = String::new();
         f.read_line(&mut num_line).unwrap();
-        let max_intensity: i32 = num_line.trim().parse().unwrap();
+        let max_intensity: u32 = num_line.trim().parse().unwrap();
         println!("Maximum intensity: {}", max_intensity);
 
         let lines: Vec<String> = f.lines().map(|l| l.unwrap().trim().to_string()).collect();
@@ -68,14 +66,10 @@ pub mod pgm {
             .collect();
         assert_eq!(width * height, array.len());
 
-        let mut matrix = vec![vec![0i32; width]; height];
+        let mut matrix = vec![vec![0u32; width]; height];
         for i in 0..height {
             for j in 0..width {
-                if normalize == true {
-                    matrix[i][j] = array[i * width + j] / max_intensity;
-                } else {
-                    matrix[i][j] = array[i * width + j] / scale_factor;
-                }
+                matrix[i][j] = array[i * width + j] as u32;
             }
         }
         return (matrix, width, height);
