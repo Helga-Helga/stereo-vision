@@ -104,9 +104,9 @@ pub mod crossing_out_graph {
                                 self.penalty_graph.min_penalty_edge(i, j, n, n_i, n_j, n_index);
                                 for n_d in 0..self.penalty_graph.max_disparity {
                                     if self.penalty_graph.edge_penalty_with_potential(i, j, n, d,
-                                        n_i, n_j, n_index, n_d) >= min_penalty_edge
+                                        n_i, n_j, n_index, n_d, true) >= min_penalty_edge
                                     && self.penalty_graph.edge_penalty_with_potential(i, j, n, d,
-                                            n_i, n_j, n_index, n_d) <= min_penalty_edge + epsilon {
+                                            n_i, n_j, n_index, n_d, true) <= min_penalty_edge + epsilon {
                                         self.edges[i][j][d][n][n_d] = true;
                                     } else {
                                         self.edges[i][j][d][n][n_d] = false;
@@ -231,7 +231,7 @@ pub mod crossing_out_graph {
         let penalty_graph = PenaltyGraph::initialize(left_image, right_image, max_disparity);
         let vertices = vec![vec![vec![true; max_disparity]; 2]; 1];
         let edges = vec![vec![vec![vec![vec![true; max_disparity]; 4]; max_disparity]; 2]; 1];
-        let mut crossing_out_graph = CrossingOutGraph::initialize(penalty_graph, vertices, edges);
+        let crossing_out_graph = CrossingOutGraph::initialize(penalty_graph, vertices, edges);
         let min_penalty_edge = crossing_out_graph.penalty_graph.min_penalty_edge(0, 0, 2, 0, 1, 0);
         assert_eq!(0., min_penalty_edge);
         let min_penalty_vertex = crossing_out_graph.penalty_graph.min_penalty_vertex(0, 0);
