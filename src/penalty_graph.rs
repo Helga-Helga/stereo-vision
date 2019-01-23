@@ -83,7 +83,7 @@ pub mod penalty_graph {
         (n_i, n_j): coordinate or a neighbout t' in image
         n_d: disparity of pixel t' in image
         n_index: number of neighbour t for pixel t' (from 0 to 3)
-        min: true if all neighbours should be considered, false if oly right and bottom neighbours
+        min: true if all neighbours should be considered, false if only right and bottom neighbours
         Returns g*_{tt'}(k_t, k_t') = g_{tt'}(k_t, k_t') - phi_{tt'}(k_t) - phi_{t't}(k_t')
         */
             if min {
@@ -144,7 +144,6 @@ pub mod penalty_graph {
             let mut sum = 0.;
             for n in 0..4 {
                 if neighbour_exists(i, j, n, self.left_image.len(), self.left_image[0].len()) {
-                    let (n_i, n_j, n_index) = neighbour_index(i, j, n);
                     sum += self.potentials[i][j][n][d];
                 }
             }
@@ -390,7 +389,7 @@ pub mod penalty_graph {
         let right_image = [[1, 0].to_vec(), [0, 0].to_vec()].to_vec();
         let disparity_map = [[0, 1].to_vec(), [0, 1].to_vec()].to_vec();
         let mut penalty_graph = PenaltyGraph::initialize(left_image, right_image, 2);
-        assert_eq!(4., penalty_graph.penalty(disparity_map));
+        assert_eq!(2., penalty_graph.penalty(disparity_map));
         penalty_graph.potentials[0][0][2][0] = 1.;
         let new_disparity_map = [[0, 1].to_vec(), [0, 1].to_vec()].to_vec();
         assert_eq!(3., penalty_graph.penalty(new_disparity_map));
