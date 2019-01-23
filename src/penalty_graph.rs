@@ -267,24 +267,27 @@ pub mod penalty_graph {
             }
         }
 
-        pub fn min_penalty_vertex(&self, i: usize, j: usize) -> f64 {
+        pub fn min_penalty_vertex(&self, i: usize, j: usize) -> (usize, f64) {
         /*
         i: number of pixel row in image
         j: number of pixel column in image
         (i, j) defines pixel (its coordinate in image)
         Returns minimum penalty of given pixel (updated by potentials):
-        look over each possible diparity value of pixel and choose minimum value of vertex penalty
+        look over each possible diparity value of pixel and choose minimum value of vertex penalty,
+        as well as a disparity value used to calculate minumum penalty
         */
             let mut min_penalty_vertex: f64 = f64::INFINITY;
+            let mut disparity: usize = 0;
             for d in 0..self.max_disparity {
                 if j >= d {
                     let mut current = self.vertex_penalty_with_potentials(i, j, d);
                     if min_penalty_vertex > current {
+                        disparity = d;
                         min_penalty_vertex = current;
                     }
                 }
             }
-            min_penalty_vertex
+            return (disparity, min_penalty_vertex);
         }
 
         pub fn min_penalty_edge(&self, i: usize, j: usize, n: usize,
@@ -328,7 +331,7 @@ pub mod penalty_graph {
             let mut energy: f64 = 0.;
             for i in 0..self.left_image.len() {
                 for j in 0..self.left_image[0].len() {
-                    energy += self.min_penalty_vertex(i, j);
+                    energy += (self.min_penalty_vertex(i, j)).1;
                     for n in 0..4 {
                         if neighbour_exists(i, j, n, self.left_image.len(),
                                             self.left_image[0].len()) {

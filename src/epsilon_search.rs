@@ -40,7 +40,7 @@ pub mod epsilon_search {
         for i in 0..crossing_out_graph.penalty_graph.left_image.len() {
             for j in 0..crossing_out_graph.penalty_graph.left_image[0].len() {
                 let min_penalty_vertex =
-                    crossing_out_graph.penalty_graph.min_penalty_vertex(i, j);
+                    (crossing_out_graph.penalty_graph.min_penalty_vertex(i, j)).1;
                 for d in 0..max_disparity {
                     // Differences for vertices
                     if j >= d {
