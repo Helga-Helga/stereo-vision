@@ -21,7 +21,7 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-mod pgm_reader;
+mod pgm_handler;
 mod diffusion;
 mod penalty_graph;
 mod crossing_out_graph;

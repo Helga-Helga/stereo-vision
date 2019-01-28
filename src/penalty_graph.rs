@@ -26,7 +26,7 @@ pub mod penalty_graph {
     use super::super::diffusion::diffusion::neighbour_exists;
     use super::super::diffusion::diffusion::neighbour_index;
     use super::super::diffusion::diffusion::number_of_neighbours;
-    use super::super::pgm_reader::pgm::pgm_writer;
+    use super::super::pgm_handler::pgm::pgm_writer;
 
     #[derive(Debug)]
     pub struct PenaltyGraph {
