@@ -26,6 +26,7 @@ pub mod penalty_graph {
     use super::super::diffusion::diffusion::neighbour_exists;
     use super::super::diffusion::diffusion::neighbour_index;
     use super::super::diffusion::diffusion::number_of_neighbours;
+    use super::super::pgm_reader::pgm::pgm_writer;
 
     #[derive(Debug)]
     pub struct PenaltyGraph {
@@ -265,6 +266,23 @@ pub mod penalty_graph {
                 energy_prev = energy;
                 println!("Energy: {}", energy);
             }
+            self.build_depth_map();
+        }
+
+        pub fn build_depth_map(&self) {
+            let mut depth_map = vec![vec![0usize; self.left_image[0].len()]; self.left_image.len()];
+            for i in 0..self.left_image.len() {
+                for j in 0..self.left_image[0].len() {
+                    depth_map[i][j] = self.min_penalty_vertex(i, j).0;
+                }
+            }
+            let f = pgm_writer(depth_map, "./images/result.pgm".to_string(), self.max_disparity);
+            let f = match f {
+                Ok(file) => file,
+                Err(error) => {
+                    panic!("There was a problem writing a file : {:?}", error)
+                },
+            };
         }
 
         pub fn min_penalty_vertex(&self, i: usize, j: usize) -> (usize, f64) {
@@ -341,7 +359,7 @@ pub mod penalty_graph {
                     }
                 }
             }
-            println!("zero: {}", self.zero());
+            println!("Energy of zero disparity map: {}", self.zero());
             energy
         }
 
