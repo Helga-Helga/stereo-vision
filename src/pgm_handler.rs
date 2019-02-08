@@ -76,15 +76,20 @@ pub mod pgm {
         return (matrix, width, height);
     }
 
-    pub fn pgm_writer(depth_map: Vec<Vec<usize>>, path: String, max_disparity: usize) -> Result<()> {
+    pub fn pgm_writer(matrix: &Vec<Vec<usize>>, path: String, max_intensity: usize) -> Result<()> {
+    /*
+    Creates or updates a .pgm file with specified `path`.
+    Maximum intensity is `max_disparity`.
+    Values are `depth map`
+    */
         let mut file = File::create(path).expect("Unable to create file");
         writeln!(file, "P2").expect("Unable to write the magic number P2");
-        writeln!(file, "{} {}", depth_map[0].len(), depth_map.len())
+        writeln!(file, "{} {}", matrix[0].len(), matrix.len())
             .expect("Unable to write image size");;
-        writeln!(file, "{}", max_disparity).expect("Unable to write maximum color intensity");
-        for i in 0..depth_map.len() {
-            let string: Vec<String> = depth_map[i].iter().map(|n| n.to_string()).collect();
-            writeln!(file, "{}", string.join(" ")).expect("Unable to write depth map");
+        writeln!(file, "{}", max_intensity).expect("Unable to write maximum color intensity");
+        for i in 0..matrix.len() {
+            let string: Vec<String> = matrix[i].iter().map(|n| n.to_string()).collect();
+            writeln!(file, "{}", string.join(" ")).expect("Unable to writea matrix");
         }
         Ok(())
     }

@@ -104,9 +104,9 @@ pub mod crossing_out_graph {
                                 self.penalty_graph.min_penalty_edge(i, j, n, n_i, n_j, n_index);
                                 for n_d in 0..self.penalty_graph.max_disparity {
                                     if self.penalty_graph.edge_penalty_with_potential(i, j, n, d,
-                                        n_i, n_j, n_index, n_d, true) >= min_penalty_edge
+                                        n_i, n_j, n_index, n_d) >= min_penalty_edge
                                     && self.penalty_graph.edge_penalty_with_potential(i, j, n, d,
-                                            n_i, n_j, n_index, n_d, true) <= min_penalty_edge + epsilon {
+                                            n_i, n_j, n_index, n_d) <= min_penalty_edge + epsilon {
                                         self.edges[i][j][d][n][n_d] = true;
                                     } else {
                                         self.edges[i][j][d][n][n_d] = false;

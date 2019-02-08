@@ -22,6 +22,8 @@
  * SOFTWARE.
  */
 pub mod diffusion {
+    use std::f64;
+
     pub fn neighbour_exists(pixel_i: usize, pixel_j: usize, neighbour: usize,
                             height: usize, width: usize) -> bool {
     /*
@@ -79,8 +81,7 @@ pub mod diffusion {
         }
     }
 
-    pub fn number_of_neighbours(i: usize, j: usize, height: usize, width: usize) ->
-        usize {
+    pub fn number_of_neighbours(i: usize, j: usize, height: usize, width: usize) -> usize {
     /*
     (i, j): coordinate of pixel in an image
     height, width: size of image
@@ -94,5 +95,15 @@ pub mod diffusion {
             }
         }
         number_of_neighbours
+    }
+
+    pub fn approx_equal(x: f64, y: f64) -> bool {
+    /*
+    Returns true if x and y are almost equal
+    */
+        if (x - y).abs() > f64::EPSILON {
+            return false;
+        }
+        return true;
     }
 }

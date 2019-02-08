@@ -26,6 +26,7 @@ pub mod penalty_graph {
     use super::super::diffusion::diffusion::neighbour_exists;
     use super::super::diffusion::diffusion::neighbour_index;
     use super::super::diffusion::diffusion::number_of_neighbours;
+    use super::super::diffusion::diffusion::approx_equal;
     use super::super::pgm_handler::pgm::pgm_writer;
 
     #[derive(Debug)]
@@ -76,7 +77,7 @@ pub mod penalty_graph {
         }
 
         pub fn edge_penalty_with_potential(&self, i: usize, j: usize, n: usize, d: usize,
-            n_i: usize, n_j: usize, n_index: usize, n_d: usize, min: bool) -> f64 {
+            n_i: usize, n_j: usize, n_index: usize, n_d: usize) -> f64 {
         /*
         (i, j): coordinate of pixel t in image
         d: disparity of pixel t
@@ -84,13 +85,8 @@ pub mod penalty_graph {
         (n_i, n_j): coordinate or a neighbout t' in image
         n_d: disparity of pixel t' in image
         n_index: number of neighbour t for pixel t' (from 0 to 3)
-        min: true if all neighbours should be considered, false if only right and bottom neighbours
         Returns g*_{tt'}(k_t, k_t') = g_{tt'}(k_t, k_t') - phi_{tt'}(k_t) - phi_{t't}(k_t')
         */
-            if min {
-                return self.lookup_table[d][n_d] - self.potentials[i][j][n][d] -
-                    self.potentials[n_i][n_j][n_index][n_d];
-            }
             let mut edge: f64 = 0.;
             if n == 2 || n == 3 {
                 edge += self.lookup_table[d][n_d] - self.potentials[i][j][n][d] -
@@ -121,7 +117,7 @@ pub mod penalty_graph {
                                 if n_j >= disparity_map[n_i][n_j] {
                                     penalty += self.potentials[n_i][n_j][n_index][disparity_map[n_i][n_j]];
                                     penalty += self.edge_penalty_with_potential(i, j, n,
-                                        disparity_map[i][j], n_i, n_j, n_index, disparity_map[n_i][n_j], false);
+                                        disparity_map[i][j], n_i, n_j, n_index, disparity_map[n_i][n_j]);
                                 } else {
                                     penalty += f64::INFINITY;
                                 }
@@ -144,33 +140,39 @@ pub mod penalty_graph {
         */
             let mut sum = 0.;
             for n in 0..4 {
-                if neighbour_exists(i, j, n, self.left_image.len(), self.left_image[0].len()) {
-                    sum += self.potentials[i][j][n][d];
+                if n == 2 || n == 3 {
+                    if neighbour_exists(i, j, n, self.left_image.len(), self.left_image[0].len()) {
+                        sum += self.potentials[i][j][n][d];
+                    }
                 }
             }
             sum
         }
 
-        pub fn min_edge_between_neighbours(&self, i: usize, j: usize, n: usize, d: usize) -> f64 {
+        pub fn min_edge_between_neighbours(&self, i: usize, j: usize, n: usize, d: usize) -> (f64, usize) {
         /*
         (i, j): coordinate of a pixel in an image
         n: number of a neighbour (from 0 to 3)
         d: disparity of pixel (i, j)
         Returns min_{n_d} g_{tt'}(d, n_d), where t = (i, j), t' is a neighbour of t,
-        n_d is a disparity in pixel t'
+        n_d is a disparity in pixel t', and corresponding n_d
         */
             let mut result: f64 = f64::INFINITY;
-            let (n_i, n_j, n_index) = neighbour_index(i, j, n);
-            for n_d in 0..self.max_disparity {
-                if n_j >= n_d {
-                    let mut current =
-                    self.edge_penalty_with_potential(i, j, n, d, n_i, n_j, n_index, n_d, false);
-                    if result > current {
-                        result = current;
+            let mut n_disparity = 0;
+            if j >= d {
+                let (n_i, n_j, n_index) = neighbour_index(i, j, n);
+                for n_d in 0..self.max_disparity {
+                    if n_j >= n_d {
+                        let mut current =
+                        self.edge_penalty_with_potential(i, j, n, d, n_i, n_j, n_index, n_d);
+                        if result > current {
+                            result = current;
+                            n_disparity = n_d;
+                        }
                     }
                 }
             }
-            result
+            return (result, n_disparity);
         }
 
         pub fn sum_min_edges(&self, i: usize, j: usize, d: usize) -> f64 {
@@ -185,7 +187,7 @@ pub mod penalty_graph {
             let mut result: f64 = 0.;
             for n in 0..4 {
                 if neighbour_exists(i, j, n, self.left_image.len(), self.left_image[0].len()) {
-                    result += self.min_edge_between_neighbours(i, j, n, d);
+                    result += (self.min_edge_between_neighbours(i, j, n, d)).0;
                 }
             }
             result
@@ -211,8 +213,9 @@ pub mod penalty_graph {
                     let vertex_penalty: f64 = self.vertex_penalty_with_potentials(i, j, d);
                     let number_of_neighbours: f64 = number_of_neighbours(i, j,
                         self.left_image.len(), self.left_image[0].len()) as f64;
+                    let (min_edge, n_d) = self.min_edge_between_neighbours(i, j, n, d);
                     self.potentials_dummy[i][j][n][d] =
-                        self.min_edge_between_neighbours(i, j, n, d) -
+                        min_edge -
                         (vertex_penalty + self.sum_min_edges(i, j, d)) /
                         (number_of_neighbours + 1.);
                     if self.potentials_dummy[i][j][n][d] != self.potentials[i][j][n][d] {
@@ -248,35 +251,68 @@ pub mod penalty_graph {
             changed
         }
 
-        pub fn diffusion(&mut self) {
+        pub fn diffusion(&mut self, number_of_iterations: usize) {
         /*
         Makes diffusion iterations while at least one potential has changed
         Breaks when energy stops increasing
         */
             let mut changed = true;
             let mut energy: f64 = self.energy();
-            let mut energy_prev: f64 = energy;
+            //let mut energy_prev: f64 = energy;
             println!("Energy: {}", energy);
-            while changed {
+            let mut i = 1;
+            //while changed {
+            while i <= number_of_iterations {
+                println!("Iteration # {}", i);
                 changed = self.diffusion_act();
                 energy = self.energy();
-                if energy_prev >= energy {
-                    break;
-                }
-                energy_prev = energy;
+                // if energy_prev >= energy {
+                //     break;
+                // }
+                //energy_prev = energy;
                 println!("Energy: {}", energy);
+                i += 1;
             }
-            self.build_depth_map();
+            let depth_map = self.build_depth_map();
+            self.build_left_image(depth_map);
         }
 
-        pub fn build_depth_map(&self) {
+        pub fn build_depth_map(&self) -> Vec<Vec<usize>> {
+        /*
+        For now, depth map contains a disparity for each pixel that gives
+        minimum vertex penalty for the pixel.
+        The depth map is saved as an image to ./images/result.pgm
+        */
             let mut depth_map = vec![vec![0usize; self.left_image[0].len()]; self.left_image.len()];
             for i in 0..self.left_image.len() {
                 for j in 0..self.left_image[0].len() {
                     depth_map[i][j] = self.min_penalty_vertex(i, j).0;
                 }
             }
-            let f = pgm_writer(depth_map, "./images/result.pgm".to_string(), self.max_disparity);
+            let f = pgm_writer(&depth_map, "./images/result.pgm".to_string(), self.max_disparity);
+            let f = match f {
+                Ok(file) => file,
+                Err(error) => {
+                    panic!("There was a problem writing a file : {:?}", error)
+                },
+            };
+            return depth_map;
+        }
+
+        pub fn build_left_image(&self, depth_map: Vec<Vec<usize>>) {
+        /*
+        Right image and build disparity map are used to recreate a left image.
+        It is a way to test the result.
+        Recreated left image should be very similar to the original one.
+        It is saved as an image to ./images/result_left_image.pgm
+        */
+            let mut left_image = vec![vec![0usize; self.left_image[0].len()]; self.left_image.len()];
+            for i in 0..self.right_image.len() {
+                for j in 0..self.right_image[0].len() {
+                    left_image[i][j] = self.right_image[i][j - depth_map[i][j]] as usize;
+                }
+            }
+            let f = pgm_writer(&left_image, "./images/result_left_image.pgm".to_string(), 255);
             let f = match f {
                 Ok(file) => file,
                 Err(error) => {
@@ -325,14 +361,16 @@ pub mod penalty_graph {
         */
             let mut min_penalty_edge: f64 = f64::INFINITY;
                 for d in 0..self.max_disparity {
-                    for n_d in 0..self.max_disparity {
-                        if j >= n_d {
-                            let mut current = self.edge_penalty_with_potential(i, j, n, d,
-                                n_i, n_j, n_index, n_d, false);
-                                if min_penalty_edge > current {
-                                    min_penalty_edge = current;
+                    if j >= d {
+                        for n_d in 0..self.max_disparity {
+                            if n_j >= n_d {
+                                let mut current = self.edge_penalty_with_potential(i, j, n, d,
+                                    n_i, n_j, n_index, n_d);
+                                    if min_penalty_edge > current {
+                                        min_penalty_edge = current;
+                                    }
                                 }
-                        }
+                            }
                     }
                 }
             min_penalty_edge
@@ -353,8 +391,10 @@ pub mod penalty_graph {
                     for n in 0..4 {
                         if neighbour_exists(i, j, n, self.left_image.len(),
                                             self.left_image[0].len()) {
-                            let (n_i, n_j, n_index) = neighbour_index(i, j, n);
-                            energy += self.min_penalty_edge(i, j, n, n_i, n_j, n_index);
+                            if n == 2 || n == 3 {
+                                let (n_i, n_j, n_index) = neighbour_index(i, j, n);
+                                energy += self.min_penalty_edge(i, j, n, n_i, n_j, n_index);
+                            }
                         }
                     }
                 }
@@ -377,7 +417,7 @@ pub mod penalty_graph {
                                             self.left_image[0].len()) {
                             let (n_i, n_j, n_index) = neighbour_index(i, j, n);
                             zero_penalty += self.edge_penalty_with_potential(i, j, n, 0, n_i, n_j,
-                                                                             n_index, 0, false);
+                                                                             n_index, 0);
                         }
                     }
                 }
