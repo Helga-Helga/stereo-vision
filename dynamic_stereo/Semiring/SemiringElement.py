@@ -27,12 +27,6 @@ class SemiringElement(object):
     def get_unity():
         raise NotImplementedError()
 
-    def __iadd__(self, b):
-        return self.add(b)
-
-    def __imul__(self, b):
-        return self.mul(b)
-
     def __add__(self, b):
         return self.value + b
 
@@ -44,6 +38,9 @@ class SemiringElement(object):
 
     def __neq__(self, b):
         return self.value != b.value
+
+    def __lt__(self, b):
+        return self.value < b.value
 
     def __str__(self):
         return str(self.value)
