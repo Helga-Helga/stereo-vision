@@ -21,7 +21,7 @@ def dynamic_programming_solver(nodes, edges,
             next_label = None
             for label_r in range(nodes.shape[2]):
                 min_value, next_label = \
-                    min_value.add(edges[obj-1, label_l, label_r]
+                    min_value.add(semiring(edges[obj-1, label_l, label_r] * 20)
                                   .mul(nodes[obj, label_r, 0]),
                                   next_label, label_r)
             nodes[obj-1, label_l, 0] = nodes[obj-1, label_l, 0].mul(min_value)
@@ -47,17 +47,11 @@ def get_best_path(nodes, semiring=SemiringArgminPlusElement):
     return [i for i in path], nodes[0, path[0], 0]
 
 if __name__ == "__main__":
-    MAX_DISPARITY = 3
-    left_image = array(Image.open("../images/left.png").convert("L"),
+    MAX_DISPARITY = 20
+    left_image = array(Image.open("../images/imL.png").convert("L"),
                        dtype=int)
-    pyplot.imshow(left_image, 'gray')
-    print(left_image)
-    # pyplot.show()
-    right_image = array(Image.open("../images/right.png").convert("L"),
+    right_image = array(Image.open("../images/imR.png").convert("L"),
                         dtype=int)
-    pyplot.imshow(right_image, 'gray')
-    print(right_image)
-    # pyplot.show()
 
     disparity_map = zeros(left_image.shape, dtype=uint8)
 
@@ -69,9 +63,7 @@ if __name__ == "__main__":
         nodes = dynamic_programming_solver(nodes, edges)
         path, path_weight = get_best_path(nodes)
         disparity_map[i] = path
-        print("Line {} : result path {} : path weight {}"
-              .format(i, path, path_weight))
+        print("Processing line {}".format(i))
 
-    print(disparity_map)
     pyplot.imshow(disparity_map, 'gray')
-    # pyplot.show()
+    pyplot.show()
