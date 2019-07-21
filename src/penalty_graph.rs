@@ -32,8 +32,7 @@ pub mod penalty_graph {
     #[derive(Debug)]
     pub struct PenaltyGraph {
      pub lookup_table: Vec<Vec<f64>>,
-     pub vertex_potentials: Vec<Vec<Vec<Vec<f64>>>>,
-     pub edge_potentials: Vec<Vec<Vec<Vec<f64>>>>,
+     pub potentials: Vec<Vec<Vec<Vec<f64>>>>,
      pub left_image: Vec<Vec<u32>>,
      pub right_image: Vec<Vec<u32>>,
      pub max_disparity: usize,
@@ -53,9 +52,7 @@ pub mod penalty_graph {
             }
             Self {
                 lookup_table: lookup_table,
-                vertex_potentials: vec![vec![vec![vec![0f64; max_disparity]; 4]; left_image[0].len()];
-                            left_image.len()],
-                edge_potentials: vec![vec![vec![vec![0f64; max_disparity]; 4]; left_image[0].len()];
+                potentials: vec![vec![vec![vec![0f64; max_disparity]; 4]; left_image[0].len()];
                             left_image.len()],
                 left_image: left_image,
                 right_image: right_image,
@@ -63,17 +60,17 @@ pub mod penalty_graph {
             }
         }
 
-        pub fn sum_of_vertex_potentials(&self, i: usize, j: usize, d: usize) -> f64 {
+        pub fn sum_of_potentials(&self, i: usize, j: usize, d: usize) -> f64 {
         /*
         i: number of pixel row in image
         j: number of pixel column in image
         d: disparity of pixel (i, j)
-        Returns the sum of vertex potentials between pixel (i, j) with disparity d and all its neighbors
+        Returns the sum of potentials between pixel (i, j) with disparity d and all its neighbors
         */
             let mut sum_of_potentials = 0.;
             for n in 0..4 {
                 if neighbor_exists(i, j, n, self.left_image.len(), self.left_image[0].len()) {
-                    sum_of_potentials += self.vertex_potentials[i][j][n][d];
+                    sum_of_potentials += self.potentials[i][j][n][d];
                 }
             }
             sum_of_potentials
@@ -86,10 +83,10 @@ pub mod penalty_graph {
         Returns f*_t(k_t) = f_t(k_t) - sum_{t' in N(t)} phi_{tt'}(k_t), where
         t' is a neighbor of pixel t
         N(t) is a set of vertices t' that has a common edge with t
-        phi_{tt'}(k_t) is a vertex potential
+        phi_{tt'}(k_t) is a potential
         */
             self.lookup_table[self.left_image[i][j] as usize][self.right_image[i][j - d]
-                as usize] - self.sum_of_vertex_potentials(i, j, d)
+                as usize] - self.sum_of_potentials(i, j, d)
         }
 
         pub fn edge_penalty_with_potential(&self, i: usize, j: usize, n: usize, d: usize, n_d: usize) -> f64 {
@@ -101,8 +98,8 @@ pub mod penalty_graph {
         Returns g*_{tt'}(k_t, k_t') = g_{tt'}(k_t, k_t') + phi_{tt'}(k_t) + phi_{t't}(k_t')
         */
             let (n_i, n_j, n_index) = neighbor_index(i, j, n);
-            10. * self.lookup_table[d][n_d] + self.edge_potentials[i][j][n][d]
-                + self.edge_potentials[n_i][n_j][n_index][n_d]
+            15. * self.lookup_table[d][n_d] + self.potentials[i][j][n][d]
+                + self.potentials[n_i][n_j][n_index][n_d]
         }
 
         pub fn penalty(&self, disparity_map: Vec<Vec<usize>>) -> f64 {
@@ -184,9 +181,9 @@ pub mod penalty_graph {
         n: number of a neighbor (from 0 to 3)
         d: disparity in pixel (i, j)
         n_j: horizontal coordinate of n_th neighbor of pixel (i, j)
-        Updates potential correspondent to vertex
+        Substitutes minimum edge penalties from potentials
         */
-            self.vertex_potentials[i][j][n][d] -= self.min_edge_between_neighbors(i, j, n, d, n_j);
+            self.potentials[i][j][n][d] -= self.min_edge_between_neighbors(i, j, n, d, n_j);
         }
 
         pub fn update_edge_potential(&mut self, i: usize, j: usize, n: usize, d: usize) {
@@ -194,17 +191,15 @@ pub mod penalty_graph {
         (i, j): coordinate of a pixel in an image
         n: number of a neighbor (from 0 to 3)
         d: disparity in pixel (i, j)
-        Updates potential correspondent to edge
+        Spreads the weight of the vertex on the potentials that go out of it, equally
         */
-            self.edge_potentials[i][j][n][d] += self.vertex_penalty_with_potentials(i, j, d) /
+            self.potentials[i][j][n][d] += self.vertex_penalty_with_potentials(i, j, d) /
                 number_of_neighbors(i, j, self.left_image.len(), self.left_image[0].len()) as f64;
         }
 
-        pub fn diffusion_act(&mut self) {
+        pub fn diffusion_act_vertexes(&mut self) {
         /*
-        Find the most light edges from a current object to all of its neighbors.
-        Then make equivalent problem conversion,
-        so that the weight of the most light edges become the same
+        Updates potentials with the first way
         */
             for i in 0..self.left_image.len() {
                 for j in 0..self.left_image[0].len() {
@@ -214,6 +209,24 @@ pub mod penalty_graph {
                             for d in 0..self.max_disparity {
                                 if j >= d {
                                     self.update_vertex_potential(i, j, n, d, n_j);
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        pub fn diffusion_act_edges(&mut self) {
+        /*
+        Updates potentials with the second way
+        */
+            for i in 0..self.left_image.len() {
+                for j in 0..self.left_image[0].len() {
+                    for n in 0..4 {
+                        if neighbor_exists(i, j, n, self.left_image.len(), self.left_image[0].len()) {
+                            for d in 0..self.max_disparity {
+                                if j >= d {
                                     self.update_edge_potential(i, j, n, d);
                                 }
                             }
@@ -232,7 +245,28 @@ pub mod penalty_graph {
             let mut i = 1;
             while i <= number_of_iterations {
                 println!("Iteration # {}", i);
-                self.diffusion_act();
+                self.diffusion_act_vertexes();
+                self.diffusion_act_edges();
+                energy = self.energy();
+                println!("Energy: {}", energy);
+                let depth_map = self.build_depth_map(i);
+                self.build_left_image(depth_map, i);
+                i += 1;
+            }
+        }
+
+        pub fn diffusion_while_energy_increases(&mut self) {
+        /*
+        Makes diffusion iterations while energy increases
+        */
+            let mut energy_prev: f64 = 0.;
+            let mut energy: f64 = self.energy();
+            let mut i = 1;
+            while !approx_equal(energy, energy_prev) {
+                energy_prev = energy;
+                println!("Iteration # {}", i);
+                self.diffusion_act_vertexes();
+                self.diffusion_act_edges();
                 energy = self.energy();
                 println!("Energy: {}", energy);
                 let depth_map = self.build_depth_map(i);

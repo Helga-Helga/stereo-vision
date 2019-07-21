@@ -24,8 +24,8 @@
 mod pgm_handler;
 mod diffusion;
 mod penalty_graph;
-mod crossing_out_graph;
-mod epsilon_search;
+// mod crossing_out_graph;
+// mod epsilon_search;
 
 fn main() {
     let (right_image, r_width, r_height) =
@@ -35,5 +35,5 @@ fn main() {
     assert_eq!(r_width, l_width);
     assert_eq!(r_height, l_height);
     let mut pgraph = penalty_graph::penalty_graph::PenaltyGraph::initialize(left_image, right_image, 10);
-    pgraph.diffusion(20);
+    pgraph.diffusion_while_energy_increases();
 }
