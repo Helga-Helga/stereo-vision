@@ -24,8 +24,8 @@
 pub mod crossing_out_graph {
     use std::f64;
     use super::super::penalty_graph::penalty_graph::PenaltyGraph;
-    use super::super::diffusion::diffusion::neighbour_exists;
-    use super::super::diffusion::diffusion::neighbour_index;
+    use super::super::diffusion::diffusion::neighbor_exists;
+    use super::super::diffusion::diffusion::neighbor_index;
 
     #[derive(Debug)]
     pub struct CrossingOutGraph {
@@ -33,7 +33,7 @@ pub mod crossing_out_graph {
         // A vertice is defined by pixel coordinates (i, j) and disparity value d
         vertices: Vec<Vec<Vec<bool>>>,
         // And edge is defined by a vertex (i, j, d),
-        // a number of its neighbour n (from 0 to 3) and disparity n_d of the neighbour
+        // a number of its neighbor n (from 0 to 3) and disparity n_d of the neighbor
         edges: Vec<Vec<Vec<Vec<Vec<bool>>>>>
     }
 
@@ -87,7 +87,7 @@ pub mod crossing_out_graph {
         epsilon: precision with what edges exist
         (edge = 1 if its penalty differs from minimum not more that by epsilon, else: edge = 0)
         Fills self.edges with true or false according to this rule
-        Go through each pair of neighbours.
+        Go through each pair of neighbors.
         If edge weight of the pair is between
         min_penalty_edge and min_penalty_edge + epsilon that this edge exists.
         Else this edge doesn't exist
@@ -96,10 +96,10 @@ pub mod crossing_out_graph {
                 for j in 0..self.penalty_graph.left_image[0].len() {
                     for d in 0..self.penalty_graph.max_disparity {
                         for n in 0..4 {
-                            if neighbour_exists(i, j, n,
+                            if neighbor_exists(i, j, n,
                                                 self.penalty_graph.left_image.len(),
                                                 self.penalty_graph.left_image[0].len()) {
-                                let (n_i, n_j, n_index) = neighbour_index(i, j, n);
+                                let (n_i, n_j, n_index) = neighbor_index(i, j, n);
                                 let min_penalty_edge =
                                 self.penalty_graph.min_penalty_edge(i, j, n, n_i, n_j, n_index);
                                 for n_d in 0..self.penalty_graph.max_disparity {
@@ -138,7 +138,7 @@ pub mod crossing_out_graph {
                         for d in 0..self.penalty_graph.max_disparity {
                             if !self.vertices[i][j][d] {
                                 for n in 0..3 {
-                                    if neighbour_exists(i, j, n,
+                                    if neighbor_exists(i, j, n,
                                                         self.penalty_graph.left_image.len(),
                                                         self.penalty_graph.left_image[0].len()) {
                                         for n_d in 0..self.penalty_graph.max_disparity {
@@ -151,7 +151,7 @@ pub mod crossing_out_graph {
                                 }
                             }
                             for n in 0..3 {
-                                if neighbour_exists(i, j, n,
+                                if neighbor_exists(i, j, n,
                                                     self.penalty_graph.left_image.len(),
                                                     self.penalty_graph.left_image[0].len()) {
                                     let mut edge_exist = false;

@@ -24,8 +24,8 @@
 pub mod epsilon_search {
     use super::super::crossing_out_graph::crossing_out_graph::CrossingOutGraph;
     use super::super::penalty_graph::penalty_graph::PenaltyGraph;
-    use super::super::diffusion::diffusion::neighbour_exists;
-    use super::super::diffusion::diffusion::neighbour_index;
+    use super::super::diffusion::diffusion::neighbor_exists;
+    use super::super::diffusion::diffusion::neighbor_index;
 
     pub fn create_array_of_epsilons(crossing_out_graph: &mut CrossingOutGraph,
                                     tolerance: f64) -> Vec<f64> {
@@ -33,7 +33,7 @@ pub mod epsilon_search {
     crossing_out_graph: CrossingOutGraph
     Returns array of differences between
     - minimum vertex weight and other vertex weights in a pixel for each pixel and
-    - minimum edge weight and other edge weights between two neighbour pixels
+    - minimum edge weight and other edge weights between two neighbor pixels
     */
         let mut array: Vec<f64> = Vec::new();
         let max_disparity = crossing_out_graph.penalty_graph.max_disparity;
@@ -52,10 +52,10 @@ pub mod epsilon_search {
                     }
                     // Differences for edges
                     for n in 0..4 {
-                        if neighbour_exists(i, j, n,
+                        if neighbor_exists(i, j, n,
                                             crossing_out_graph.penalty_graph.left_image.len(),
                                             crossing_out_graph.penalty_graph.left_image[0].len()) {
-                            let (n_i, n_j, n_index) = neighbour_index(i, j, n);
+                            let (n_i, n_j, n_index) = neighbor_index(i, j, n);
                             let min_penalty_edge =
                             crossing_out_graph.penalty_graph
                             .min_penalty_edge(i, j, n, n_i, n_j, n_index);
@@ -113,7 +113,7 @@ pub mod epsilon_search {
     array: array of all possible epsilons from `create_array_of_epsilons()`
     first_index: first index of current sub-array
     last_index: last index of current sub-array
-    Returns minumum possible epsilon which provides epsilon-consistency
+    Returns minimum possible epsilon which provides epsilon-consistency
     It is recursive binary search implementation
     */
         let current_array: Vec<f64> = array[first_index..last_index].to_vec();
