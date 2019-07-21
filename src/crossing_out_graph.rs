@@ -95,26 +95,29 @@ pub mod crossing_out_graph {
             for i in 0..self.penalty_graph.left_image.len() {
                 for j in 0..self.penalty_graph.left_image[0].len() {
                     for d in 0..self.penalty_graph.max_disparity {
-                        for n in 0..4 {
-                            if neighbor_exists(i, j, n,
-                                                self.penalty_graph.left_image.len(),
-                                                self.penalty_graph.left_image[0].len()) {
-                                let (n_i, n_j, n_index) = neighbor_index(i, j, n);
-                                let min_penalty_edge =
-                                self.penalty_graph.min_penalty_edge(i, j, n, n_i, n_j, n_index);
-                                for n_d in 0..self.penalty_graph.max_disparity {
-                                    if self.penalty_graph.edge_penalty_with_potential(i, j, n, d,
-                                        n_i, n_j, n_index, n_d) >= min_penalty_edge
-                                    && self.penalty_graph.edge_penalty_with_potential(i, j, n, d,
-                                            n_i, n_j, n_index, n_d) <= min_penalty_edge + epsilon {
-                                        self.edges[i][j][d][n][n_d] = true;
-                                    } else {
+                        if j >= d {
+                            for n in 0..4 {
+                                if neighbor_exists(i, j, n,
+                                                   self.penalty_graph.left_image.len(),
+                                                   self.penalty_graph.left_image[0].len()) {
+                                    let (_n_i, n_j, _n_index) = neighbor_index(i, j, n);
+                                    let min_penalty_edge =
+                                        self.penalty_graph.min_penalty_edge(i, j, n, n_j);
+                                    for n_d in 0..self.penalty_graph.max_disparity {
+                                        if n_j >= n_d
+                                        && self.penalty_graph.edge_penalty_with_potential(i, j, n, d, n_d)
+                                            >= min_penalty_edge
+                                        && self.penalty_graph.edge_penalty_with_potential(i, j, n, d, n_d)
+                                            <= min_penalty_edge + epsilon {
+                                            self.edges[i][j][d][n][n_d] = true;
+                                        } else {
+                                            self.edges[i][j][d][n][n_d] = false;
+                                        }
+                                    }
+                                } else {
+                                    for n_d in 0..self.penalty_graph.max_disparity {
                                         self.edges[i][j][d][n][n_d] = false;
                                     }
-                                }
-                            } else {
-                                for n_d in 0..self.penalty_graph.max_disparity {
-                                    self.edges[i][j][d][n][n_d] = false;
                                 }
                             }
                         }
@@ -136,13 +139,14 @@ pub mod crossing_out_graph {
                 for i in 0..self.penalty_graph.left_image.len() {
                     for j in 0..self.penalty_graph.left_image[0].len() {
                         for d in 0..self.penalty_graph.max_disparity {
-                            if !self.vertices[i][j][d] {
-                                for n in 0..3 {
+                            if j >= d && !self.vertices[i][j][d] {
+                                for n in 0..4 {
                                     if neighbor_exists(i, j, n,
-                                                        self.penalty_graph.left_image.len(),
-                                                        self.penalty_graph.left_image[0].len()) {
+                                                       self.penalty_graph.left_image.len(),
+                                                       self.penalty_graph.left_image[0].len()) {
+                                        let (_n_i, n_j, _n_index) = neighbor_index(i, j, n);
                                         for n_d in 0..self.penalty_graph.max_disparity {
-                                            if self.edges[i][j][d][n][n_d] {
+                                            if n_j >= n_d && self.edges[i][j][d][n][n_d] {
                                                 self.edges[i][j][d][n][n_d] = false;
                                                 change_indicator = true;
                                             }
@@ -150,13 +154,14 @@ pub mod crossing_out_graph {
                                     }
                                 }
                             }
-                            for n in 0..3 {
+                            for n in 0..4 {
                                 if neighbor_exists(i, j, n,
-                                                    self.penalty_graph.left_image.len(),
-                                                    self.penalty_graph.left_image[0].len()) {
+                                                   self.penalty_graph.left_image.len(),
+                                                   self.penalty_graph.left_image[0].len()) {
+                                    let (_n_i, n_j, _n_index) = neighbor_index(i, j, n);
                                     let mut edge_exist = false;
                                     for n_d in 0..self.penalty_graph.max_disparity {
-                                        if self.edges[i][j][d][n][n_d] {
+                                        if n_j >= n_d && self.edges[i][j][d][n][n_d] {
                                             edge_exist = true;
                                         }
                                     }
@@ -193,7 +198,7 @@ pub mod crossing_out_graph {
             for i in 0..self.penalty_graph.left_image.len() {
                 for j in 0..self.penalty_graph.left_image[0].len() {
                     for d in 0..self.penalty_graph.max_disparity {
-                        if self.vertices[i][j][d] {
+                        if j >= d && self.vertices[i][j][d] {
                             return true;
                         }
                     }
@@ -210,9 +215,14 @@ pub mod crossing_out_graph {
                 for j in 0..self.penalty_graph.left_image[0].len() {
                     for d in 0..self.penalty_graph.max_disparity {
                         for n in 0..4 {
-                            for n_d in 0..self.penalty_graph.max_disparity {
-                                if self.edges[i][j][d][n][n_d] {
-                                    return true;
+                            if neighbor_exists(i, j, n,
+                                               self.penalty_graph.left_image.len(),
+                                               self.penalty_graph.left_image[0].len()) {
+                                let (_n_i, n_j, _n_index) = neighbor_index(i, j, n);
+                                for n_d in 0..self.penalty_graph.max_disparity {
+                                    if n_j >= n_d && self.edges[i][j][d][n][n_d] {
+                                        return true;
+                                    }
                                 }
                             }
                         }

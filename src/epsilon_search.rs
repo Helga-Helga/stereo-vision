@@ -23,9 +23,9 @@
  */
 pub mod epsilon_search {
     use super::super::crossing_out_graph::crossing_out_graph::CrossingOutGraph;
-    use super::super::penalty_graph::penalty_graph::PenaltyGraph;
     use super::super::diffusion::diffusion::neighbor_exists;
     use super::super::diffusion::diffusion::neighbor_index;
+    use super::super::diffusion::diffusion::approx_equal;
 
     pub fn create_array_of_epsilons(crossing_out_graph: &mut CrossingOutGraph,
                                     tolerance: f64) -> Vec<f64> {
@@ -44,38 +44,46 @@ pub mod epsilon_search {
                 for d in 0..max_disparity {
                     // Differences for vertices
                     if j >= d {
+                        assert_ge!(crossing_out_graph.penalty_graph
+                                   .vertex_penalty_with_potentials(i, j, d), min_penalty_vertex);
                         array.push(crossing_out_graph.penalty_graph
-                            .lookup_table[crossing_out_graph.penalty_graph.left_image[i][j]
-                            as usize][crossing_out_graph.penalty_graph.right_image[i][j-d] as usize]
-                            + crossing_out_graph.penalty_graph.sum_of_potentials(i, j, d)
-                            - min_penalty_vertex as f64);
-                    }
-                    // Differences for edges
-                    for n in 0..4 {
-                        if neighbor_exists(i, j, n,
-                                            crossing_out_graph.penalty_graph.left_image.len(),
-                                            crossing_out_graph.penalty_graph.left_image[0].len()) {
-                            let (n_i, n_j, n_index) = neighbor_index(i, j, n);
-                            let min_penalty_edge =
-                            crossing_out_graph.penalty_graph
-                            .min_penalty_edge(i, j, n, n_i, n_j, n_index);
-                            for n_d in 0..max_disparity {
-                                array.push(crossing_out_graph.penalty_graph.lookup_table[d][n_d]
-                                    - crossing_out_graph.penalty_graph.potentials[i][j][n][d]
-                                    - crossing_out_graph.penalty_graph.potentials[n_i][n_j][n_index][n_d]
-                                    - min_penalty_edge);
+                                   .vertex_penalty_with_potentials(i, j, d)
+                                   - min_penalty_vertex);
+                        // Differences for edges
+                        for n in 0..4 {
+                            if neighbor_exists(i, j, n,
+                                               crossing_out_graph.penalty_graph.left_image.len(),
+                                               crossing_out_graph.penalty_graph.left_image[0].len()) {
+                                let (_n_i, n_j, _n_index) = neighbor_index(i, j, n);
+                                let min_penalty_edge =
+                                    crossing_out_graph.penalty_graph.min_penalty_edge(i, j, n, n_j);
+                                for n_d in 0..max_disparity {
+                                    if n_j >= n_d {
+                                        assert_ge!(crossing_out_graph.penalty_graph
+                                                  .edge_penalty_with_potential(i, j, n, d, n_d),
+                                                  min_penalty_edge);
+                                        array.push(crossing_out_graph.penalty_graph
+                                                  .edge_penalty_with_potential(i, j, n, d, n_d)
+                                                  - min_penalty_edge);
+                                    }
+                                }
                             }
                         }
                     }
                 }
             }
         }
+        println!("Sorting array of epsilons ...");
         array.sort_by(|a, b| a.partial_cmp(b).unwrap());
+        println!("Array size: {}", array.len());
+        println!("Removing duplicates from array of epsilons ...");
         dedup_f64(&mut array, tolerance);
+        println!("Array size: {}", array.len());
+        println!("Array of epsilons is ready");
         array
     }
 
-    fn dedup_f64(array: &mut Vec<f64>, tolerance: f64){
+    fn dedup_f64(array: &mut Vec<f64>, tolerance: f64) {
     /*
     array: sorted array of floats
     tolerance: if array[i + 1] of array differs from array[i] less than by tolerance,
@@ -84,56 +92,55 @@ pub mod epsilon_search {
     with which two elements of array can be considered as equal
     Returns input sorted array of floats, but without duplicates (with some precision)
     */
-        for i in 0..array.len() {
-            if i + 1 < array.len() {
-                if array[i + 1] - array[i] <= tolerance {
-                    array.remove(i + 1);
-                    dedup_f64(array, tolerance);
-                } else {
-                    continue;
-                }
-            } else {
-                break;
+        let mut i: usize = 0;
+        while i < array.len() {
+            while array.len() > i + 1 && approx_equal(array[i], array[i + 1], tolerance) {
+                array.remove(i + 1);
             }
+            i += 1;
         }
     }
 
-    fn median_index(array: &Vec<f64>) -> usize {
+    pub fn epsilon_search(mut crossing_out_graph: CrossingOutGraph, array: &Vec<f64>) -> f64 {
     /*
-    array: sorted array without duplicates
-    Returns an index of array median
+    array: array of all possible epsilons from create_array_of_epsilons()
+    Returns minimum possible epsilon which provides epsilon-consistency of a graph
+    It is an implementation of binary search algorithm
     */
-        array.len() / 2
-    }
-
-    pub fn epsilon_search(mut crossing_out_graph: CrossingOutGraph, array: &Vec<f64>,
-                              first_index: usize, last_index: usize) -> f64 {
-    /*
-    crossing_out_graph: CrossingOutGraph
-    array: array of all possible epsilons from `create_array_of_epsilons()`
-    first_index: first index of current sub-array
-    last_index: last index of current sub-array
-    Returns minimum possible epsilon which provides epsilon-consistency
-    It is recursive binary search implementation
-    */
-        let current_array: Vec<f64> = array[first_index..last_index].to_vec();
-        let epsilon: f64 = current_array[median_index(&current_array)];
-        crossing_out_graph.initialize_with_epsilon(epsilon);
-        crossing_out_graph.crossing_out();
-        if last_index - first_index > 1 {
-            if crossing_out_graph.is_not_empty() {
-                return epsilon_search(crossing_out_graph, array,
-                                      first_index, median_index(&current_array));
-            } else {
-                return epsilon_search(crossing_out_graph, array,
-                                      median_index(&current_array), last_index);
-            }
-        } else {
-            if crossing_out_graph.is_not_empty() {
+        assert_ne!(array.len(), 0);
+        let mut first_index: usize = 0;
+        let mut last_index: usize = array.len() - 1;
+        let mut median_index: usize = ((first_index + last_index) as f64 / 2.).floor() as usize;
+        while first_index <= last_index {
+            if last_index == first_index {
                 return array[first_index];
-            } else {
-                return array[first_index + 1];
             }
+            if last_index - first_index == 1 {
+                crossing_out_graph.initialize_with_epsilon(array[first_index]);
+                crossing_out_graph.crossing_out();
+                if crossing_out_graph.is_not_empty() {
+                    return array[first_index];
+                } else {
+                    return array[last_index];
+                }
+            }
+            median_index = ((first_index + last_index) as f64 / 2.).floor() as usize;
+            crossing_out_graph.initialize_with_epsilon(array[median_index]);
+            crossing_out_graph.crossing_out();
+            if crossing_out_graph.is_not_empty() {
+                if median_index > 0 {
+                    last_index = median_index - 1;
+                } else {
+                    last_index = 0;
+                }
+            } else {
+                first_index = median_index + 1;
+            }
+        }
+        if crossing_out_graph.is_not_empty() {
+            return array[median_index];
+        } else {
+            return array[median_index + 1];
         }
     }
 
@@ -168,7 +175,7 @@ pub mod epsilon_search {
         let edges = vec![vec![vec![vec![vec![true; max_disparity]; 4]; max_disparity]; 2]; 1];
         let mut crossing_out_graph = CrossingOutGraph::initialize(penalty_graph, vertices, edges);
         let array: Vec<f64> = create_array_of_epsilons(&mut crossing_out_graph, 0.01);
-        let epsilon: f64 = epsilon_search(crossing_out_graph, &array, 0, array.len() - 1);
+        let epsilon: f64 = epsilon_search(crossing_out_graph, &array);
         assert_eq!(epsilon, 0.0);
     }
 }

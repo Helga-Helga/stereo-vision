@@ -4,3 +4,4 @@ version = "0.1.0"
 authors = ["helga-helga <13537448+Helga-Helga@users.noreply.github.com>"]
 
 [dependencies]
+more-asserts = "0.2.1"

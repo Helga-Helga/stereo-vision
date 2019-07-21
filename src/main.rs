@@ -21,11 +21,14 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
+#[macro_use]
+extern crate more_asserts;
+
 mod pgm_handler;
 mod diffusion;
 mod penalty_graph;
-// mod crossing_out_graph;
-// mod epsilon_search;
+mod crossing_out_graph;
+mod epsilon_search;
 
 fn main() {
     let (right_image, r_width, r_height) =
@@ -36,4 +39,14 @@ fn main() {
     assert_eq!(r_height, l_height);
     let mut pgraph = penalty_graph::penalty_graph::PenaltyGraph::initialize(left_image, right_image, 10);
     pgraph.diffusion_while_energy_increases();
+    println!("Iterations of diffusion ended");
+    let vertices = vec![vec![vec![true; pgraph.max_disparity]; l_width]; l_height];
+    let edges = vec![vec![vec![vec![vec![true; pgraph.max_disparity]; 4]; pgraph.max_disparity]; l_width]; l_height];
+    let mut crossing_out_graph = crossing_out_graph::crossing_out_graph::CrossingOutGraph::initialize(
+        pgraph, vertices, edges);
+    println!("Creating array of epsilons ...");
+    let array: Vec<f64> = epsilon_search::epsilon_search::create_array_of_epsilons(&mut crossing_out_graph, 1E-6);
+    println!("Searching for epsilon ...");
+    let epsilon: f64 = epsilon_search::epsilon_search::epsilon_search(crossing_out_graph, &array);
+    println!("Epsilon: {}", epsilon);
 }
