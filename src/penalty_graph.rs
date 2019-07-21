@@ -262,7 +262,7 @@ pub mod penalty_graph {
             let mut energy_prev: f64 = 0.;
             let mut energy: f64 = self.energy();
             let mut i = 1;
-            while !approx_equal(energy, energy_prev) {
+            while !approx_equal(energy, energy_prev, 10E-6) {
                 energy_prev = energy;
                 println!("Iteration # {}", i);
                 self.diffusion_act_vertexes();

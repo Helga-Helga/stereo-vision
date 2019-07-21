@@ -97,11 +97,11 @@ pub mod diffusion {
         number_of_neighbors
     }
 
-    pub fn approx_equal(x: f64, y: f64) -> bool {
+    pub fn approx_equal(x: f64, y: f64, epsilon: f64) -> bool {
     /*
-    Returns true if x and y are almost equal
+    Returns true if x and y differ by no more than epsilon
     */
-        if (x - y).abs() > f64::EPSILON {
+        if (x - y).abs() > epsilon {
             return false;
         }
         return true;
