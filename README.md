@@ -10,3 +10,8 @@ You can find how to install Rust [here](https://doc.rust-lang.org/stable/book/ch
 
 ## How to compile and run
 To compile and run the project, type [`cargo run`](https://doc.rust-lang.org/stable/book/ch01-03-hello-cargo.html) from the package folder in the terminal.
+You can use `cargo build` and `curgo run` separately.
+To check if there are some issues in the code without build, run `cargo check`.
+
+To build and run in release mode, use flag `--release`.
+It will optimize code, so it is mush faster.
