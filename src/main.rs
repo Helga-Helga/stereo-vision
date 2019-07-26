@@ -47,6 +47,6 @@ fn main() {
     println!("Creating array of epsilons ...");
     let array: Vec<f64> = epsilon_search::epsilon_search::create_array_of_epsilons(&mut crossing_out_graph, 1E-6);
     println!("Searching for epsilon ...");
-    let epsilon: f64 = epsilon_search::epsilon_search::epsilon_search(crossing_out_graph, &array);
+    let epsilon: f64 = epsilon_search::epsilon_search::epsilon_search(&mut crossing_out_graph, &array);
     println!("Epsilon: {}", epsilon);
 }
