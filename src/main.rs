@@ -49,4 +49,11 @@ fn main() {
     println!("Searching for epsilon ...");
     let epsilon: f64 = epsilon_search::epsilon_search::epsilon_search(&mut crossing_out_graph, &array);
     println!("Epsilon: {}", epsilon);
+    println!("Initializing crossing out graph with epsilon ...");
+    crossing_out_graph.initialize_with_epsilon(epsilon);
+    println!("After initialization with epsilon, resulting graph is not empty: {}", crossing_out_graph.is_not_empty());
+    println!("Crossing out ...");
+    crossing_out_graph.crossing_out();
+    println!("Crossing out is done");
+    println!("Resulting graph is not empty: {}", crossing_out_graph.is_not_empty());
 }
