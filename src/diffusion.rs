@@ -61,7 +61,7 @@ pub mod diffusion {
             } else {
                 return false
             },
-            _ => panic!(),
+            _ => panic!("Non-existent neighbor index: {}", neighbor),
         }
     }
 
