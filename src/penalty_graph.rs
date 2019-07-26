@@ -47,7 +47,7 @@ pub mod penalty_graph {
             let mut lookup_table: Vec<Vec<f64>> = vec![vec![0f64; 256]; 256];
             for i in 0..256 {
                 for j in 0..256 {
-                    lookup_table[i][j] = (i as i32 - j as i32).abs() as f64;
+                    lookup_table[i][j] = ((i as f64) - (j as f64)).abs();
                 }
             }
             Self {
