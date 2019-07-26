@@ -102,6 +102,25 @@ pub mod penalty_graph {
                 + self.potentials[n_i][n_j][n_index][n_d]
         }
 
+        pub fn edge_exists(&self, i: usize, j: usize, n: usize, d: usize, n_d: usize) -> bool {
+            if neighbor_exists(i, j, n, self.left_image.len(), self.left_image[0].len()) {
+                let (_n_i, n_j, _n_index) = neighbor_index(i, j, n);
+                if j >= d && n_j >= n_d {
+                    if n == 2 && n_d > d + 1 {
+                        return false;
+                    }
+                    if n == 0 && d > n_d + 1 {
+                        return false;
+                    }
+                    return true;
+                } else {
+                    return false;
+                }
+            } else {
+                return false;
+            }
+        }
+
         pub fn penalty(&self, disparity_map: Vec<Vec<usize>>) -> f64 {
         /*
         disparity_map: matrix of the same size as an image,
@@ -119,9 +138,9 @@ pub mod penalty_graph {
                         penalty += self.vertex_penalty_with_potentials(i, j, disparity_map[i][j]);
                         for n in 2..4 {
                             if neighbor_exists(i, j, n, self.left_image.len(),
-                                                self.left_image[0].len()) {
+                                               self.left_image[0].len()) {
                                 let (n_i, n_j, _n_index) = neighbor_index(i, j, n);
-                                if n_j >= disparity_map[n_i][n_j] {
+                                if self.edge_exists(i, j, n, disparity_map[i][j], disparity_map[n_i][n_j]) {
                                     penalty += self.edge_penalty_with_potential(i, j, n,
                                         disparity_map[i][j], disparity_map[n_i][n_j]);
                                 } else {
@@ -339,17 +358,16 @@ pub mod penalty_graph {
         */
             let mut min_penalty_edge: f64 = f64::INFINITY;
             for d in 0..self.max_disparity {
-                if j >= d {
-                    for n_d in 0..self.max_disparity {
-                        if n_j >= n_d {
-                            let current_edge = self.edge_penalty_with_potential(i, j, n, d, n_d);
-                            if current_edge < min_penalty_edge {
-                                min_penalty_edge = current_edge;
-                            }
+                for n_d in 0..self.max_disparity {
+                    if self.edge_exists(i, j, n, d, n_d) {
+                        let current_edge = self.edge_penalty_with_potential(i, j, n, d, n_d);
+                        if current_edge < min_penalty_edge {
+                            min_penalty_edge = current_edge;
                         }
                     }
                 }
             }
+            assert_le!(min_penalty_edge, self.edge_penalty_with_potential(i, j, n, 0, 0));
             min_penalty_edge
         }
 
