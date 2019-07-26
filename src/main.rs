@@ -56,4 +56,10 @@ fn main() {
     crossing_out_graph.crossing_out();
     println!("Crossing out is done");
     println!("Resulting graph is not empty: {}", crossing_out_graph.is_not_empty());
+    println!("Finding disparity map ...");
+    let disparity_map: Vec<Vec<usize>> = crossing_out_graph.find_best_labeling();
+    println!("Disparity map is consistent: {}", crossing_out_graph.check_disparity_map(&disparity_map));
+    pgm_handler::pgm::pgm_writer(&disparity_map, "images/results/best_labeling.pgm".to_string(),
+                                 crossing_out_graph.penalty_graph.max_disparity);
+    println!("Disparity map is saved to `best_labeling.pgm`");
 }
