@@ -119,7 +119,7 @@ pub mod epsilon_search {
         unique_values
     }
 
-    pub fn epsilon_search(mut crossing_out_graph: CrossingOutGraph, array: &Vec<f64>) -> f64 {
+    pub fn epsilon_search(crossing_out_graph: &mut CrossingOutGraph, array: &Vec<f64>) -> f64 {
     /*
     array: array of all possible epsilons from create_array_of_epsilons()
     Returns minimum possible epsilon which provides epsilon-consistency of a graph
@@ -128,38 +128,20 @@ pub mod epsilon_search {
         assert_ne!(array.len(), 0);
         let mut first_index: usize = 0;
         let mut last_index: usize = array.len() - 1;
-        let mut median_index: usize = ((first_index + last_index) as f64 / 2.).floor() as usize;
-        while first_index <= last_index {
-            if last_index == first_index {
-                return array[first_index];
-            }
-            if last_index - first_index == 1 {
-                crossing_out_graph.initialize_with_epsilon(array[first_index]);
-                crossing_out_graph.crossing_out();
-                if crossing_out_graph.is_not_empty() {
-                    return array[first_index];
-                } else {
-                    return array[last_index];
-                }
-            }
-            median_index = ((first_index + last_index) as f64 / 2.).floor() as usize;
+        let mut median_index: usize = (first_index + last_index) / 2;
+        while first_index < last_index {
             crossing_out_graph.initialize_with_epsilon(array[median_index]);
             crossing_out_graph.crossing_out();
             if crossing_out_graph.is_not_empty() {
-                if median_index > 0 {
-                    last_index = median_index - 1;
-                } else {
-                    last_index = 0;
-                }
+                println!("Not empty for {}", median_index);
+                last_index = median_index;
             } else {
                 first_index = median_index + 1;
             }
+            median_index = (first_index + last_index) / 2;
         }
-        if crossing_out_graph.is_not_empty() {
-            return array[median_index];
-        } else {
-            return array[median_index + 1];
-        }
+        println!("Median_index: {}", median_index);
+        array[median_index]
     }
 
     #[test]
