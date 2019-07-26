@@ -77,13 +77,13 @@ pub mod epsilon_search {
         array.sort_by(|a, b| a.partial_cmp(b).unwrap());
         println!("Array size: {}", array.len());
         println!("Removing duplicates from array of epsilons ...");
-        dedup_f64(&mut array, tolerance);
+        array = dedup_f64(array, tolerance);
         println!("Array size: {}", array.len());
         println!("Array of epsilons is ready");
         array
     }
 
-    fn dedup_f64(array: &mut Vec<f64>, tolerance: f64) {
+    fn dedup_f64(array: Vec<f64>, tolerance: f64) -> Vec<f64> {
     /*
     array: sorted array of floats
     tolerance: if array[i + 1] of array differs from array[i] less than by tolerance,
@@ -93,12 +93,30 @@ pub mod epsilon_search {
     Returns input sorted array of floats, but without duplicates (with some precision)
     */
         let mut i: usize = 0;
+        let mut indices_array: Vec<usize> = vec![0; array.len()];
+        let mut current_index: usize = 0;
         while i < array.len() {
-            while array.len() > i + 1 && approx_equal(array[i], array[i + 1], tolerance) {
-                array.remove(i + 1);
+            indices_array[current_index] = i;
+            current_index += 1;
+            let mut j = i + 1;
+            while j < array.len() {
+                if approx_equal(array[i], array[j], tolerance) {
+                    j += 1;
+                } else {
+                    break;
+                }
             }
-            i += 1;
+            i = j;
         }
+        if indices_array[current_index - 1] != array.len() - 1 {
+            indices_array[current_index] = array.len() - 1;
+            current_index += 1;
+        }
+        let mut unique_values: Vec<f64> = vec![0.; current_index];
+        for i in 0..current_index {
+            unique_values[i] = array[indices_array[i]];
+        }
+        unique_values
     }
 
     pub fn epsilon_search(mut crossing_out_graph: CrossingOutGraph, array: &Vec<f64>) -> f64 {
