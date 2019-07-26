@@ -245,10 +245,63 @@ pub mod crossing_out_graph {
             true
         }
 
+        pub fn min_vertex_between_existing(&self, i: usize, j: usize) -> usize {
+        /*
+        (i, j): pixel coordinates
+        Finds vertex with the minimum penalty among not-crossed out vertexes in pixel
+        Returns disparity correspondent to this vertex
+        */
+            let mut min_vertex: f64 = f64::INFINITY;
+            let mut disparity: usize = 0;
+            let mut found: bool = false;
+            for d in 0..self.penalty_graph.max_disparity {
+                if j >= d && self.vertices[i][j][d] {
+                    let current_vertex = self.penalty_graph.vertex_penalty_with_potentials(i, j, d);
+                    if current_vertex < min_vertex {
+                        min_vertex = current_vertex;
+                        disparity = d;
+                        found = true;
                     }
                 }
             }
-            false
+            assert!(found, "Disparity for pixel ({}, {}) wasn't found", i, j);
+            disparity
+        }
+
+        pub fn cross_vertex(&mut self, i: usize, j: usize, disparity: usize) {
+        /*
+        (i, j): pixel coordinates
+        Crosses out all vertexes (i, j, d) in pixel (i, j) except (i, j, disparity)
+        (where d != given disparity)
+        */
+            assert!(self.vertices[i][j][disparity], "Choosen vertex [{}][{}][{}] is crossed out", i, j, disparity);
+            for d in 0..self.penalty_graph.max_disparity {
+                if self.vertices[i][j][d] && d != disparity {
+                    self.vertices[i][j][d] = false;
+                }
+            }
+        }
+
+        pub fn find_best_labeling(&mut self) -> Vec<Vec<usize>> {
+        /*
+        Chooses the best vertex in the first pixel (0, 0) -> crosses out graph
+        Do the same for all other pixels, ...
+        */
+            let mut disparity_map = vec![vec![0usize; self.penalty_graph.left_image[0].len()];
+                                         self.penalty_graph.left_image.len()];
+            for i in 0..self.penalty_graph.left_image.len() {
+                for j in 0..self.penalty_graph.left_image[0].len() {
+                    disparity_map[i][j] = self.min_vertex_between_existing(i, j);
+                    assert!(disparity_map[i][j] <= j, "d > j for d = {}, j = {}, i = {}", disparity_map[i][j], j, i);
+                    println!("Processed pixel ({}, {}) -> d = {}", i, j, disparity_map[i][j]);
+                    self.cross_vertex(i, j, disparity_map[i][j]);
+                    self.crossing_out();
+                    assert!(self.is_not_empty(), "Graph is empty");
+                }
+            }
+            disparity_map
+        }
+
         }
     }
 
