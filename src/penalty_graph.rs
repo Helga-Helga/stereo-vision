@@ -392,7 +392,7 @@ pub mod penalty_graph {
 
         pub fn zero_penalty(&self) -> f64 {
         /*
-        Computes penalty of zero map just to be sure,
+        Computes penalty of zero disparity map just to be sure,
         that at least this map doesn't change its penalty after diffusion act
         */
             let mut zero_penalty: f64 = 0.;
@@ -411,14 +411,21 @@ pub mod penalty_graph {
         }
 
         pub fn zero_one_penalty(&self) -> f64 {
+        /*
+        Computes penalty of disparity map where
+        the first column is consists of zeros and all other columns -- of ones
+        to be sure that this map doesn't change its penalty after diffusion act
+        */
             let mut zero_one_penalty: f64 = 0.;
             for i in 0..self.left_image.len() {
                 zero_one_penalty += self.vertex_penalty_with_potentials(i, 0, 0);
-                for n in 2..4 {
-                    if neighbor_exists(i, 0, n, self.left_image.len(),
-                        self.left_image[0].len()) {
-                        zero_one_penalty += self.edge_penalty_with_potential(i, 0, n, 0, 0);
-                    }
+                if neighbor_exists(i, 0, 2, self.left_image.len(),
+                    self.left_image[0].len()) {
+                    zero_one_penalty += self.edge_penalty_with_potential(i, 0, 2, 0, 1);
+                }
+                if neighbor_exists(i, 0, 3, self.left_image.len(),
+                    self.left_image[0].len()) {
+                    zero_one_penalty += self.edge_penalty_with_potential(i, 0, 3, 0, 0);
                 }
             }
             for i in 0..self.left_image.len() {
@@ -426,7 +433,7 @@ pub mod penalty_graph {
                     zero_one_penalty += self.vertex_penalty_with_potentials(i, j, 1);
                     for n in 2..4 {
                         if neighbor_exists(i, j, n, self.left_image.len(),
-                                            self.left_image[0].len()) {
+                                           self.left_image[0].len()) {
                             zero_one_penalty += self.edge_penalty_with_potential(i, j, n, 1, 1);
                         }
                     }
