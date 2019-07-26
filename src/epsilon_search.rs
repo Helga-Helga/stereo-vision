@@ -23,6 +23,7 @@
  */
 pub mod epsilon_search {
     use super::super::crossing_out_graph::crossing_out_graph::CrossingOutGraph;
+    use super::super::penalty_graph::penalty_graph::PenaltyGraph;
     use super::super::diffusion::diffusion::neighbor_exists;
     use super::super::diffusion::diffusion::neighbor_index;
     use super::super::diffusion::diffusion::approx_equal;
@@ -54,11 +55,10 @@ pub mod epsilon_search {
                             if neighbor_exists(i, j, n,
                                                crossing_out_graph.penalty_graph.left_image.len(),
                                                crossing_out_graph.penalty_graph.left_image[0].len()) {
-                                let (_n_i, n_j, _n_index) = neighbor_index(i, j, n);
                                 let min_penalty_edge =
-                                    crossing_out_graph.penalty_graph.min_penalty_edge(i, j, n, n_j);
+                                    crossing_out_graph.penalty_graph.min_penalty_edge(i, j, n);
                                 for n_d in 0..max_disparity {
-                                    if n_j >= n_d {
+                                    if crossing_out_graph.penalty_graph.edge_exists(i, j, n, d, n_d) {
                                         assert_ge!(crossing_out_graph.penalty_graph
                                                   .edge_penalty_with_potential(i, j, n, d, n_d),
                                                   min_penalty_edge);
