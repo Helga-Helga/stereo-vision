@@ -132,36 +132,40 @@ pub mod crossing_out_graph {
                 for i in 0..self.penalty_graph.left_image.len() {
                     for j in 0..self.penalty_graph.left_image[0].len() {
                         for d in 0..self.penalty_graph.max_disparity {
-                            if j >= d && !self.vertices[i][j][d] {
-                                for n in 0..4 {
-                                    if neighbor_exists(i, j, n,
-                                                       self.penalty_graph.left_image.len(),
-                                                       self.penalty_graph.left_image[0].len()) {
-                                        let (_n_i, n_j, _n_index) = neighbor_index(i, j, n);
-                                        for n_d in 0..self.penalty_graph.max_disparity {
-                                            if n_j >= n_d && self.edges[i][j][d][n][n_d] {
-                                                self.edges[i][j][d][n][n_d] = false;
-                                                change_indicator = true;
+                            if j >= d {
+                                if !self.vertices[i][j][d] {
+                                    for n in 0..4 {
+                                        if neighbor_exists(i, j, n,
+                                                           self.penalty_graph.left_image.len(),
+                                                           self.penalty_graph.left_image[0].len()) {
+                                            let (n_i, n_j, n_index) = neighbor_index(i, j, n);
+                                            for n_d in 0..self.penalty_graph.max_disparity {
+                                                if self.penalty_graph.edge_exists(i, j, n, d, n_d)
+                                                && self.edges[i][j][d][n][n_d] {
+                                                    self.edges[i][j][d][n][n_d] = false;
+                                                    self.edges[n_i][n_j][n_d][n_index][d] = false;
+                                                    change_indicator = true;
+                                                }
                                             }
                                         }
                                     }
                                 }
-                            }
-                            for n in 0..4 {
-                                if neighbor_exists(i, j, n,
-                                                   self.penalty_graph.left_image.len(),
-                                                   self.penalty_graph.left_image[0].len()) {
-                                    let (_n_i, n_j, _n_index) = neighbor_index(i, j, n);
+                                for n in 0..4 {
+                                    if !neighbor_exists(i, j, n, self.penalty_graph.left_image.len(),
+                                    self.penalty_graph.left_image[0].len()) {
+                                        continue;
+                                    }
                                     let mut edge_exist = false;
                                     for n_d in 0..self.penalty_graph.max_disparity {
-                                        if n_j >= n_d && self.edges[i][j][d][n][n_d] {
+                                        if self.penalty_graph.edge_exists(i, j, n, d, n_d)
+                                        && self.edges[i][j][d][n][n_d] {
                                             edge_exist = true;
+                                            break;
                                         }
                                     }
                                     if !edge_exist && self.vertices[i][j][d] {
                                         self.vertices[i][j][d] = false;
                                         change_indicator = true;
-                                        continue;
                                     }
                                 }
                             }
