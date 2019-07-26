@@ -156,34 +156,31 @@ pub mod penalty_graph {
             penalty
         }
 
-        pub fn min_edge_between_neighbors(&self, i: usize, j: usize, n: usize, d: usize, n_j: usize) -> f64 {
+        pub fn min_edge_between_neighbors(&self, i: usize, j: usize, n: usize, d: usize) -> f64 {
         /*
         (i, j): coordinate of a pixel in an image
         n: number of a neighbor (from 0 to 3)
         d: disparity of pixel t = (i, j)
-        n_j: horizontal coordinate of n_th neighbor of pixel (i, j) -- pixel t'
         Returns min_{n_d} g_{tt'}(d, n_d), where n_d is a disparity in pixel t'
         */
-            let mut min_edge = f64::INFINITY;
+            let mut min_edge: f64 = f64::INFINITY;
             for n_d in 0..self.max_disparity {
-                if n_j >= n_d {
-                    if self.edge_penalty_with_potential(i, j, n, d, n_d) < min_edge {
-                        min_edge = self.edge_penalty_with_potential(i, j, n, d, n_d);
-                    }
+                if self.edge_exists(i, j, n, d, n_d)
+                && self.edge_penalty_with_potential(i, j, n, d, n_d) < min_edge {
+                    min_edge = self.edge_penalty_with_potential(i, j, n, d, n_d);
                 }
             }
             min_edge
         }
 
-        pub fn update_vertex_potential(&mut self, i: usize, j: usize, n: usize, d: usize, n_j: usize) {
+        pub fn update_vertex_potential(&mut self, i: usize, j: usize, n: usize, d: usize) {
         /*
         (i, j): coordinate of a pixel in an image
         n: number of a neighbor (from 0 to 3)
         d: disparity in pixel (i, j)
-        n_j: horizontal coordinate of n_th neighbor of pixel (i, j)
         Substitutes minimum edge penalties from potentials
         */
-            self.potentials[i][j][n][d] -= self.min_edge_between_neighbors(i, j, n, d, n_j);
+            self.potentials[i][j][n][d] -= self.min_edge_between_neighbors(i, j, n, d);
         }
 
         pub fn update_edge_potential(&mut self, i: usize, j: usize, n: usize, d: usize) {
@@ -205,10 +202,9 @@ pub mod penalty_graph {
                 for j in 0..self.left_image[0].len() {
                     for n in 0..4 {
                         if neighbor_exists(i, j, n, self.left_image.len(), self.left_image[0].len()) {
-                            let (_n_i, n_j, _n_index) = neighbor_index(i, j, n);
                             for d in 0..self.max_disparity {
                                 if j >= d {
-                                    self.update_vertex_potential(i, j, n, d, n_j);
+                                    self.update_vertex_potential(i, j, n, d);
                                 }
                             }
                         }
@@ -344,11 +340,9 @@ pub mod penalty_graph {
             return (disparity, min_penalty_vertex);
         }
 
-        pub fn min_penalty_edge(&self, i: usize, j: usize, n: usize, n_j: usize) -> f64 {
+        pub fn min_penalty_edge(&self, i: usize, j: usize, n: usize) -> f64 {
         /*
-        i: row of pixel in left image
-        j: column of pixel in left image
-        n_j: column of pixel neighbor in left image
+        n: neighbor of pixel with coordinates (i, j)
         returns min_{d, d'} g*_{tt'}(d, d'), where t is pixel (i, j), t' is it neighbor,
         g*_{tt'}(d, d') = g_{tt'}(d, d') - phi_{tt'}(d) - phi_{t't}(d'),
         where phi are potentials
@@ -386,8 +380,7 @@ pub mod penalty_graph {
                     for n in 2..4 {
                         if neighbor_exists(i, j, n, self.left_image.len(),
                                            self.left_image[0].len()) {
-                            let (_n_i, n_j, _n_index) = neighbor_index(i, j, n);
-                            energy += self.min_penalty_edge(i, j, n, n_j);
+                            energy += self.min_penalty_edge(i, j, n);
                         }
                     }
                 }
