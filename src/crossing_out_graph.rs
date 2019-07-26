@@ -69,8 +69,6 @@ pub mod crossing_out_graph {
                     let min_penalty_vertex = (self.penalty_graph.min_penalty_vertex(i, j)).1;
                     for d in 0..self.penalty_graph.max_disparity {
                         if j >= d
-                        && self.penalty_graph.vertex_penalty_with_potentials(i, j, d) >=
-                            min_penalty_vertex
                         && self.penalty_graph.vertex_penalty_with_potentials(i, j, d) <=
                             min_penalty_vertex + epsilon {
                             self.vertices[i][j][d] = true;
@@ -95,29 +93,24 @@ pub mod crossing_out_graph {
             for i in 0..self.penalty_graph.left_image.len() {
                 for j in 0..self.penalty_graph.left_image[0].len() {
                     for d in 0..self.penalty_graph.max_disparity {
-                        if j >= d {
-                            for n in 0..4 {
-                                if neighbor_exists(i, j, n,
-                                                   self.penalty_graph.left_image.len(),
-                                                   self.penalty_graph.left_image[0].len()) {
-                                    let (_n_i, n_j, _n_index) = neighbor_index(i, j, n);
-                                    let min_penalty_edge =
-                                        self.penalty_graph.min_penalty_edge(i, j, n, n_j);
-                                    for n_d in 0..self.penalty_graph.max_disparity {
-                                        if n_j >= n_d
-                                        && self.penalty_graph.edge_penalty_with_potential(i, j, n, d, n_d)
-                                            >= min_penalty_edge
-                                        && self.penalty_graph.edge_penalty_with_potential(i, j, n, d, n_d)
-                                            <= min_penalty_edge + epsilon {
-                                            self.edges[i][j][d][n][n_d] = true;
-                                        } else {
-                                            self.edges[i][j][d][n][n_d] = false;
-                                        }
-                                    }
-                                } else {
-                                    for n_d in 0..self.penalty_graph.max_disparity {
+                        for n in 0..4 {
+                            if neighbor_exists(i, j, n,
+                                               self.penalty_graph.left_image.len(),
+                                               self.penalty_graph.left_image[0].len()) {
+                                let min_penalty_edge =
+                                    self.penalty_graph.min_penalty_edge(i, j, n);
+                                for n_d in 0..self.penalty_graph.max_disparity {
+                                    if self.penalty_graph.edge_exists(i, j, n, d, n_d)
+                                    && self.penalty_graph.edge_penalty_with_potential(i, j, n, d, n_d)
+                                        <= min_penalty_edge + epsilon {
+                                        self.edges[i][j][d][n][n_d] = true;
+                                    } else {
                                         self.edges[i][j][d][n][n_d] = false;
                                     }
+                                }
+                            } else {
+                                for n_d in 0..self.penalty_graph.max_disparity {
+                                    self.edges[i][j][d][n][n_d] = false;
                                 }
                             }
                         }
