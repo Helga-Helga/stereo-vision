@@ -190,39 +190,61 @@ pub mod crossing_out_graph {
 
         pub fn vertices_exist(&self) -> bool {
         /*
-        Returns true if there is at least one vertex in a graph
+        Returns true if there is at least one vertex in each object (pixel) of a graph
         */
             for i in 0..self.penalty_graph.left_image.len() {
                 for j in 0..self.penalty_graph.left_image[0].len() {
+                    let mut found: bool = false;
                     for d in 0..self.penalty_graph.max_disparity {
                         if j >= d && self.vertices[i][j][d] {
-                            return true;
+                            found = true;
                         }
+                    }
+                    if !found {
+                        return false;
                     }
                 }
             }
-            false
+            true
         }
 
         pub fn edges_exist(&self) -> bool {
         /*
-        Returns true if there is at least one edge in a graph
+        Returns true if there is at least one edge between each pair of neighbors in a graph
         */
             for i in 0..self.penalty_graph.left_image.len() {
                 for j in 0..self.penalty_graph.left_image[0].len() {
-                    for d in 0..self.penalty_graph.max_disparity {
-                        for n in 0..4 {
-                            if neighbor_exists(i, j, n,
-                                               self.penalty_graph.left_image.len(),
-                                               self.penalty_graph.left_image[0].len()) {
-                                let (_n_i, n_j, _n_index) = neighbor_index(i, j, n);
-                                for n_d in 0..self.penalty_graph.max_disparity {
-                                    if n_j >= n_d && self.edges[i][j][d][n][n_d] {
-                                        return true;
+                    for n in 0..4 {
+                        if !neighbor_exists(i, j, n,
+                                            self.penalty_graph.left_image.len(),
+                                            self.penalty_graph.left_image[0].len()) {
+                            continue;
+                        }
+                        let mut found = false;
+                        for d in 0..self.penalty_graph.max_disparity {
+                            for n_d in 0..self.penalty_graph.max_disparity {
+                                if !self.penalty_graph.edge_exists(i, j, n, d, n_d) {
+                                    continue;
+                                } else {
+                                    if self.edges[i][j][d][n][n_d] {
+                                        found = true;
+                                        break;
                                     }
                                 }
                             }
+                            if found {
+                                break;
+                            }
                         }
+                        if !found {
+                            return false;
+                        }
+                    }
+                }
+            }
+            true
+        }
+
                     }
                 }
             }
