@@ -23,6 +23,7 @@
  */
 #[macro_use]
 extern crate more_asserts;
+extern crate rand;
 
 mod pgm_handler;
 mod diffusion;
@@ -38,7 +39,7 @@ fn main() {
     assert_eq!(r_width, l_width);
     assert_eq!(r_height, l_height);
     let mut pgraph = penalty_graph::penalty_graph::PenaltyGraph::initialize(left_image, right_image, 10);
-    pgraph.diffusion_while_energy_increases();
+    pgraph.diffusion(300);
     println!("Iterations of diffusion ended");
     let vertices = vec![vec![vec![true; pgraph.max_disparity]; l_width]; l_height];
     let edges = vec![vec![vec![vec![vec![true; pgraph.max_disparity]; 4]; pgraph.max_disparity]; l_width]; l_height];
@@ -48,6 +49,7 @@ fn main() {
     let array: Vec<f64> = epsilon_search::epsilon_search::create_array_of_epsilons(&mut crossing_out_graph, 1E-6);
     println!("Searching for epsilon ...");
     let epsilon: f64 = epsilon_search::epsilon_search::epsilon_search(&mut crossing_out_graph, &array);
+    // let epsilon: f64 = 1. / (10 * l_width * l_height) as f64;
     println!("Epsilon: {}", epsilon);
     println!("Initializing crossing out graph with epsilon ...");
     crossing_out_graph.initialize_with_epsilon(epsilon);

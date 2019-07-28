@@ -22,6 +22,7 @@
  * SOFTWARE.
  */
 pub mod penalty_graph {
+    use rand::Rng;
     use std::f64;
     use super::super::diffusion::diffusion::neighbor_exists;
     use super::super::diffusion::diffusion::neighbor_index;
@@ -33,6 +34,7 @@ pub mod penalty_graph {
     pub struct PenaltyGraph {
      pub lookup_table: Vec<Vec<f64>>,
      pub potentials: Vec<Vec<Vec<Vec<f64>>>>,
+     pub dummy_potentials: Vec<Vec<Vec<Vec<f64>>>>,
      pub left_image: Vec<Vec<u32>>,
      pub right_image: Vec<Vec<u32>>,
      pub max_disparity: usize,
@@ -48,11 +50,14 @@ pub mod penalty_graph {
             for i in 0..256 {
                 for j in 0..256 {
                     lookup_table[i][j] = ((i as f64) - (j as f64)).abs();
+                    // lookup_table[i][j] = ((i - j) * (i - j)) as f64;
                 }
             }
             Self {
                 lookup_table: lookup_table,
                 potentials: vec![vec![vec![vec![0f64; max_disparity]; 4]; left_image[0].len()];
+                            left_image.len()],
+                dummy_potentials: vec![vec![vec![vec![0f64; max_disparity]; 4]; left_image[0].len()];
                             left_image.len()],
                 left_image: left_image,
                 right_image: right_image,
@@ -85,7 +90,7 @@ pub mod penalty_graph {
         N(t) is a set of vertices t' that has a common edge with t
         phi_{tt'}(k_t) is a potential
         */
-            self.lookup_table[self.left_image[i][j] as usize][self.right_image[i][j - d]
+            1. * self.lookup_table[self.left_image[i][j] as usize][self.right_image[i][j - d]
                 as usize] - self.sum_of_potentials(i, j, d)
         }
 
@@ -98,7 +103,7 @@ pub mod penalty_graph {
         Returns g*_{tt'}(k_t, k_t') = g_{tt'}(k_t, k_t') + phi_{tt'}(k_t) + phi_{t't}(k_t')
         */
             let (n_i, n_j, n_index) = neighbor_index(i, j, n);
-            15. * self.lookup_table[d][n_d] + self.potentials[i][j][n][d]
+            1.5 * self.lookup_table[d][n_d] + self.potentials[i][j][n][d]
                 + self.potentials[n_i][n_j][n_index][n_d]
         }
 
@@ -165,11 +170,14 @@ pub mod penalty_graph {
         */
             let mut min_edge: f64 = f64::INFINITY;
             for n_d in 0..self.max_disparity {
-                if self.edge_exists(i, j, n, d, n_d)
-                && self.edge_penalty_with_potential(i, j, n, d, n_d) < min_edge {
-                    min_edge = self.edge_penalty_with_potential(i, j, n, d, n_d);
+                if self.edge_exists(i, j, n, d, n_d) {
+                    let current_edge = self.edge_penalty_with_potential(i, j, n, d, n_d);
+                    if current_edge < min_edge {
+                        min_edge = self.edge_penalty_with_potential(i, j, n, d, n_d);
+                    }
                 }
             }
+            // assert_lt!(min_edge, f64::INFINITY);
             min_edge
         }
 
@@ -180,7 +188,7 @@ pub mod penalty_graph {
         d: disparity in pixel (i, j)
         Substitutes minimum edge penalties from potentials
         */
-            self.potentials[i][j][n][d] -= self.min_edge_between_neighbors(i, j, n, d);
+            self.dummy_potentials[i][j][n][d] -= self.min_edge_between_neighbors(i, j, n, d);
         }
 
         pub fn update_edge_potential(&mut self, i: usize, j: usize, n: usize, d: usize) {
@@ -190,44 +198,85 @@ pub mod penalty_graph {
         d: disparity in pixel (i, j)
         Spreads the weight of the vertex on the potentials that go out of it, equally
         */
-            self.potentials[i][j][n][d] += self.vertex_penalty_with_potentials(i, j, d) /
+            self.dummy_potentials[i][j][n][d] += self.vertex_penalty_with_potentials(i, j, d) /
                 number_of_neighbors(i, j, self.left_image.len(), self.left_image[0].len()) as f64;
+
+            // Check if local optimum was found
+            // let energy = self.energy();
+            // let true_pot = self.potentials[i][j][n][d];
+            // let mut rng = rand::thread_rng();
+            // self.potentials[i][j][n][d] += rng.gen_range(-10., 10.);
+            // assert!(self.energy() <= energy + 10E-6);
+            // self.potentials[i][j][n][d] = true_pot;
         }
 
-        pub fn diffusion_act_vertexes(&mut self) {
-        /*
-        Updates potentials with the first way
-        */
+        pub fn diffusion_act(&mut self) {
             for i in 0..self.left_image.len() {
                 for j in 0..self.left_image[0].len() {
-                    for n in 0..4 {
-                        if neighbor_exists(i, j, n, self.left_image.len(), self.left_image[0].len()) {
-                            for d in 0..self.max_disparity {
-                                if j >= d {
-                                    self.update_vertex_potential(i, j, n, d);
-                                }
-                            }
-                        }
-                    }
+                    self.diffusion_act_vertexes(i, j);
+                    self.diffusion_act_edges(i, j);
+
+                    // Check if vertexes are zero after diffusion act on them
+                    // for d in 0..self.max_disparity {
+                    //     if j >= d {
+                    //         assert!(approx_equal(self.vertex_penalty_with_potentials(i, j, d), 0., 10E-6));
+                    //     }
+                    // }
+
+                    // Check if minimum edges from vertexes are equal after diffusion act
+                    // for d in 0..self.max_disparity {
+                    //     if j >= d {
+                    //         let mut vec = Vec::new();
+                    //         for n in 0..4 {
+                    //             if neighbor_exists(i, j, n, self.left_image.len(), self.left_image[0].len()) {
+                    //                 vec.push(self.min_edge_between_neighbors(i, j, n, d));
+                    //             }
+                    //         }
+                    //         for i in 1..vec.len() {
+                    //             assert!(approx_equal(vec[i - 1], vec[i], 10E-6));
+                    //         }
+                    //     }
+                    // }
                 }
             }
         }
 
-        pub fn diffusion_act_edges(&mut self) {
+        pub fn diffusion_act_vertexes(&mut self, i: usize, j: usize) {
+        /*
+        Updates potentials with the first way
+        */
+            for n in 0..4 {
+                if neighbor_exists(i, j, n, self.left_image.len(), self.left_image[0].len()) {
+                    for d in 0..self.max_disparity {
+                        if j >= d {
+                            self.update_vertex_potential(i, j, n, d);
+                        }
+                    }
+                }
+            }
+            for n in 0..4 {
+                for d in 0..self.max_disparity {
+                    self.potentials[i][j][n][d] = self.dummy_potentials[i][j][n][d];
+                }
+            }
+        }
+
+        pub fn diffusion_act_edges(&mut self, i: usize, j: usize) {
         /*
         Updates potentials with the second way
         */
-            for i in 0..self.left_image.len() {
-                for j in 0..self.left_image[0].len() {
-                    for n in 0..4 {
-                        if neighbor_exists(i, j, n, self.left_image.len(), self.left_image[0].len()) {
-                            for d in 0..self.max_disparity {
-                                if j >= d {
-                                    self.update_edge_potential(i, j, n, d);
-                                }
-                            }
+            for n in 0..4 {
+                if neighbor_exists(i, j, n, self.left_image.len(), self.left_image[0].len()) {
+                    for d in 0..self.max_disparity {
+                        if j >= d {
+                            self.update_edge_potential(i, j, n, d);
                         }
                     }
+                }
+            }
+            for n in 0..4 {
+                for d in 0..self.max_disparity {
+                    self.potentials[i][j][n][d] = self.dummy_potentials[i][j][n][d];
                 }
             }
         }
@@ -241,34 +290,14 @@ pub mod penalty_graph {
             let mut i = 1;
             while i <= number_of_iterations {
                 println!("Iteration # {}", i);
-                self.diffusion_act_vertexes();
-                self.diffusion_act_edges();
+                self.diffusion_act();
                 energy = self.energy();
                 println!("Energy: {}", energy);
-                let depth_map = self.build_depth_map(i);
-                self.build_left_image(depth_map, i);
+                // let depth_map = self.build_depth_map(i);
+                // self.build_left_image(depth_map, i);
                 i += 1;
             }
-        }
-
-        pub fn diffusion_while_energy_increases(&mut self) {
-        /*
-        Makes diffusion iterations while energy increases
-        */
-            let mut energy_prev: f64 = 0.;
-            let mut energy: f64 = self.energy();
-            let mut i = 1;
-            while !approx_equal(energy, energy_prev, 10E-6) {
-                energy_prev = energy;
-                println!("Iteration # {}", i);
-                self.diffusion_act_vertexes();
-                self.diffusion_act_edges();
-                energy = self.energy();
-                println!("Energy: {}", energy);
-                let depth_map = self.build_depth_map(i);
-                self.build_left_image(depth_map, i);
-                i += 1;
-            }
+            let depth_map = self.build_depth_map(i);
         }
 
         pub fn build_depth_map(&self, iteration: usize) -> Vec<Vec<usize>> {
@@ -337,6 +366,7 @@ pub mod penalty_graph {
                     }
                 }
             }
+            // assert_le!(min_penalty_vertex, self.vertex_penalty_with_potentials(i, j, 0));
             return (disparity, min_penalty_vertex);
         }
 
@@ -361,7 +391,7 @@ pub mod penalty_graph {
                     }
                 }
             }
-            assert_le!(min_penalty_edge, self.edge_penalty_with_potential(i, j, n, 0, 0));
+            // assert_le!(min_penalty_edge, self.edge_penalty_with_potential(i, j, n, 0, 0));
             min_penalty_edge
         }
 
