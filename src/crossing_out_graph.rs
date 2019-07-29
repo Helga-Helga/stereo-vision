@@ -245,6 +245,34 @@ pub mod crossing_out_graph {
             true
         }
 
+        pub fn diffusion_while_not_consistent(&mut self, epsilon: f64, batch_size: usize) {
+        /*
+        epsilon: needed for initialization of crossing out graph
+        batch_size: number of iterations after that crossing out will be done
+        Calls diffusion while crossing out graph is empty after crossing out with given epsilon
+        */
+            let mut not_empty: bool = false;
+            let mut i = 1;
+            while !not_empty {
+                self.penalty_graph.diffusion(i, batch_size);
+                println!("{} iterations of diffusion ended", i + batch_size - 1);
+                println!("Initializing crossing out graph with epsilon ...");
+                self.initialize_with_epsilon(epsilon);
+                if self.is_not_empty() {
+                    println!("After initialization with epsilon, resulting graph is not empty");
+                    println!("Crossing out ...");
+                    self.crossing_out();
+                    println!("Crossing out is done");
+                    not_empty = self.is_not_empty();
+                    if !not_empty {
+                        println!("Need more diffusion inerations");
+                    }
+                }
+                i += batch_size;
+            }
+            println!("Graph is consistent. Diffusion is done");
+        }
+
         pub fn min_vertex_between_existing(&self, i: usize, j: usize) -> usize {
         /*
         (i, j): pixel coordinates

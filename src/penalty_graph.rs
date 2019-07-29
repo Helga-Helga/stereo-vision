@@ -281,14 +281,16 @@ pub mod penalty_graph {
             }
         }
 
-        pub fn diffusion(&mut self, number_of_iterations: usize) {
+        pub fn diffusion(&mut self, first_iteration: usize, number_of_iterations: usize) {
         /*
+        first_iteration: first iteration to start diffusion
+        number_of_iterations: number of times to update potentials
         Makes diffusion iterations
         */
             let mut energy: f64 = self.energy();
             println!("Energy: {}", energy);
-            let mut i = 1;
-            while i <= number_of_iterations {
+            let mut i = first_iteration;
+            while i < first_iteration + number_of_iterations {
                 println!("Iteration # {}", i);
                 self.diffusion_act();
                 energy = self.energy();

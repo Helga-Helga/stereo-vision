@@ -38,26 +38,23 @@ fn main() {
         pgm_handler::pgm::pgm_reader("./images/corridor_l_25.pgm".to_string());
     assert_eq!(r_width, l_width);
     assert_eq!(r_height, l_height);
-    let mut pgraph = penalty_graph::penalty_graph::PenaltyGraph::initialize(left_image, right_image, 10);
-    pgraph.diffusion(300);
-    println!("Iterations of diffusion ended");
+
+    let mut pgraph = penalty_graph::penalty_graph::PenaltyGraph::initialize(left_image, right_image, 5);
+
     let vertices = vec![vec![vec![true; pgraph.max_disparity]; l_width]; l_height];
     let edges = vec![vec![vec![vec![vec![true; pgraph.max_disparity]; 4]; pgraph.max_disparity]; l_width]; l_height];
     let mut crossing_out_graph = crossing_out_graph::crossing_out_graph::CrossingOutGraph::initialize(
         pgraph, vertices, edges);
-    println!("Creating array of epsilons ...");
-    let array: Vec<f64> = epsilon_search::epsilon_search::create_array_of_epsilons(&mut crossing_out_graph, 1E-6);
-    println!("Searching for epsilon ...");
-    let epsilon: f64 = epsilon_search::epsilon_search::epsilon_search(&mut crossing_out_graph, &array);
-    // let epsilon: f64 = 1. / (10 * l_width * l_height) as f64;
+
+    // println!("Creating array of epsilons ...");
+    // let array: Vec<f64> = epsilon_search::epsilon_search::create_array_of_epsilons(&mut crossing_out_graph, 1E-6);
+    // println!("Searching for epsilon ...");
+    // let epsilon: f64 = epsilon_search::epsilon_search::epsilon_search(&mut crossing_out_graph, &array);
+    let epsilon: f64 = 1. / (10 * l_width * l_height) as f64;
     println!("Epsilon: {}", epsilon);
-    println!("Initializing crossing out graph with epsilon ...");
-    crossing_out_graph.initialize_with_epsilon(epsilon);
-    println!("After initialization with epsilon, resulting graph is not empty: {}", crossing_out_graph.is_not_empty());
-    println!("Crossing out ...");
-    crossing_out_graph.crossing_out();
-    println!("Crossing out is done");
-    println!("Resulting graph is not empty: {}", crossing_out_graph.is_not_empty());
+
+    crossing_out_graph.diffusion_while_not_consistent(epsilon, 100);
+
     println!("Finding disparity map ...");
     let disparity_map: Vec<Vec<usize>> = crossing_out_graph.find_best_labeling();
     println!("Disparity map is consistent: {}", crossing_out_graph.check_disparity_map(&disparity_map));
