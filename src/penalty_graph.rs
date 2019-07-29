@@ -108,6 +108,13 @@ pub mod penalty_graph {
         }
 
         pub fn edge_exists(&self, i: usize, j: usize, n: usize, d: usize, n_d: usize) -> bool {
+        /*
+        (i, j): pixel coordinates
+        n: neighbor number (0, 1, 2, or 3)
+        d: disparity of pixel (i, j)
+        n_d: disparity of n_th neighbor of pixel (i, j)
+        Returns true if edge between the given vertexes exists
+        */
             if neighbor_exists(i, j, n, self.left_image.len(), self.left_image[0].len()) {
                 let (_n_i, n_j, _n_index) = neighbor_index(i, j, n);
                 if j >= d && n_j >= n_d {
@@ -211,6 +218,10 @@ pub mod penalty_graph {
         }
 
         pub fn diffusion_act(&mut self) {
+        /*
+        Updates potentials for all pixels
+        Makes one diffusion iteration
+        */
             for i in 0..self.left_image.len() {
                 for j in 0..self.left_image[0].len() {
                     self.diffusion_act_vertexes(i, j);
@@ -243,7 +254,7 @@ pub mod penalty_graph {
 
         pub fn diffusion_act_vertexes(&mut self, i: usize, j: usize) {
         /*
-        Updates potentials with the first way
+        Updates potentials with the first way for pixel (i, j)
         */
             for n in 0..4 {
                 if neighbor_exists(i, j, n, self.left_image.len(), self.left_image[0].len()) {
@@ -263,7 +274,7 @@ pub mod penalty_graph {
 
         pub fn diffusion_act_edges(&mut self, i: usize, j: usize) {
         /*
-        Updates potentials with the second way
+        Updates potentials with the second way for pixel (i, j)
         */
             for n in 0..4 {
                 if neighbor_exists(i, j, n, self.left_image.len(), self.left_image[0].len()) {
