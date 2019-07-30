@@ -38,12 +38,14 @@ pub mod penalty_graph {
      pub left_image: Vec<Vec<u32>>,
      pub right_image: Vec<Vec<u32>>,
      pub max_disparity: usize,
+     pub smoothing_term: f64,
     }
 
     impl PenaltyGraph {
         pub fn initialize(left_image: Vec<Vec<u32>>,
                           right_image: Vec<Vec<u32>>,
-                          max_disparity: usize) -> Self {
+                          max_disparity: usize,
+                          smoothing_term: f64) -> Self {
             assert_eq!(left_image.len(), right_image.len());
             assert_eq!(left_image[0].len(), right_image[0].len());
             let mut lookup_table: Vec<Vec<f64>> = vec![vec![0f64; 256]; 256];
@@ -62,6 +64,7 @@ pub mod penalty_graph {
                 left_image: left_image,
                 right_image: right_image,
                 max_disparity: max_disparity,
+                smoothing_term: smoothing_term,
             }
         }
 
@@ -90,7 +93,7 @@ pub mod penalty_graph {
         N(t) is a set of vertices t' that has a common edge with t
         phi_{tt'}(k_t) is a potential
         */
-            1. * self.lookup_table[self.left_image[i][j] as usize][self.right_image[i][j - d]
+            self.lookup_table[self.left_image[i][j] as usize][self.right_image[i][j - d]
                 as usize] - self.sum_of_potentials(i, j, d)
         }
 
@@ -103,7 +106,7 @@ pub mod penalty_graph {
         Returns g*_{tt'}(k_t, k_t') = g_{tt'}(k_t, k_t') + phi_{tt'}(k_t) + phi_{t't}(k_t')
         */
             let (n_i, n_j, n_index) = neighbor_index(i, j, n);
-            1.5 * self.lookup_table[d][n_d] + self.potentials[i][j][n][d]
+            self.smoothing_term * self.lookup_table[d][n_d] + self.potentials[i][j][n][d]
                 + self.potentials[n_i][n_j][n_index][n_d]
         }
 
@@ -491,7 +494,7 @@ pub mod penalty_graph {
         let left_image = vec![vec![0u32; 1]; 1];
         let right_image = vec![vec![0u32; 1]; 1];
         let disparity_map = vec![vec![0usize; 1]; 1];
-        let penalty_graph = PenaltyGraph::initialize(left_image, right_image, 1);
+        let penalty_graph = PenaltyGraph::initialize(left_image, right_image, 1, 1.);
         assert_eq!(0., penalty_graph.penalty(disparity_map));
     }
 
@@ -500,7 +503,7 @@ pub mod penalty_graph {
         let left_image = [[1, 1].to_vec(), [0, 0].to_vec()].to_vec();
         let right_image = [[1, 0].to_vec(), [0, 0].to_vec()].to_vec();
         let disparity_map = vec![vec![1usize; 2]; 2];
-        let penalty_graph = PenaltyGraph::initialize(left_image, right_image, 2);
+        let penalty_graph = PenaltyGraph::initialize(left_image, right_image, 2, 1.);
         assert_eq!(f64::INFINITY, penalty_graph.penalty(disparity_map));
     }
 
@@ -509,10 +512,10 @@ pub mod penalty_graph {
         let left_image = [[1, 1].to_vec(), [0, 0].to_vec()].to_vec();
         let right_image = [[1, 0].to_vec(), [0, 0].to_vec()].to_vec();
         let disparity_map = [[0, 1].to_vec(), [0, 1].to_vec()].to_vec();
-        let mut penalty_graph = PenaltyGraph::initialize(left_image, right_image, 2);
+        let mut penalty_graph = PenaltyGraph::initialize(left_image, right_image, 2, 1.);
         assert_eq!(2., penalty_graph.penalty(disparity_map));
         penalty_graph.potentials[0][0][2][0] = 1.;
         let new_disparity_map = [[0, 1].to_vec(), [0, 1].to_vec()].to_vec();
-        assert_eq!(3., penalty_graph.penalty(new_disparity_map));
+        assert_eq!(2., penalty_graph.penalty(new_disparity_map));
     }
  }

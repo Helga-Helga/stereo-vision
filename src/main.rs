@@ -39,7 +39,7 @@ fn main() {
     assert_eq!(r_width, l_width);
     assert_eq!(r_height, l_height);
 
-    let mut pgraph = penalty_graph::penalty_graph::PenaltyGraph::initialize(left_image, right_image, 5);
+    let mut pgraph = penalty_graph::penalty_graph::PenaltyGraph::initialize(left_image, right_image, 5, 1.5);
 
     let vertices = vec![vec![vec![true; pgraph.max_disparity]; l_width]; l_height];
     let edges = vec![vec![vec![vec![vec![true; pgraph.max_disparity]; 4]; pgraph.max_disparity]; l_width]; l_height];

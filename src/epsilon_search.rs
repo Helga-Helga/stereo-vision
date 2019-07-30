@@ -170,7 +170,7 @@ pub mod epsilon_search {
         let left_image = vec![vec![0u32; 2]; 1];
         let right_image = vec![vec![0u32; 2]; 1];
         let max_disparity = 2;
-        let penalty_graph = PenaltyGraph::initialize(left_image, right_image, max_disparity);
+        let penalty_graph = PenaltyGraph::initialize(left_image, right_image, max_disparity, 1.);
         let vertices = vec![vec![vec![true; max_disparity]; 2]; 1];
         let edges = vec![vec![vec![vec![vec![true; max_disparity]; 4]; max_disparity]; 2]; 1];
         let mut crossing_out_graph = CrossingOutGraph::initialize(penalty_graph, vertices, edges);
