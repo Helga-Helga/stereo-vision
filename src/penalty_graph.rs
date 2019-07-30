@@ -526,6 +526,31 @@ pub mod penalty_graph {
         let mut penalty_graph = PenaltyGraph::initialize(left_image, right_image, 2, 1.);
         penalty_graph.potentials[0][0][2][0] = 9.4;
         penalty_graph.potentials[0][0][3][0] = -1.8;
+        penalty_graph.potentials[0][1][0][0] = 6.7;
+        penalty_graph.potentials[0][1][0][1] = -1.4;
+        penalty_graph.potentials[1][0][1][0] = 4.1;
         assert_eq!(true, approx_equal(7.6, penalty_graph.sum_of_potentials(0, 0, 0), 10E-6));
+        assert_eq!(true, approx_equal(6.7, penalty_graph.sum_of_potentials(0, 1, 0), 10E-6));
+        assert_eq!(true, approx_equal(-1.4, penalty_graph.sum_of_potentials(0, 1, 1), 10E-6));
+        assert_eq!(true, approx_equal(4.1, penalty_graph.sum_of_potentials(1, 0, 0), 10E-6));
+        assert_eq!(true, approx_equal(0., penalty_graph.sum_of_potentials(1, 1, 0), 10E-6));
+        assert_eq!(true, approx_equal(0., penalty_graph.sum_of_potentials(1, 1, 1), 10E-6));
+    }
+
+    #[test]
+    fn test_vertex_penalty_with_potentials() {
+        let left_image = [[166, 26, 215].to_vec(), [52, 66, 27].to_vec(), [113, 33, 214].to_vec()].to_vec();
+        let right_image = [[203, 179, 158].to_vec(), [123, 160, 222].to_vec(), [90, 139, 127].to_vec()].to_vec();
+        let mut penalty_graph = PenaltyGraph::initialize(left_image, right_image, 2, 1.);
+        penalty_graph.potentials[1][1][0][0] = 0.;
+        penalty_graph.potentials[1][1][1][0] = 0.;
+        penalty_graph.potentials[1][1][2][0] = 1.;
+        penalty_graph.potentials[1][1][3][0] = 0.1;
+        penalty_graph.potentials[1][1][0][1] = 0.9;
+        penalty_graph.potentials[1][1][1][1] = 0.6;
+        penalty_graph.potentials[1][1][2][1] = 1.;
+        penalty_graph.potentials[1][1][3][1] = 0.6;
+        assert_eq!(true, approx_equal(92.9, penalty_graph.vertex_penalty_with_potentials(1, 1, 0), 10E-6));
+        assert_eq!(true, approx_equal(53.9, penalty_graph.vertex_penalty_with_potentials(1, 1, 1), 10E-6));
     }
  }
