@@ -567,4 +567,23 @@ pub mod penalty_graph {
         assert_eq!(true, approx_equal(1.9, penalty_graph.edge_penalty_with_potential(0, 0, 2, 0, 1), 10E-6));
         assert_eq!(true, approx_equal(1.9, penalty_graph.edge_penalty_with_potential(0, 1, 0, 1, 0), 10E-6));
     }
+
+    #[test]
+    fn test_edge_exists() {
+        let left_image = [[244, 172, 168, 192].to_vec(), [83, 248, 38, 204].to_vec()].to_vec();
+        let right_image = [[218, 138, 65, 18].to_vec(), [225, 7, 114, 127].to_vec()].to_vec();
+        let mut penalty_graph = PenaltyGraph::initialize(left_image, right_image, 4, 1.);
+        assert!(penalty_graph.edge_exists(0, 0, 2, 0, 0));
+        assert!(penalty_graph.edge_exists(0, 1, 0, 0, 0));
+        assert!(penalty_graph.edge_exists(0, 0, 2, 0, 1));
+        assert!(penalty_graph.edge_exists(0, 1, 0, 1, 0));
+        assert!(!penalty_graph.edge_exists(0, 0, 2, 1, 0));
+        assert!(!penalty_graph.edge_exists(0, 0, 2, 1, 1));
+        assert!(!penalty_graph.edge_exists(0, 0, 2, 2, 0));
+        assert!(!penalty_graph.edge_exists(0, 1, 0, 2, 1));
+        assert!(!penalty_graph.edge_exists(0, 0, 0, 0, 0));
+        assert!(!penalty_graph.edge_exists(0, 3, 0, 3, 0));
+        assert!(!penalty_graph.edge_exists(0, 2, 2, 0, 3));
+        assert!(!penalty_graph.edge_exists(0, 0, 2, 1, 0));
+    }
  }
