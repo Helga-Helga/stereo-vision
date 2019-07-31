@@ -146,22 +146,22 @@ pub mod epsilon_search {
 
     #[test]
     fn test_dedup_f64() {
-        let mut array = [1., 1.5, 2., 3.].to_vec();
-        dedup_f64(&mut array, 1.);
+        let mut array: Vec<f64> = [1., 1.5, 2., 3.].to_vec();
+        array = dedup_f64(array, 1.);
         assert_eq!([1., 3.].to_vec(), array);
     }
 
     #[test]
     fn test_dedup_f64_one_element() {
-        let mut array = [0.].to_vec();
-        dedup_f64(&mut array, 0.);
+        let mut array: Vec<f64> = [0.].to_vec();
+        array = dedup_f64(array, 0.);
         assert_eq!([0.].to_vec(), array);
     }
 
     #[test]
     fn test_dedup_f64_no_remove() {
-        let mut array = [1., 1.5, 2., 3.].to_vec();
-        dedup_f64(&mut array, 0.);
+        let mut array: Vec<f64> = [1., 1.5, 2., 3.].to_vec();
+        array = dedup_f64(array, 0.);
         assert_eq!([1., 1.5, 2., 3.].to_vec(), array);
     }
 
@@ -175,7 +175,7 @@ pub mod epsilon_search {
         let edges = vec![vec![vec![vec![vec![true; max_disparity]; 4]; max_disparity]; 2]; 1];
         let mut crossing_out_graph = CrossingOutGraph::initialize(penalty_graph, vertices, edges);
         let array: Vec<f64> = create_array_of_epsilons(&mut crossing_out_graph, 0.01);
-        let epsilon: f64 = epsilon_search(crossing_out_graph, &array);
+        let epsilon: f64 = epsilon_search(&mut crossing_out_graph, &array);
         assert_eq!(epsilon, 0.0);
     }
 }
