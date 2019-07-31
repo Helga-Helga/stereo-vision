@@ -586,4 +586,17 @@ pub mod penalty_graph {
         assert!(!penalty_graph.edge_exists(0, 2, 2, 0, 3));
         assert!(!penalty_graph.edge_exists(0, 0, 2, 1, 0));
     }
+
+    #[test]
+    fn min_edge_between_neighbors() {
+        let left_image = [[244, 172].to_vec()].to_vec();
+        let right_image = [[168, 83].to_vec()].to_vec();
+        let mut penalty_graph = PenaltyGraph::initialize(left_image, right_image, 2, 1.);
+        penalty_graph.potentials[0][0][2][0] = 0.8;
+        penalty_graph.potentials[0][1][0][0] = 0.;
+        penalty_graph.potentials[0][1][0][1] = 0.1;
+        assert_eq!(true, approx_equal(penalty_graph.min_edge_between_neighbors(0, 0, 2, 0), 0.8, 10E-6));
+        penalty_graph.potentials[0][1][0][0] = 2.;
+        assert_eq!(true, approx_equal(penalty_graph.min_edge_between_neighbors(0, 0, 2, 0), 1.9, 10E-6));
+    }
  }
