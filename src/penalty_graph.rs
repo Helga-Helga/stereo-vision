@@ -627,4 +627,22 @@ pub mod penalty_graph {
         penalty_graph.update_vertex_potential(1, 0, 3, 0);
         assert_eq!(true, approx_equal(penalty_graph.dummy_potentials[1][0][3][0], -2.5, 10E-6));
     }
+
+    #[test]
+    fn update_edge_potential() {
+        let left_image = [[1, 1, 1].to_vec(), [1, 0, 1].to_vec(), [1, 1, 1].to_vec()].to_vec();
+        let right_image = [[1, 1, 1].to_vec(), [1, 0, 1].to_vec(), [1, 1, 1].to_vec()].to_vec();
+        let mut penalty_graph = PenaltyGraph::initialize(left_image, right_image, 1, 1.);
+        penalty_graph.potentials[0][0][2][0] = -0.3;
+        penalty_graph.potentials[0][0][3][0] = 0.1;
+        penalty_graph.potentials[2][1][0][0] = 0.8;
+        penalty_graph.potentials[2][1][2][0] = -0.62;
+        assert_eq!(0., penalty_graph.dummy_potentials[0][0][2][0]);
+        penalty_graph.update_edge_potential(0, 0, 2, 0);
+        assert_eq!(true, approx_equal(penalty_graph.dummy_potentials[0][0][2][0], 0.1, 10E-6));
+        penalty_graph.update_edge_potential(1, 1, 0, 0);
+        assert_eq!(true, approx_equal(penalty_graph.dummy_potentials[1][1][0][0], 0., 10E-6));
+        penalty_graph.update_edge_potential(2, 1, 2, 0);
+        assert_eq!(true, approx_equal(penalty_graph.dummy_potentials[2][1][2][0], -0.06, 10E-6));
+    }
  }
