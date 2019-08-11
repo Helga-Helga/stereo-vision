@@ -677,4 +677,19 @@ pub mod penalty_graph {
         assert_eq!(true, approx_equal(penalty_graph.dummy_potentials[1][0][1][0], -0.1, 10E-6));
         assert_eq!(true, approx_equal(penalty_graph.potentials[1][0][1][0], -0.1, 10E-6));
     }
+
+    #[test]
+    fn diffusion_act() {
+        let left_image = [[1].to_vec(), [0].to_vec()].to_vec();
+        let right_image = [[1].to_vec(), [0].to_vec()].to_vec();
+        let mut penalty_graph = PenaltyGraph::initialize(left_image, right_image, 2, 1.);
+        penalty_graph.potentials[0][0][3][0] = -0.3;
+        penalty_graph.potentials[1][0][1][0] = 0.1;
+        assert_eq!(0., penalty_graph.dummy_potentials[0][0][3][0]);
+        penalty_graph.diffusion_act();
+        assert_eq!(true, approx_equal(penalty_graph.dummy_potentials[0][0][3][0], 0., 10E-6));
+        assert_eq!(true, approx_equal(penalty_graph.potentials[0][0][3][0], 0., 10E-6));
+        assert_eq!(true, approx_equal(penalty_graph.dummy_potentials[1][0][1][0], 0., 10E-6));
+        assert_eq!(true, approx_equal(penalty_graph.potentials[1][0][1][0], 0., 10E-6));
+    }
  }
