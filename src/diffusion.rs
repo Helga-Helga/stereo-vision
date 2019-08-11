@@ -167,4 +167,12 @@ mod tests {
         assert_eq!(4, number_of_neighbors(1, 1, 3, 3));
     }
 
+    #[test]
+    fn test_approx_equal() {
+        assert!(approx_equal(0., 0., 0.));
+        assert!(approx_equal(1., 0., 1.));
+        assert!(approx_equal(-0.1, -0.2, 0.3));
+        assert!(!approx_equal(1., 0., 0.5));
+        assert!(!approx_equal(-1., 1., 1.));
+    }
 }
