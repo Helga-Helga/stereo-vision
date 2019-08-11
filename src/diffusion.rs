@@ -148,4 +148,23 @@ mod tests {
         assert_eq!(0, neighbor_index(0, 0, 3).1);
         assert_eq!(1, neighbor_index(0, 0, 3).2);
     }
+
+    #[test]
+    #[should_panic]
+    fn test_neighbor_index_panic() {
+        neighbor_index(0, 0, 4);
+    }
+
+    #[test]
+    fn test_number_of_neighbors() {
+        assert_eq!(0, number_of_neighbors(0, 0, 0, 0));
+        assert_eq!(0, number_of_neighbors(0, 0, 1, 0));
+        assert_eq!(0, number_of_neighbors(0, 0, 1, 1));
+        assert_eq!(1, number_of_neighbors(0, 0, 1, 2));
+        assert_eq!(2, number_of_neighbors(0, 0, 2, 2));
+        assert_eq!(2, number_of_neighbors(0, 1, 1, 3));
+        assert_eq!(3, number_of_neighbors(0, 1, 2, 3));
+        assert_eq!(4, number_of_neighbors(1, 1, 3, 3));
+    }
+
 }
