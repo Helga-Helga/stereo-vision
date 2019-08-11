@@ -125,6 +125,12 @@ mod tests {
     }
 
     #[test]
+    #[should_panic]
+    fn test_edge_exists_panic() {
+        neighbor_exists(1, 1, 6, 2, 2);
+    }
+
+    #[test]
     fn test_neighbor_index() {
         assert_eq!(0, neighbor_index(0, 1, 0).0);
         assert_eq!(0, neighbor_index(0, 1, 0).1);
