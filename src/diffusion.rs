@@ -123,4 +123,23 @@ mod tests {
         assert!(neighbor_exists(0, 0, 3, 2, 2));
         assert!(!neighbor_exists(1, 0, 3, 2, 2));
     }
+
+    #[test]
+    fn test_neighbor_index() {
+        assert_eq!(0, neighbor_index(0, 1, 0).0);
+        assert_eq!(0, neighbor_index(0, 1, 0).1);
+        assert_eq!(2, neighbor_index(0, 1, 0).2);
+
+        assert_eq!(0, neighbor_index(1, 0, 1).0);
+        assert_eq!(0, neighbor_index(1, 0, 1).1);
+        assert_eq!(3, neighbor_index(1, 0, 1).2);
+
+        assert_eq!(0, neighbor_index(0, 0, 2).0);
+        assert_eq!(1, neighbor_index(0, 0, 2).1);
+        assert_eq!(0, neighbor_index(0, 0, 2).2);
+
+        assert_eq!(1, neighbor_index(0, 0, 3).0);
+        assert_eq!(0, neighbor_index(0, 0, 3).1);
+        assert_eq!(1, neighbor_index(0, 0, 3).2);
+    }
 }
