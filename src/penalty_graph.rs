@@ -216,7 +216,7 @@ pub mod penalty_graph {
             // let true_pot = self.potentials[i][j][n][d];
             // let mut rng = rand::thread_rng();
             // self.potentials[i][j][n][d] += rng.gen_range(-10., 10.);
-            // assert!(self.energy() <= energy + 10E-6);
+            // assert!(self.energy() <= energy + 1E-6);
             // self.potentials[i][j][n][d] = true_pot;
         }
 
@@ -233,7 +233,7 @@ pub mod penalty_graph {
                     // Check if vertexes are zero after diffusion act on them
                     // for d in 0..self.max_disparity {
                     //     if j >= d {
-                    //         assert!(approx_equal(self.vertex_penalty_with_potentials(i, j, d), 0., 10E-6));
+                    //         assert!(approx_equal(self.vertex_penalty_with_potentials(i, j, d), 0., 1E-6));
                     //     }
                     // }
 
@@ -247,7 +247,7 @@ pub mod penalty_graph {
                     //             }
                     //         }
                     //         for i in 1..vec.len() {
-                    //             assert!(approx_equal(vec[i - 1], vec[i], 10E-6));
+                    //             assert!(approx_equal(vec[i - 1], vec[i], 1E-6));
                     //         }
                     //     }
                     // }
@@ -529,12 +529,12 @@ pub mod penalty_graph {
         penalty_graph.potentials[0][1][0][0] = 6.7;
         penalty_graph.potentials[0][1][0][1] = -1.4;
         penalty_graph.potentials[1][0][1][0] = 4.1;
-        assert_eq!(true, approx_equal(7.6, penalty_graph.sum_of_potentials(0, 0, 0), 10E-6));
-        assert_eq!(true, approx_equal(6.7, penalty_graph.sum_of_potentials(0, 1, 0), 10E-6));
-        assert_eq!(true, approx_equal(-1.4, penalty_graph.sum_of_potentials(0, 1, 1), 10E-6));
-        assert_eq!(true, approx_equal(4.1, penalty_graph.sum_of_potentials(1, 0, 0), 10E-6));
-        assert_eq!(true, approx_equal(0., penalty_graph.sum_of_potentials(1, 1, 0), 10E-6));
-        assert_eq!(true, approx_equal(0., penalty_graph.sum_of_potentials(1, 1, 1), 10E-6));
+        assert_eq!(true, approx_equal(7.6, penalty_graph.sum_of_potentials(0, 0, 0), 1E-6));
+        assert_eq!(true, approx_equal(6.7, penalty_graph.sum_of_potentials(0, 1, 0), 1E-6));
+        assert_eq!(true, approx_equal(-1.4, penalty_graph.sum_of_potentials(0, 1, 1), 1E-6));
+        assert_eq!(true, approx_equal(4.1, penalty_graph.sum_of_potentials(1, 0, 0), 1E-6));
+        assert_eq!(true, approx_equal(0., penalty_graph.sum_of_potentials(1, 1, 0), 1E-6));
+        assert_eq!(true, approx_equal(0., penalty_graph.sum_of_potentials(1, 1, 1), 1E-6));
     }
 
     #[test]
@@ -550,8 +550,8 @@ pub mod penalty_graph {
         penalty_graph.potentials[1][1][1][1] = 0.6;
         penalty_graph.potentials[1][1][2][1] = 1.;
         penalty_graph.potentials[1][1][3][1] = 0.6;
-        assert_eq!(true, approx_equal(92.9, penalty_graph.vertex_penalty_with_potentials(1, 1, 0), 10E-6));
-        assert_eq!(true, approx_equal(53.9, penalty_graph.vertex_penalty_with_potentials(1, 1, 1), 10E-6));
+        assert_eq!(true, approx_equal(92.9, penalty_graph.vertex_penalty_with_potentials(1, 1, 0), 1E-6));
+        assert_eq!(true, approx_equal(53.9, penalty_graph.vertex_penalty_with_potentials(1, 1, 1), 1E-6));
     }
 
     #[test]
@@ -562,10 +562,10 @@ pub mod penalty_graph {
         penalty_graph.potentials[0][0][2][0] = 0.8;
         penalty_graph.potentials[0][1][0][0] = 0.;
         penalty_graph.potentials[0][1][0][1] = 0.1;
-        assert_eq!(true, approx_equal(0.8, penalty_graph.edge_penalty_with_potential(0, 0, 2, 0, 0), 10E-6));
-        assert_eq!(true, approx_equal(0.8, penalty_graph.edge_penalty_with_potential(0, 1, 0, 0, 0), 10E-6));
-        assert_eq!(true, approx_equal(1.9, penalty_graph.edge_penalty_with_potential(0, 0, 2, 0, 1), 10E-6));
-        assert_eq!(true, approx_equal(1.9, penalty_graph.edge_penalty_with_potential(0, 1, 0, 1, 0), 10E-6));
+        assert_eq!(true, approx_equal(0.8, penalty_graph.edge_penalty_with_potential(0, 0, 2, 0, 0), 1E-6));
+        assert_eq!(true, approx_equal(0.8, penalty_graph.edge_penalty_with_potential(0, 1, 0, 0, 0), 1E-6));
+        assert_eq!(true, approx_equal(1.9, penalty_graph.edge_penalty_with_potential(0, 0, 2, 0, 1), 1E-6));
+        assert_eq!(true, approx_equal(1.9, penalty_graph.edge_penalty_with_potential(0, 1, 0, 1, 0), 1E-6));
     }
 
     #[test]
@@ -595,9 +595,9 @@ pub mod penalty_graph {
         penalty_graph.potentials[0][0][2][0] = 0.8;
         penalty_graph.potentials[0][1][0][0] = 0.;
         penalty_graph.potentials[0][1][0][1] = 0.1;
-        assert_eq!(true, approx_equal(penalty_graph.min_edge_between_neighbors(0, 0, 2, 0), 0.8, 10E-6));
+        assert_eq!(true, approx_equal(penalty_graph.min_edge_between_neighbors(0, 0, 2, 0), 0.8, 1E-6));
         penalty_graph.potentials[0][1][0][0] = 2.;
-        assert_eq!(true, approx_equal(penalty_graph.min_edge_between_neighbors(0, 0, 2, 0), 1.9, 10E-6));
+        assert_eq!(true, approx_equal(penalty_graph.min_edge_between_neighbors(0, 0, 2, 0), 1.9, 1E-6));
         assert_eq!(f64::INFINITY, penalty_graph.min_edge_between_neighbors(0, 0, 2, 1));
     }
 
@@ -619,13 +619,13 @@ pub mod penalty_graph {
         penalty_graph.potentials[1][1][3][1] = -0.62;
         assert_eq!(0., penalty_graph.dummy_potentials[1][0][1][0]);
         penalty_graph.update_vertex_potential(1, 0, 1, 0);
-        assert_eq!(true, approx_equal(penalty_graph.dummy_potentials[1][0][1][0], -1.76, 10E-6));
+        assert_eq!(true, approx_equal(penalty_graph.dummy_potentials[1][0][1][0], -1.76, 1E-6));
         assert_eq!(0., penalty_graph.dummy_potentials[1][0][2][0]);
         penalty_graph.update_vertex_potential(1, 0, 2, 0);
-        assert_eq!(true, approx_equal(penalty_graph.dummy_potentials[1][0][2][0], -0.64, 10E-6));
+        assert_eq!(true, approx_equal(penalty_graph.dummy_potentials[1][0][2][0], -0.64, 1E-6));
         assert_eq!(0., penalty_graph.dummy_potentials[1][0][3][0]);
         penalty_graph.update_vertex_potential(1, 0, 3, 0);
-        assert_eq!(true, approx_equal(penalty_graph.dummy_potentials[1][0][3][0], -2.5, 10E-6));
+        assert_eq!(true, approx_equal(penalty_graph.dummy_potentials[1][0][3][0], -2.5, 1E-6));
     }
 
     #[test]
@@ -639,11 +639,11 @@ pub mod penalty_graph {
         penalty_graph.potentials[2][1][2][0] = -0.62;
         assert_eq!(0., penalty_graph.dummy_potentials[0][0][2][0]);
         penalty_graph.update_edge_potential(0, 0, 2, 0);
-        assert_eq!(true, approx_equal(penalty_graph.dummy_potentials[0][0][2][0], 0.1, 10E-6));
+        assert_eq!(true, approx_equal(penalty_graph.dummy_potentials[0][0][2][0], 0.1, 1E-6));
         penalty_graph.update_edge_potential(1, 1, 0, 0);
-        assert_eq!(true, approx_equal(penalty_graph.dummy_potentials[1][1][0][0], 0., 10E-6));
+        assert_eq!(true, approx_equal(penalty_graph.dummy_potentials[1][1][0][0], 0., 1E-6));
         penalty_graph.update_edge_potential(2, 1, 2, 0);
-        assert_eq!(true, approx_equal(penalty_graph.dummy_potentials[2][1][2][0], -0.06, 10E-6));
+        assert_eq!(true, approx_equal(penalty_graph.dummy_potentials[2][1][2][0], -0.06, 1E-6));
     }
 
     #[test]
@@ -655,11 +655,11 @@ pub mod penalty_graph {
         penalty_graph.potentials[1][0][1][0] = 0.1;
         assert_eq!(0., penalty_graph.dummy_potentials[0][0][3][0]);
         penalty_graph.diffusion_act_vertexes(0, 0);
-        assert_eq!(true, approx_equal(penalty_graph.dummy_potentials[0][0][3][0], 0.2, 10E-6));
-        assert_eq!(true, approx_equal(penalty_graph.potentials[0][0][3][0], 0.2, 10E-6));
+        assert_eq!(true, approx_equal(penalty_graph.dummy_potentials[0][0][3][0], 0.2, 1E-6));
+        assert_eq!(true, approx_equal(penalty_graph.potentials[0][0][3][0], 0.2, 1E-6));
         penalty_graph.diffusion_act_vertexes(1, 0);
-        assert_eq!(true, approx_equal(penalty_graph.dummy_potentials[1][0][1][0], -0.3, 10E-6));
-        assert_eq!(true, approx_equal(penalty_graph.potentials[1][0][1][0], -0.3, 10E-6));
+        assert_eq!(true, approx_equal(penalty_graph.dummy_potentials[1][0][1][0], -0.3, 1E-6));
+        assert_eq!(true, approx_equal(penalty_graph.potentials[1][0][1][0], -0.3, 1E-6));
     }
 
     #[test]
@@ -671,11 +671,11 @@ pub mod penalty_graph {
         penalty_graph.potentials[1][0][1][0] = 0.1;
         assert_eq!(0., penalty_graph.dummy_potentials[0][0][3][0]);
         penalty_graph.diffusion_act_edges(0, 0);
-        assert_eq!(true, approx_equal(penalty_graph.dummy_potentials[0][0][3][0], 0.3, 10E-6));
-        assert_eq!(true, approx_equal(penalty_graph.potentials[0][0][3][0], 0.3, 10E-6));
+        assert_eq!(true, approx_equal(penalty_graph.dummy_potentials[0][0][3][0], 0.3, 1E-6));
+        assert_eq!(true, approx_equal(penalty_graph.potentials[0][0][3][0], 0.3, 1E-6));
         penalty_graph.diffusion_act_edges(1, 0);
-        assert_eq!(true, approx_equal(penalty_graph.dummy_potentials[1][0][1][0], -0.1, 10E-6));
-        assert_eq!(true, approx_equal(penalty_graph.potentials[1][0][1][0], -0.1, 10E-6));
+        assert_eq!(true, approx_equal(penalty_graph.dummy_potentials[1][0][1][0], -0.1, 1E-6));
+        assert_eq!(true, approx_equal(penalty_graph.potentials[1][0][1][0], -0.1, 1E-6));
     }
 
     #[test]
@@ -687,10 +687,10 @@ pub mod penalty_graph {
         penalty_graph.potentials[1][0][1][0] = 0.1;
         assert_eq!(0., penalty_graph.dummy_potentials[0][0][3][0]);
         penalty_graph.diffusion_act();
-        assert_eq!(true, approx_equal(penalty_graph.dummy_potentials[0][0][3][0], 0., 10E-6));
-        assert_eq!(true, approx_equal(penalty_graph.potentials[0][0][3][0], 0., 10E-6));
-        assert_eq!(true, approx_equal(penalty_graph.dummy_potentials[1][0][1][0], 0., 10E-6));
-        assert_eq!(true, approx_equal(penalty_graph.potentials[1][0][1][0], 0., 10E-6));
+        assert_eq!(true, approx_equal(penalty_graph.dummy_potentials[0][0][3][0], 0., 1E-6));
+        assert_eq!(true, approx_equal(penalty_graph.potentials[0][0][3][0], 0., 1E-6));
+        assert_eq!(true, approx_equal(penalty_graph.dummy_potentials[1][0][1][0], 0., 1E-6));
+        assert_eq!(true, approx_equal(penalty_graph.potentials[1][0][1][0], 0., 1E-6));
     }
 
     #[test]
