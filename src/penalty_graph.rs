@@ -722,4 +722,17 @@ pub mod penalty_graph {
         assert_eq!(-13.1, penalty_graph.min_penalty_edge(0, 0, 2));
         assert_eq!(-13.1, penalty_graph.min_penalty_edge(0, 1, 0));
     }
+
+    #[test]
+    fn energy() {
+        let left_image = [[1, 1].to_vec(), [0, 0].to_vec()].to_vec();
+        let right_image = [[1, 0].to_vec(), [0, 0].to_vec()].to_vec();
+        let mut penalty_graph = PenaltyGraph::initialize(left_image, right_image, 2, 1.);
+        penalty_graph.potentials[0][0][2][0] = 0.6;
+        penalty_graph.potentials[0][0][3][0] = 358.;
+        penalty_graph.potentials[0][1][0][0] = -13.7;
+        penalty_graph.potentials[0][1][0][1] = 80.;
+        penalty_graph.potentials[0][1][3][1] = -1E9 as f64;
+        assert_eq!(-999999999.0, penalty_graph.energy());
+    }
  }
