@@ -152,7 +152,7 @@ pub mod crossing_out_graph {
                                 }
                                 for n in 0..4 {
                                     if !neighbor_exists(i, j, n, self.penalty_graph.left_image.len(),
-                                    self.penalty_graph.left_image[0].len()) {
+                                                        self.penalty_graph.left_image[0].len()) {
                                         continue;
                                     }
                                     let mut edge_exist = false;
@@ -374,6 +374,35 @@ pub mod crossing_out_graph {
         assert!(!crossing_out_graph.vertices_exist());
         assert!(!crossing_out_graph.edges_exist());
         assert!(!crossing_out_graph.is_not_empty());
+    }
+
+    #[test]
+    fn test_crossing_out() {
+        let left_image = [[1, 1].to_vec(), [1, 0].to_vec()].to_vec();
+        let right_image = [[1, 0].to_vec(), [0, 0].to_vec()].to_vec();
+        let max_disparity: usize = 2;
+        let mut penalty_graph = PenaltyGraph::initialize(left_image, right_image, max_disparity, 1.);
+        let mut vertices = vec![vec![vec![true; max_disparity]; 2]; 2];
+        let mut edges = vec![vec![vec![vec![vec![true; max_disparity]; 4]; max_disparity]; 2]; 2];
+        let mut crossing_out_graph = CrossingOutGraph::initialize(penalty_graph, vertices, edges);
+        crossing_out_graph.edges[0][0][0][2][0] = false;
+        crossing_out_graph.edges[0][1][0][0][0] = false;
+        crossing_out_graph.edges[0][1][1][3][1] = false;
+        crossing_out_graph.edges[1][1][1][1][1] = false;
+        crossing_out_graph.crossing_out();
+        assert!(crossing_out_graph.vertices[0][0][0]);
+        assert!(crossing_out_graph.vertices[0][1][1]);
+        assert!(crossing_out_graph.vertices[1][0][0]);
+        assert!(crossing_out_graph.vertices[1][1][0]);
+        assert!(!crossing_out_graph.vertices[0][1][0]);
+        assert!(!crossing_out_graph.vertices[1][1][1]);
+        assert!(crossing_out_graph.edges[0][0][0][2][1]);
+        assert!(crossing_out_graph.edges[0][0][0][3][0]);
+        assert!(crossing_out_graph.edges[1][0][0][2][0]);
+        assert!(!crossing_out_graph.edges[1][0][0][2][1]);
+        assert!(crossing_out_graph.edges[0][1][1][3][0]);
+        assert!(!crossing_out_graph.edges[0][1][1][3][1]);
+        assert!(!crossing_out_graph.edges[0][0][0][2][0]);
     }
 
     #[test]
