@@ -692,4 +692,20 @@ pub mod penalty_graph {
         assert_eq!(true, approx_equal(penalty_graph.dummy_potentials[1][0][1][0], 0., 10E-6));
         assert_eq!(true, approx_equal(penalty_graph.potentials[1][0][1][0], 0., 10E-6));
     }
+
+    #[test]
+    fn min_penalty_vertex() {
+        let left_image = [[1, 1].to_vec(), [0, 0].to_vec()].to_vec();
+        let right_image = [[1, 0].to_vec(), [0, 0].to_vec()].to_vec();
+        let mut penalty_graph = PenaltyGraph::initialize(left_image, right_image, 2, 1.);
+        penalty_graph.potentials[0][0][2][0] = 0.6;
+        penalty_graph.potentials[0][0][3][0] = 358.;
+        penalty_graph.potentials[0][1][0][0] = -13.7;
+        penalty_graph.potentials[0][1][0][1] = 80.;
+        penalty_graph.potentials[0][1][3][1] = -1E9 as f64;
+        assert_eq!(penalty_graph.min_penalty_vertex(0, 0).1, -358.6);
+        assert_eq!(0, penalty_graph.min_penalty_vertex(0, 0).0);
+        assert_eq!(penalty_graph.min_penalty_vertex(0, 1).1, 14.7);
+        assert_eq!(0, penalty_graph.min_penalty_vertex(0, 1).0);
+    }
  }
