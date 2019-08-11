@@ -734,5 +734,8 @@ pub mod penalty_graph {
         penalty_graph.potentials[0][1][0][1] = 80.;
         penalty_graph.potentials[0][1][3][1] = -1E9 as f64;
         assert_eq!(-999999999.0, penalty_graph.energy());
+        assert_eq!(0., penalty_graph.potentials[0][0][1][0]);
+        assert_eq!(0., penalty_graph.potentials[0][0][1][1]);
+        assert_eq!(0., penalty_graph.potentials[0][1][1][1]);
     }
  }
