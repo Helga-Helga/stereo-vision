@@ -107,3 +107,20 @@ pub mod diffusion {
         return true;
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::diffusion::*;
+
+    #[test]
+    fn test_neighbor_exists() {
+        assert!(neighbor_exists(1, 1, 0, 2, 2));
+        assert!(!neighbor_exists(0, 0, 0, 2, 2));
+        assert!(neighbor_exists(1, 0, 1, 2, 2));
+        assert!(!neighbor_exists(0, 0, 1, 2, 2));
+        assert!(neighbor_exists(0, 0, 2, 2, 2));
+        assert!(!neighbor_exists(0, 1, 2, 2, 2));
+        assert!(neighbor_exists(0, 0, 3, 2, 2));
+        assert!(!neighbor_exists(1, 0, 3, 2, 2));
+    }
+}
