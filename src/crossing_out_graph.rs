@@ -381,7 +381,7 @@ pub mod crossing_out_graph {
         let left_image = [[1, 1].to_vec(), [1, 0].to_vec()].to_vec();
         let right_image = [[1, 0].to_vec(), [0, 0].to_vec()].to_vec();
         let max_disparity: usize = 2;
-        let mut penalty_graph = PenaltyGraph::initialize(left_image, right_image, max_disparity, 1.);
+        let penalty_graph = PenaltyGraph::initialize(left_image, right_image, max_disparity, 1.);
         let mut vertices = vec![vec![vec![true; max_disparity]; 2]; 2];
         let mut edges = vec![vec![vec![vec![vec![true; max_disparity]; 4]; max_disparity]; 2]; 2];
         let mut crossing_out_graph = CrossingOutGraph::initialize(penalty_graph, vertices, edges);
@@ -473,7 +473,7 @@ pub mod crossing_out_graph {
         let left_image = [[1, 1].to_vec()].to_vec();
         let right_image = [[1, 0].to_vec()].to_vec();
         let max_disparity: usize = 2;
-        let mut penalty_graph = PenaltyGraph::initialize(left_image, right_image, max_disparity, 1.);
+        let penalty_graph = PenaltyGraph::initialize(left_image, right_image, max_disparity, 1.);
         let mut vertices = vec![vec![vec![true; max_disparity]; 2]; 1];
         let edges = vec![vec![vec![vec![vec![false; max_disparity]; 4]; max_disparity]; 2]; 1];
         let mut crossing_out_graph = CrossingOutGraph::initialize(penalty_graph, vertices, edges);
@@ -486,7 +486,7 @@ pub mod crossing_out_graph {
         let left_image = [[1, 1].to_vec()].to_vec();
         let right_image = [[1, 0].to_vec()].to_vec();
         let max_disparity: usize = 1;
-        let mut penalty_graph = PenaltyGraph::initialize(left_image, right_image, max_disparity, 1.);
+        let penalty_graph = PenaltyGraph::initialize(left_image, right_image, max_disparity, 1.);
         let mut vertices = vec![vec![vec![true; max_disparity]; 2]; 1];
         let edges = vec![vec![vec![vec![vec![false; max_disparity]; 4]; max_disparity]; 2]; 1];
         let mut crossing_out_graph = CrossingOutGraph::initialize(penalty_graph, vertices, edges);
@@ -499,7 +499,7 @@ pub mod crossing_out_graph {
         let left_image = [[1, 1].to_vec(), [1, 0].to_vec()].to_vec();
         let right_image = [[1, 0].to_vec(), [0, 0].to_vec()].to_vec();
         let max_disparity: usize = 2;
-        let mut penalty_graph = PenaltyGraph::initialize(left_image, right_image, max_disparity, 1.);
+        let penalty_graph = PenaltyGraph::initialize(left_image, right_image, max_disparity, 1.);
         let vertices = vec![vec![vec![true; max_disparity]; 2]; 2];
         let mut edges = vec![vec![vec![vec![vec![true; max_disparity]; 4]; max_disparity]; 2]; 2];
         let mut crossing_out_graph = CrossingOutGraph::initialize(penalty_graph, vertices, edges);
@@ -522,7 +522,7 @@ pub mod crossing_out_graph {
          let left_image = [[1, 1].to_vec()].to_vec();
          let right_image = [[1, 0].to_vec()].to_vec();
          let max_disparity: usize = 2;
-         let mut penalty_graph = PenaltyGraph::initialize(left_image, right_image, max_disparity, 1.);
+         let penalty_graph = PenaltyGraph::initialize(left_image, right_image, max_disparity, 1.);
          let mut vertices = vec![vec![vec![true; max_disparity]; 2]; 1];
          let mut edges = vec![vec![vec![vec![vec![true; max_disparity]; 4]; max_disparity]; 2]; 1];
          let mut crossing_out_graph = CrossingOutGraph::initialize(penalty_graph, vertices, edges);
@@ -574,5 +574,46 @@ pub mod crossing_out_graph {
          let edges = vec![vec![vec![vec![vec![false; max_disparity]; 4]; max_disparity]; 1]; 1];
          let mut crossing_out_graph = CrossingOutGraph::initialize(penalty_graph, vertices, edges);
          crossing_out_graph.min_vertex_between_existing(0, 0);
+     }
+
+     #[test]
+     #[should_panic]
+     fn test_cross_vertex_that_is_crossed() {
+         let left_image = [[1, 1].to_vec()].to_vec();
+         let right_image = [[1, 0].to_vec()].to_vec();
+         let max_disparity: usize = 2;
+         let penalty_graph = PenaltyGraph::initialize(left_image, right_image, max_disparity, 1.);
+         let mut vertices = vec![vec![vec![true; max_disparity]; 2]; 1];
+         let edges = vec![vec![vec![vec![vec![false; max_disparity]; 4]; max_disparity]; 2]; 1];
+         let mut crossing_out_graph = CrossingOutGraph::initialize(penalty_graph, vertices, edges);
+         crossing_out_graph.vertices[0][1][0] = false;
+         crossing_out_graph.cross_vertex(0, 1, 0);
+     }
+
+     #[test]
+     fn test_cross_vertex_one_disparity() {
+         let left_image = [[1].to_vec()].to_vec();
+         let right_image = [[1].to_vec()].to_vec();
+         let max_disparity:usize = 1;
+         let penalty_graph = PenaltyGraph::initialize(left_image, right_image, max_disparity, 1.);
+         let vertices = vec![vec![vec![true; max_disparity]; 1]; 1];
+         let edges = vec![vec![vec![vec![vec![false; max_disparity]; 4]; max_disparity]; 1]; 1];
+         let mut crossing_out_graph = CrossingOutGraph::initialize(penalty_graph, vertices, edges);
+         crossing_out_graph.cross_vertex(0, 0, 0);
+         assert!(crossing_out_graph.vertices[0][0][0]);
+     }
+
+     #[test]
+     fn test_cross_vertex_two_disparities() {
+         let left_image = [[1, 1].to_vec()].to_vec();
+         let right_image = [[1, 0].to_vec()].to_vec();
+         let max_disparity: usize = 2;
+         let penalty_graph = PenaltyGraph::initialize(left_image, right_image, max_disparity, 1.);
+         let vertices = vec![vec![vec![true; max_disparity]; 2]; 1];
+         let edges = vec![vec![vec![vec![vec![false; max_disparity]; 4]; max_disparity]; 2]; 1];
+         let mut crossing_out_graph = CrossingOutGraph::initialize(penalty_graph, vertices, edges);
+         crossing_out_graph.cross_vertex(0, 1, 0);
+         assert!(crossing_out_graph.vertices[0][1][0]);
+         assert!(!crossing_out_graph.vertices[0][1][1]);
      }
 }
