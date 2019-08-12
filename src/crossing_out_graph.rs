@@ -516,4 +516,26 @@ pub mod crossing_out_graph {
         crossing_out_graph.edges[1][0][0][1][0] = false;
         assert!(!crossing_out_graph.edges_exist());
      }
+
+     #[test]
+     fn test_is_not_empty() {
+         let left_image = [[1, 1].to_vec()].to_vec();
+         let right_image = [[1, 0].to_vec()].to_vec();
+         let max_disparity: usize = 2;
+         let mut penalty_graph = PenaltyGraph::initialize(left_image, right_image, max_disparity, 1.);
+         let mut vertices = vec![vec![vec![true; max_disparity]; 2]; 1];
+         let mut edges = vec![vec![vec![vec![vec![true; max_disparity]; 4]; max_disparity]; 2]; 1];
+         let mut crossing_out_graph = CrossingOutGraph::initialize(penalty_graph, vertices, edges);
+         crossing_out_graph.vertices[0][1][0] = false;
+         crossing_out_graph.edges[0][0][0][2][1] = false;
+         crossing_out_graph.edges[0][1][1][0][0] = false;
+         assert!(crossing_out_graph.is_not_empty());
+         crossing_out_graph.vertices[0][1][0] = true;
+         crossing_out_graph.vertices[0][0][0] = false;
+         assert!(!crossing_out_graph.is_not_empty());
+         crossing_out_graph.vertices[0][0][0] = true;
+         crossing_out_graph.edges[0][0][0][2][0] = false;
+         crossing_out_graph.edges[0][1][0][0][0] = false;
+         assert!(!crossing_out_graph.is_not_empty());
+     }
 }
