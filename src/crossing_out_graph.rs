@@ -616,4 +616,27 @@ pub mod crossing_out_graph {
          assert!(crossing_out_graph.vertices[0][1][0]);
          assert!(!crossing_out_graph.vertices[0][1][1]);
      }
+
+     #[test]
+     fn test_find_best_labeling() {
+         let left_image = [[1, 1, 0].to_vec()].to_vec();
+         let right_image = [[1, 0, 0].to_vec()].to_vec();
+         let max_disparity: usize = 3;
+         let mut penalty_graph = PenaltyGraph::initialize(left_image, right_image, max_disparity, 1.);
+         penalty_graph.potentials[0][0][2][0] = 0.6;
+         penalty_graph.potentials[0][1][0][0] = -13.7;
+         penalty_graph.potentials[0][1][0][1] = 80.;
+         penalty_graph.potentials[0][1][2][0] = 358.;
+         penalty_graph.potentials[0][1][2][1] = -1E9;
+         penalty_graph.potentials[0][2][0][0] = -0.3;
+         penalty_graph.potentials[0][2][0][1] = 0.1;
+         penalty_graph.potentials[0][2][0][2] = 0.8;
+         let vertices = vec![vec![vec![true; max_disparity]; 3]; 1];
+         let edges = vec![vec![vec![vec![vec![true; max_disparity]; 4]; max_disparity]; 3]; 1];
+         let mut crossing_out_graph = CrossingOutGraph::initialize(penalty_graph, vertices, edges);
+         let disparity_map = crossing_out_graph.find_best_labeling();
+         assert_eq!(0, disparity_map[0][0]);
+         assert_eq!(0, disparity_map[0][1]);
+         assert_eq!(1, disparity_map[0][2]);
+     }
 }
