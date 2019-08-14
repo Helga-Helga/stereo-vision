@@ -177,4 +177,28 @@ pub mod epsilon_search {
         let epsilon: f64 = epsilon_search(&mut crossing_out_graph, &array);
         assert_eq!(epsilon, 0.0);
     }
+
+    #[test]
+    fn test_create_array_of_epsilons() {
+        let left_image = [[1, 1].to_vec()].to_vec();
+        let right_image = [[1, 0].to_vec()].to_vec();
+        let max_disparity: usize = 2;
+        let mut penalty_graph = PenaltyGraph::initialize(left_image, right_image, max_disparity, 1.);
+        penalty_graph.potentials[0][0][2][0] = 0.6;
+        penalty_graph.potentials[0][1][0][0] = -0.3;
+        penalty_graph.potentials[0][1][0][1] = 0.1;
+        let vertices = vec![vec![vec![true; max_disparity]; 2]; 1];
+        let edges = vec![vec![vec![vec![vec![true; max_disparity]; 4]; max_disparity]; 2]; 1];
+        let mut crossing_out_graph = CrossingOutGraph::initialize(penalty_graph, vertices, edges);
+        let mut array: Vec<f64> = create_array_of_epsilons(&mut crossing_out_graph, 0.);
+        assert_eq!(3, array.len());
+        assert_eq!(0., array[0]);
+        assert!(approx_equal(1.4, array[1], 1E-6));
+        assert!(approx_equal(1.4, array[2], 1E-6));
+
+        array = create_array_of_epsilons(&mut crossing_out_graph, 1.5);
+        assert_eq!(2, array.len());
+        assert_eq!(0., array[0]);
+        assert!(approx_equal(1.4, array[1], 1E-6));
+    }
 }
