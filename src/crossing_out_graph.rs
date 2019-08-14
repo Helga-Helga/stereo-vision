@@ -245,6 +245,7 @@ pub mod crossing_out_graph {
             true
         }
 
+        #[cfg_attr(tarpaulin, skip)]
         pub fn diffusion_while_not_consistent(&mut self, epsilon: f64, batch_size: usize) {
         /*
         epsilon: needed for initialization of crossing out graph

@@ -31,6 +31,7 @@ mod penalty_graph;
 mod crossing_out_graph;
 mod epsilon_search;
 
+#[cfg_attr(tarpaulin, skip)]
 fn main() {
     let (right_image, r_width, r_height) =
         pgm_handler::pgm::pgm_reader("./images/corridor_r_25.pgm".to_string());

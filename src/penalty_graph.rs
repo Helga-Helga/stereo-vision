@@ -295,6 +295,7 @@ pub mod penalty_graph {
             }
         }
 
+        #[cfg_attr(tarpaulin, skip)]
         pub fn diffusion(&mut self, first_iteration: usize, number_of_iterations: usize) {
         /*
         first_iteration: first iteration to start diffusion
