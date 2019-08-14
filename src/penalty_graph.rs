@@ -309,14 +309,14 @@ pub mod penalty_graph {
                 self.diffusion_act();
                 energy = self.energy();
                 println!("Energy: {}", energy);
-                // let depth_map = self.build_depth_map(i);
+                // self.build_depth_map(i);
                 // self.build_left_image(depth_map, i);
                 i += 1;
             }
-            let depth_map = self.build_depth_map(i);
+            self.build_depth_map(i);
         }
 
-        pub fn build_depth_map(&self, iteration: usize) -> Vec<Vec<usize>> {
+        pub fn build_depth_map(&self, iteration: usize) {
         /*
         For now, depth map contains a disparity for each pixel that gives
         minimum vertex penalty for the pixel.
@@ -336,7 +336,6 @@ pub mod penalty_graph {
                     panic!("There was a problem writing a file : {:?}", error)
                 },
             };
-            return depth_map;
         }
 
         pub fn build_left_image(&self, depth_map: Vec<Vec<usize>>, iteration: usize) {
