@@ -519,6 +519,15 @@ pub mod penalty_graph {
     }
 
     #[test]
+    fn test_penalty() {
+        let left_image = [[1, 1].to_vec()].to_vec();
+        let right_image = [[1, 0].to_vec()].to_vec();
+        let disparity_map = [[0, 2].to_vec()].to_vec();
+        let mut penalty_graph = PenaltyGraph::initialize(left_image, right_image, 2, 1.);
+        assert_eq!(f64::INFINITY, penalty_graph.penalty(disparity_map));
+    }
+
+    #[test]
     fn test_sum_of_potentials() {
         let left_image = [[1, 9].to_vec(), [5, 6].to_vec()].to_vec();
         let right_image = [[6, 3].to_vec(), [6, 6].to_vec()].to_vec();
