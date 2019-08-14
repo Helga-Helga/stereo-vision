@@ -25,7 +25,6 @@ pub mod epsilon_search {
     use super::super::crossing_out_graph::crossing_out_graph::CrossingOutGraph;
     use super::super::penalty_graph::penalty_graph::PenaltyGraph;
     use super::super::diffusion::diffusion::neighbor_exists;
-    use super::super::diffusion::diffusion::neighbor_index;
     use super::super::diffusion::diffusion::approx_equal;
 
     pub fn create_array_of_epsilons(crossing_out_graph: &mut CrossingOutGraph,
@@ -76,7 +75,7 @@ pub mod epsilon_search {
         println!("Sorting array of epsilons ...");
         array.sort_by(|a, b| a.partial_cmp(b).unwrap());
         println!("Array size: {}", array.len());
-        println!("Removing duplicates from array of epsilons ...");
+        println!("Removing duplicates from an array of epsilons ...");
         array = dedup_f64(array, tolerance);
         println!("Array size: {}", array.len());
         println!("Array of epsilons is ready");
