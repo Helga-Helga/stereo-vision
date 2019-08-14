@@ -57,7 +57,7 @@ fn main() {
 
     println!("Finding disparity map ...");
     let disparity_map: Vec<Vec<usize>> = crossing_out_graph.find_best_labeling();
-    println!("Disparity map is consistent: {}", crossing_out_graph.check_disparity_map(&disparity_map));
+    println!("Disparity map is consistent: {}", diffusion::diffusion::check_disparity_map(&disparity_map));
     pgm_handler::pgm::pgm_writer(&disparity_map, "images/results/best_labeling.pgm".to_string(),
                                  crossing_out_graph.penalty_graph.max_disparity);
     println!("Disparity map is saved to `best_labeling.pgm`");

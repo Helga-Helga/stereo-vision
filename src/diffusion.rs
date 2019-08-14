@@ -106,6 +106,17 @@ pub mod diffusion {
         }
         return true;
     }
+
+    pub fn check_disparity_map(disparity_map: &Vec<Vec<usize>>) -> bool {
+        for i in 0..disparity_map.len() {
+            for j in 0..(disparity_map[0].len() - 1) {
+                if j < disparity_map[i][j] || disparity_map[i][j + 1] > disparity_map[i][j] + 1 {
+                    return false;
+                }
+            }
+        }
+        true
+    }
 }
 
 #[cfg(test)]
@@ -174,5 +185,20 @@ mod tests {
         assert!(approx_equal(-0.1, -0.2, 0.3));
         assert!(!approx_equal(1., 0., 0.5));
         assert!(!approx_equal(-1., 1., 1.));
+    }
+
+    #[test]
+    fn test_check_disparity_map() {
+        let mut disparity_map = vec![vec![0usize; 1]; 1];
+        assert!(check_disparity_map(&disparity_map));
+
+        disparity_map = vec![vec![1usize; 2]; 2];
+        assert!(!check_disparity_map(&disparity_map));
+
+        disparity_map = [[0, 2, 1].to_vec()].to_vec();
+        assert!(!check_disparity_map(&disparity_map));
+
+        disparity_map = [[0, 0].to_vec(), [0, 1].to_vec()].to_vec();
+        assert!(check_disparity_map(&disparity_map));
     }
 }

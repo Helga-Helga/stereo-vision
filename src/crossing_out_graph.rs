@@ -329,17 +329,6 @@ pub mod crossing_out_graph {
             }
             disparity_map
         }
-
-        pub fn check_disparity_map(&self, disparity_map: &Vec<Vec<usize>>) -> bool {
-            for i in 0..self.penalty_graph.left_image.len() {
-                for j in 0..(self.penalty_graph.left_image[0].len() - 1) {
-                    if j < disparity_map[i][j] || disparity_map[i][j + 1] > disparity_map[i][j] + 1 {
-                        return false
-                    }
-                }
-            }
-            true
-        }
     }
 
     #[test]
