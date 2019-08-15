@@ -524,7 +524,7 @@ pub mod penalty_graph {
         let left_image = [[1, 1].to_vec()].to_vec();
         let right_image = [[1, 0].to_vec()].to_vec();
         let disparity_map = [[0, 2].to_vec()].to_vec();
-        let mut penalty_graph = PenaltyGraph::initialize(left_image, right_image, 2, 1.);
+        let penalty_graph = PenaltyGraph::initialize(left_image, right_image, 2, 1.);
         assert_eq!(f64::INFINITY, penalty_graph.penalty(disparity_map));
     }
 
