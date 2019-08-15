@@ -80,11 +80,11 @@ pub mod pgm {
         let mut file = File::create(path).expect("Unable to create file");
         writeln!(file, "P2").expect("Unable to write the magic number P2");
         writeln!(file, "{} {}", matrix[0].len(), matrix.len())
-            .expect("Unable to write image size");;
+            .expect("Unable to write image size");
         writeln!(file, "{}", max_intensity).expect("Unable to write maximum color intensity");
         for i in 0..matrix.len() {
             let string: Vec<String> = matrix[i].iter().map(|n| n.to_string()).collect();
-            writeln!(file, "{}", string.join(" ")).expect("Unable to writea matrix");
+            writeln!(file, "{}", string.join(" ")).expect("Unable to write a matrix");
         }
         Ok(())
     }
@@ -115,6 +115,35 @@ mod tests {
         let file_path_string = file_path_copy.into_os_string().into_string()
             .expect("Unable to parse file path");
         let (matrix, width, height) = pgm_reader(file_path_string);
+        assert_eq!(3, width);
+        assert_eq!(2, height);
+        assert_eq!(1, matrix[0][0]);
+        assert_eq!(2, matrix[0][1]);
+        assert_eq!(3, matrix[0][2]);
+        assert_eq!(4, matrix[1][0]);
+        assert_eq!(5, matrix[1][1]);
+        assert_eq!(6, matrix[1][2]);
+
+        dir.close().expect("Unable to close and remove directory");
+    }
+
+    #[test]
+    fn test_pgm_writer() {
+        let dir = TempDir::new("test_pgm_reader").expect("Unable to create directory");
+        let file_path = dir.path().join("image.pgm");
+        let file_path_string = file_path.into_os_string().into_string()
+            .expect("Unable to parse file path");
+
+        let file_path_copy = dir.path().join("image.pgm");
+        let file_path_string_copy = file_path_copy.into_os_string().into_string()
+            .expect("Unable to parse file path");
+
+        let matrix = [[1, 2, 3].to_vec(), [4, 5, 6].to_vec()].to_vec();
+        let max_intensity: usize = 255;
+
+        pgm_writer(&matrix, file_path_string, max_intensity).expect("Unable to write a file");
+
+        let (matrix, width, height) = pgm_reader(file_path_string_copy);
         assert_eq!(3, width);
         assert_eq!(2, height);
         assert_eq!(1, matrix[0][0]);
