@@ -24,6 +24,7 @@
 #[macro_use]
 extern crate more_asserts;
 extern crate rand;
+extern crate tempdir;
 
 mod pgm_handler;
 mod diffusion;

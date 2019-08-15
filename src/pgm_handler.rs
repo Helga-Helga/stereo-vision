@@ -29,11 +29,6 @@ pub mod pgm {
     pub fn pgm_reader(path: String) -> (Vec<Vec<u32>>, usize, usize) {
     /*
     path: path of an image in file system
-    normalize: `true` for intensity normalization by 1, `false`: not to change values from file
-    If before normalization intensity was between 0 and 255,
-    then after it intensity will be between 0 and 1.
-    To do normalixation all values are divided by maximum intensity value.
-    scale_factor: all values from file are divided by scale_factor
     Returns a matrix of data (pixel intensities or true disparities from file),
     number of columns and number of rows in matrix
     */
@@ -92,5 +87,43 @@ pub mod pgm {
             writeln!(file, "{}", string.join(" ")).expect("Unable to writea matrix");
         }
         Ok(())
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use tempdir::TempDir;
+    use std::fs::File;
+    use std::path::Path;
+    use std::io::{Write};
+    use super::pgm::*;
+
+    #[test]
+    fn test_pgm_reader() {
+        let dir = TempDir::new("test_pgm_reader").expect("Unable to create directory");
+        let file_path = dir.path().join("image.pgm");
+        let file_path_copy = dir.path().join("image.pgm");
+
+        let mut f = File::create(file_path).expect("Unable to create file");
+        writeln!(f, "P2").expect("Unable to write magic number P2");
+        writeln!(f, "3 2").expect("Unable to write image size");
+        writeln!(f, "255").expect("Unable to write maximum color intensity");
+        writeln!(f, "1 2 3").expect("Unable to write first line of image");
+        writeln!(f, "4 5 6").expect("Unable to write second line of image");
+        f.sync_all().expect("Unable to sync");
+
+        let file_path_string = file_path_copy.into_os_string().into_string()
+            .expect("Unable to parse file path");
+        let (matrix, width, height) = pgm_reader(file_path_string);
+        assert_eq!(3, width);
+        assert_eq!(2, height);
+        assert_eq!(1, matrix[0][0]);
+        assert_eq!(2, matrix[0][1]);
+        assert_eq!(3, matrix[0][2]);
+        assert_eq!(4, matrix[1][0]);
+        assert_eq!(5, matrix[1][1]);
+        assert_eq!(6, matrix[1][2]);
+
+        dir.close().expect("Unable to close and remove directory");
     }
 }
