@@ -1,4 +1,5 @@
 [![Build Status](https://travis-ci.com/Helga-Helga/stereo-vision.svg?branch=master)](https://travis-ci.com/Helga-Helga/stereo-vision)
+[![Coverage Status](https://coveralls.io/repos/github/Helga-Helga/stereo-vision/badge.svg?branch=master)](https://coveralls.io/github/Helga-Helga/stereo-vision?branch=master)
 
 # stereo-vision
 
