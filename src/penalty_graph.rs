@@ -569,7 +569,7 @@ pub mod penalty_graph {
     }
 
     #[test]
-    fn min_edge_between_neighbors() {
+    fn test_min_edge_between_neighbors() {
         let left_image = [[244, 172].to_vec()].to_vec();
         let right_image = [[168, 83].to_vec()].to_vec();
         let mut penalty_graph = PenaltyGraph::initialize(left_image, right_image, 2, 1.);
@@ -583,7 +583,7 @@ pub mod penalty_graph {
     }
 
     #[test]
-    fn update_vertex_potential() {
+    fn test_update_vertex_potential() {
         let left_image = [[25, 50].to_vec(), [5, 145].to_vec(), [248, 62].to_vec()].to_vec();
         let right_image = [[39, 15].to_vec(), [77, 145].to_vec(), [31, 71].to_vec()].to_vec();
         let mut penalty_graph = PenaltyGraph::initialize(left_image, right_image, 2, 1.);
@@ -610,7 +610,7 @@ pub mod penalty_graph {
     }
 
     #[test]
-    fn update_edge_potential() {
+    fn test_update_edge_potential() {
         let left_image = [[1, 1, 1].to_vec(), [1, 0, 1].to_vec(), [1, 1, 1].to_vec()].to_vec();
         let right_image = [[1, 1, 1].to_vec(), [1, 0, 1].to_vec(), [1, 1, 1].to_vec()].to_vec();
         let mut penalty_graph = PenaltyGraph::initialize(left_image, right_image, 1, 1.);
@@ -628,7 +628,7 @@ pub mod penalty_graph {
     }
 
     #[test]
-    fn diffusion_act_vertexes() {
+    fn test_diffusion_act_vertexes() {
         let left_image = [[1].to_vec(), [0].to_vec()].to_vec();
         let right_image = [[1].to_vec(), [0].to_vec()].to_vec();
         let mut penalty_graph = PenaltyGraph::initialize(left_image, right_image, 2, 1.);
@@ -644,7 +644,7 @@ pub mod penalty_graph {
     }
 
     #[test]
-    fn diffusion_act_edges() {
+    fn test_diffusion_act_edges() {
         let left_image = [[1].to_vec(), [0].to_vec()].to_vec();
         let right_image = [[1].to_vec(), [0].to_vec()].to_vec();
         let mut penalty_graph = PenaltyGraph::initialize(left_image, right_image, 2, 1.);
@@ -660,7 +660,7 @@ pub mod penalty_graph {
     }
 
     #[test]
-    fn diffusion_act() {
+    fn test_diffusion_act() {
         let left_image = [[1].to_vec(), [0].to_vec()].to_vec();
         let right_image = [[1].to_vec(), [0].to_vec()].to_vec();
         let mut penalty_graph = PenaltyGraph::initialize(left_image, right_image, 2, 1.);
@@ -675,7 +675,7 @@ pub mod penalty_graph {
     }
 
     #[test]
-    fn min_penalty_vertex() {
+    fn test_min_penalty_vertex() {
         let left_image = [[1, 1].to_vec(), [0, 0].to_vec()].to_vec();
         let right_image = [[1, 0].to_vec(), [0, 0].to_vec()].to_vec();
         let mut penalty_graph = PenaltyGraph::initialize(left_image, right_image, 2, 1.);
@@ -691,7 +691,7 @@ pub mod penalty_graph {
     }
 
     #[test]
-    fn min_penalty_edge() {
+    fn test_min_penalty_edge() {
         let left_image = [[1, 1].to_vec(), [0, 0].to_vec()].to_vec();
         let right_image = [[1, 0].to_vec(), [0, 0].to_vec()].to_vec();
         let mut penalty_graph = PenaltyGraph::initialize(left_image, right_image, 2, 1.);
@@ -705,7 +705,7 @@ pub mod penalty_graph {
     }
 
     #[test]
-    fn energy() {
+    fn test_energy() {
         let left_image = [[1, 1].to_vec(), [0, 0].to_vec()].to_vec();
         let right_image = [[1, 0].to_vec(), [0, 0].to_vec()].to_vec();
         let mut penalty_graph = PenaltyGraph::initialize(left_image, right_image, 2, 1.);
