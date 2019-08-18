@@ -441,19 +441,9 @@ pub mod penalty_graph {
         Computes penalty of zero disparity map just to be sure,
         that at least this map doesn't change its penalty after diffusion act
         */
-            let mut zero_penalty: f64 = 0.;
-            for i in 0..self.left_image.len() {
-                for j in 0..self.left_image[0].len() {
-                    zero_penalty += self.vertex_penalty_with_potentials(i, j, 0);
-                    for n in 2..4 {
-                        if neighbor_exists(i, j, n, self.left_image.len(),
-                                           self.left_image[0].len()) {
-                            zero_penalty += self.edge_penalty_with_potential(i, j, n, 0, 0);
-                        }
-                    }
-                }
-            }
-            zero_penalty
+            let disparity_map: Vec<Vec<usize>> =
+                vec![vec![0usize; self.left_image[0].len()]; self.left_image.len()];
+            self.penalty(disparity_map)
         }
 
         pub fn zero_one_penalty(&self) -> f64 {
@@ -462,30 +452,12 @@ pub mod penalty_graph {
         the first column is consists of zeros and all other columns -- of ones
         to be sure that this map doesn't change its penalty after diffusion act
         */
-            let mut zero_one_penalty: f64 = 0.;
-            for i in 0..self.left_image.len() {
-                zero_one_penalty += self.vertex_penalty_with_potentials(i, 0, 0);
-                if neighbor_exists(i, 0, 2, self.left_image.len(),
-                    self.left_image[0].len()) {
-                    zero_one_penalty += self.edge_penalty_with_potential(i, 0, 2, 0, 1);
-                }
-                if neighbor_exists(i, 0, 3, self.left_image.len(),
-                    self.left_image[0].len()) {
-                    zero_one_penalty += self.edge_penalty_with_potential(i, 0, 3, 0, 0);
-                }
+            let mut disparity_map: Vec<Vec<usize>> =
+                vec![vec![1usize; self.left_image[0].len()]; self.left_image.len()];
+            for i in 0..disparity_map.len() {
+                disparity_map[i][0] = 0;
             }
-            for i in 0..self.left_image.len() {
-                for j in 1..self.left_image[0].len() {
-                    zero_one_penalty += self.vertex_penalty_with_potentials(i, j, 1);
-                    for n in 2..4 {
-                        if neighbor_exists(i, j, n, self.left_image.len(),
-                                           self.left_image[0].len()) {
-                            zero_one_penalty += self.edge_penalty_with_potential(i, j, n, 1, 1);
-                        }
-                    }
-                }
-            }
-            zero_one_penalty
+            self.penalty(disparity_map)
         }
     }
 
