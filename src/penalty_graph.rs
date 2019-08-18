@@ -21,6 +21,7 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
+#[doc="Disparity graph"]
 pub mod penalty_graph {
     use rand::Rng;
     use std::f64;
@@ -31,17 +32,33 @@ pub mod penalty_graph {
     use super::super::pgm_handler::pgm::pgm_writer;
 
     #[derive(Debug)]
+    /// Disparity graph is represented here
     pub struct PenaltyGraph {
-     pub lookup_table: Vec<Vec<f64>>,
-     pub potentials: Vec<Vec<Vec<Vec<f64>>>>,
-     pub dummy_potentials: Vec<Vec<Vec<Vec<f64>>>>,
-     pub left_image: Vec<Vec<u32>>,
-     pub right_image: Vec<Vec<u32>>,
-     pub max_disparity: usize,
-     pub smoothing_term: f64,
+        /// Lookup table for calculation of penalties easily
+        pub lookup_table: Vec<Vec<f64>>,
+        /// `phi` : Potentials as dual variables
+        pub potentials: Vec<Vec<Vec<Vec<f64>>>>,
+        /// A copy of potentials
+        pub dummy_potentials: Vec<Vec<Vec<Vec<f64>>>>,
+        /// `L` : Left image of a stereo-pair
+        pub left_image: Vec<Vec<u32>>,
+        /// `R` : Right image of a stereo-pair
+        pub right_image: Vec<Vec<u32>>,
+        /// Maximum possible disparity value to search through
+        pub max_disparity: usize,
+        /// Smoothing term to control the smoothness of the depth map
+        pub smoothing_term: f64,
     }
 
     impl PenaltyGraph {
+        /// Returns a disparity graph with given parameters
+        ///
+        /// # Arguments
+        ///
+        /// * `left_image` - A 2D vector of unsigned integers that holds left image
+        /// * `right_image` - A 2D vector of unsigned integers that holds right image
+        /// * `max_disparity` - A usize value that holds maximum possible disparity value
+        /// * `smoothing_term` - A float value that holds smoothing term
         pub fn initialize(left_image: Vec<Vec<u32>>,
                           right_image: Vec<Vec<u32>>,
                           max_disparity: usize,
@@ -52,7 +69,6 @@ pub mod penalty_graph {
             for i in 0..256 {
                 for j in 0..256 {
                     lookup_table[i][j] = ((i as f64) - (j as f64)).abs();
-                    // lookup_table[i][j] = ((i - j) * (i - j)) as f64;
                 }
             }
             Self {
@@ -68,13 +84,16 @@ pub mod penalty_graph {
             }
         }
 
+        /// Returns the sum of potentials between vertex in pixel `(i, j)` with disparity d and all its neighbors
+        ///
+        /// <img src="https://latex.codecogs.com/png.latex?%5Csum_%7Bt%27%20%5Cin%20N%5Cleft%28t%20%5Cright%20%29%7D%20%5Cvarphi_%7Btt%27%7D%5Cleft%28d%20%5Cright%20%29">
+        ///
+        /// # Arguments
+        ///
+        /// * `i` - A row of a pixel in image
+        /// * `j` - A column of a pixel in image
+        /// * `d` - A disparity value fixed in pixel `(i, j)`
         pub fn sum_of_potentials(&self, i: usize, j: usize, d: usize) -> f64 {
-        /*
-        i: number of pixel row in image
-        j: number of pixel column in image
-        d: disparity of pixel (i, j)
-        Returns the sum of potentials between pixel (i, j) with disparity d and all its neighbors
-        */
             let mut sum_of_potentials = 0.;
             for n in 0..4 {
                 if neighbor_exists(i, j, n, self.left_image.len(), self.left_image[0].len()) {
@@ -84,40 +103,47 @@ pub mod penalty_graph {
             sum_of_potentials
         }
 
+        /// Returns a vertex penalty with potentials
+        ///
+        /// <img src="https://latex.codecogs.com/png.latex?f_t%5Cleft%28d%20%5Cright%20%29%20%3D%20%5Cleft%7CL%5Cleft%28i%2C%20j%20%5Cright%20%29%20-%20R%5Cleft%28i%2C%20j%20-%20d%20%5Cright%20%29%20%5Cright%7C%20-%20%5Csum%5Climits_%7Bt%27%5Cin%20N%5Cleft%28t%20%5Cright%20%29%7D%20%5Cvarphi_%7Btt%27%7D%5Cleft%28d%5Cright%29">
+        ///
+        /// # Arguments
+        ///
+        /// * `i` - A row of a pixel in image
+        /// * `j` - A column of a pixel in image
+        /// * `d` - A disparity value fixed in pixel `t = (i, j)`
         pub fn vertex_penalty_with_potentials(&self, i: usize, j: usize, d: usize) -> f64 {
-        /*
-        (i, j): coordinate of pixel t in image
-        d: k_t, disparity of pixel t = (i, j)
-        Returns f*_t(k_t) = f_t(k_t) - sum_{t' in N(t)} phi_{tt'}(k_t), where
-        t' is a neighbor of pixel t
-        N(t) is a set of vertices t' that has a common edge with t
-        phi_{tt'}(k_t) is a potential
-        */
             self.lookup_table[self.left_image[i][j] as usize][self.right_image[i][j - d]
                 as usize] - self.sum_of_potentials(i, j, d)
         }
 
+        /// Returns edge penalty with potentials
+        ///
+        /// <img src="https://latex.codecogs.com/png.latex?g_%7Btt%27%7D%5Cleft%28d%2C%20n_d%5Cright%29%20%3D%20%5Cleft%7C%20d%20-%20n_d%20%5Cright%7C%20&plus;%20%5Cvarphi_%7Btt%27%7D%5Cleft%28d%20%5Cright%20%29%20&plus;%20%5Cvarphi_%7Bt%27t%7D%20%5Cleft%28n_d%29">
+        ///
+        /// # Arguments
+        ///
+        /// * `i` - A row of a pixel in image
+        /// * `j` - A column of a pixel in image
+        /// * `n` - A number of pixel neighbor
+        /// * `d` - A disparity value fixed in pixel `t = (i, j)`
+        /// * `n_d` - A disparity value fixed in pixel `t'`
         pub fn edge_penalty_with_potential(&self, i: usize, j: usize, n: usize, d: usize, n_d: usize) -> f64 {
-        /*
-        (i, j): coordinate of pixel t in image
-        d: disparity of pixel t
-        n: number of neighbor t' for pixel t (from 0 to 3)
-        n_d: disparity of pixel t' in image
-        Returns g*_{tt'}(k_t, k_t') = g_{tt'}(k_t, k_t') + phi_{tt'}(k_t) + phi_{t't}(k_t')
-        */
             let (n_i, n_j, n_index) = neighbor_index(i, j, n);
             self.smoothing_term * self.lookup_table[d][n_d] + self.potentials[i][j][n][d]
                 + self.potentials[n_i][n_j][n_index][n_d]
         }
 
+        /// Returns true if edge between the given vertexes exists
+        ///
+        /// # Arguments
+        ///
+        /// * `i` - A row of a pixel in image
+        /// * `j` - A column of a pixel in image
+        /// * `n` - A number of pixel neighbor
+        /// * `d` - A disparity value fixed in pixel `t = (i, j)`
+        /// * `n_d` - A disparity value fixed in pixel `t'`
         pub fn edge_exists(&self, i: usize, j: usize, n: usize, d: usize, n_d: usize) -> bool {
-        /*
-        (i, j): pixel coordinates
-        n: neighbor number (0, 1, 2, or 3)
-        d: disparity of pixel (i, j)
-        n_d: disparity of n_th neighbor of pixel (i, j)
-        Returns true if edge between the given vertexes exists
-        */
             if neighbor_exists(i, j, n, self.left_image.len(), self.left_image[0].len()) {
                 let (_n_i, n_j, _n_index) = neighbor_index(i, j, n);
                 if j >= d && n_j >= n_d {
@@ -136,16 +162,13 @@ pub mod penalty_graph {
             }
         }
 
+        /// Returns a general penalty of a given disparity map as a sum of vertice and edge penalties
+        ///
+        /// <img src="https://latex.codecogs.com/png.latex?P%5Cleft%28D%20%5Cright%20%29%3D%20%5Csum_t%20f_t%5Cleft%28k_t%5Cright%29%20&plus;%20%5Csum_%7Btt%27%20%5Cin%20%5Ctau%7D%20g_%7Btt%27%7D%5Cleft%28k_t%2C%20k_t%27%5Cright%29">
+        ///
+        /// # Arguments
+        /// * `disparity_map` - A matrix of usize disparity values for the left image
         pub fn penalty(&self, disparity_map: Vec<Vec<usize>>) -> f64 {
-        /*
-        disparity_map: matrix of the same size as an image,
-        in cell (i, j) contains disparity of pixel (i, j)
-        Returns a general penalty: sum_t f_t(k_t) + sum_{tt' in tau} g_{tt'}(k_t, k_t'), where
-        f_t(k_t) is a penalty of vertex in pixel t with disparity k_t,
-        tau is a set of neighbors, if tt' in tau, then they are neighbors,
-        g_{tt'}(k_t, k_t') is a penalty of edge that connects
-        a vertex in pixel t with disparity k_t and a neighbor pixel t' with disparity k_t'
-        */
             let mut penalty: f64 = 0.;
             for i in 0..self.left_image.len() {
                 for j in 0..self.left_image[0].len() {
@@ -171,13 +194,16 @@ pub mod penalty_graph {
             penalty
         }
 
+        /// Returns minimum edge penalty between a given vertex and neighbor
+        ///
+        /// <img src="https://latex.codecogs.com/png.latex?%5Cmin_%7Bn_d%7D%20g_%7Btt%27%7D%5Cleft%28d%2C%20n_d%5Cright%29">
+        ///
+        /// # Arguments
+        /// * `i` - A row of a pixel in image
+        /// * `j` - A column of a pixel in image
+        /// * `n` - A number of pixel neighbor
+        /// * `d` - A disparity value fixed in pixel `t = (i, j)`
         pub fn min_edge_between_neighbors(&self, i: usize, j: usize, n: usize, d: usize) -> f64 {
-        /*
-        (i, j): coordinate of a pixel in an image
-        n: number of a neighbor (from 0 to 3)
-        d: disparity of pixel t = (i, j)
-        Returns min_{n_d} g_{tt'}(d, n_d), where n_d is a disparity in pixel t'
-        */
             let mut min_edge: f64 = f64::INFINITY;
             for n_d in 0..self.max_disparity {
                 if self.edge_exists(i, j, n, d, n_d) {
@@ -191,23 +217,29 @@ pub mod penalty_graph {
             min_edge
         }
 
+        /// Substitutes minimum edge penalties from potentials
+        ///
+        /// <img src="https://latex.codecogs.com/png.latex?%5Cvarphi_%7Btt%27%7D%5Cleft%28d%20%5Cright%20%29%20-%3D%20%5Cmin_%7Bn_d%7Dg_%7Btt%27%7D%5Cleft%28d%2C%20n_d%20%5Cright%20%29">
+        ///
+        /// # Arguments
+        /// * `i` - A row of a pixel in image
+        /// * `j` - A column of a pixel in image
+        /// * `n` - A number of pixel neighbor
+        /// * `d` - A disparity value fixed in pixel `t = (i, j)`
         pub fn update_vertex_potential(&mut self, i: usize, j: usize, n: usize, d: usize) {
-        /*
-        (i, j): coordinate of a pixel in an image
-        n: number of a neighbor (from 0 to 3)
-        d: disparity in pixel (i, j)
-        Substitutes minimum edge penalties from potentials
-        */
             self.dummy_potentials[i][j][n][d] -= self.min_edge_between_neighbors(i, j, n, d);
         }
 
+        /// Spreads the weight of the vertex on the  potentials that go out of it, equally
+        ///
+        /// <img src="https://latex.codecogs.com/png.latex?%5Cvarphi_%7Btt%27%7D%5Cleft%28d%20%5Cright%20%29%20&plus;%3D%20%5Cfrac%7Bf_t%5Cleft%28d%20%5Cright%20%29%7D%7B%5Cleft%7C%20N%5Cleft%28t%20%5Cright%20%29%5Cright%7C%7D">
+        ///
+        /// # Arguments
+        /// * `i` - A row of a pixel in image
+        /// * `j` - A column of a pixel in image
+        /// * `n` - A number of pixel neighbor
+        /// * `d` - A disparity value fixed in pixel `t = (i, j)`
         pub fn update_edge_potential(&mut self, i: usize, j: usize, n: usize, d: usize) {
-        /*
-        (i, j): coordinate of a pixel in an image
-        n: number of a neighbor (from 0 to 3)
-        d: disparity in pixel (i, j)
-        Spreads the weight of the vertex on the potentials that go out of it, equally
-        */
             self.dummy_potentials[i][j][n][d] += self.vertex_penalty_with_potentials(i, j, d) /
                 number_of_neighbors(i, j, self.left_image.len(), self.left_image[0].len()) as f64;
 
@@ -220,11 +252,10 @@ pub mod penalty_graph {
             // self.potentials[i][j][n][d] = true_pot;
         }
 
+        /// Updates potentials for all pixels. Makes one diffusion iteration
+        ///
+        /// <img src="https://latex.codecogs.com/gif.latex?%5Cvarphi_%7Btt%27%7D%5Cleft%28d%20%5Cright%20%29%20-%3D%20%5Cmin%5Climits_%7Bn_d%7D%20g_%7Btt%27%7D%5Cleft%28d%2C%20n_d%20%5Cright%20%29%2C%20%5C%2C%20%5Cvarphi_%7Btt%27%7D%5Cleft%28d%20%5Cright%20%29%20&plus;%3D%20%5Cmin%5Climits_%7Bn_d%7D%20%5Cfrac%7Bf_t%5Cleft%28d%20%5Cright%20%29%7D%7B%5Cleft%7CN%5Cleft%28t%20%5Cright%20%29%5Cright%7C%7D%2C%20%5C%2C%20t%20%5Cin%20T%2C%20%5C%2C%20t%27%20%5Cin%20N%5Cleft%28t%20%5Cright%20%29">
         pub fn diffusion_act(&mut self) {
-        /*
-        Updates potentials for all pixels
-        Makes one diffusion iteration
-        */
             for i in 0..self.left_image.len() {
                 for j in 0..self.left_image[0].len() {
                     self.diffusion_act_vertexes(i, j);
@@ -255,10 +286,14 @@ pub mod penalty_graph {
             }
         }
 
+        /// Updates potentials that will be used for calculation of edge penalties the given pixel
+        ///
+        /// <img src="https://latex.codecogs.com/gif.latex?%5Cvarphi_%7Btt%27%7D%5Cleft%28d%20%5Cright%20%29%20-%3D%20%5Cmin%5Climits_%7Bn_d%7D%20g_%7Btt%27%7D%5Cleft%28d%2C%20n_d%20%5Cright%20%29%2C%20%5C%2C%20t%27%20%5Cin%20N%5Cleft%28t%20%5Cright%20%29">
+        ///
+        /// # Arguments
+        /// * `i` - A row of a pixel in image
+        /// * `j` - A column of a pixel in image
         pub fn diffusion_act_vertexes(&mut self, i: usize, j: usize) {
-        /*
-        Updates potentials with the first way for pixel (i, j)
-        */
             for n in 0..4 {
                 if neighbor_exists(i, j, n, self.left_image.len(), self.left_image[0].len()) {
                     for d in 0..self.max_disparity {
@@ -275,10 +310,14 @@ pub mod penalty_graph {
             }
         }
 
+        /// Updates potentials that will be used for calculation of vertex penalties for the given pixel
+        ///
+        /// <img src="https://latex.codecogs.com/gif.latex?%5Cvarphi_%7Btt%27%7D%5Cleft%28d%20%5Cright%20%29%20&plus;%3D%20%5Cmin%5Climits_%7Bn_d%7D%20%5Cfrac%7Bf_t%5Cleft%28d%20%5Cright%20%29%7D%7B%5Cleft%7CN%5Cleft%28t%20%5Cright%20%29%5Cright%7C%7D%2C%20%5C%2C%20t%27%20%5Cin%20N%5Cleft%28t%20%5Cright%20%29">
+        ///
+        /// # Arguments
+        /// * `i` - A row of a pixel in image
+        /// * `j` - A column of a pixel in image
         pub fn diffusion_act_edges(&mut self, i: usize, j: usize) {
-        /*
-        Updates potentials with the second way for pixel (i, j)
-        */
             for n in 0..4 {
                 if neighbor_exists(i, j, n, self.left_image.len(), self.left_image[0].len()) {
                     for d in 0..self.max_disparity {
@@ -295,13 +334,13 @@ pub mod penalty_graph {
             }
         }
 
+        /// Makes diffusion iterations
+        ///
+        /// # Arguments
+        /// * `first_iteration` - First iteration to start diffusion
+        /// * `number_of_iterations` - Number of times to update potentials
         #[cfg_attr(tarpaulin, skip)]
         pub fn diffusion(&mut self, first_iteration: usize, number_of_iterations: usize) {
-        /*
-        first_iteration: first iteration to start diffusion
-        number_of_iterations: number of times to update potentials
-        Makes diffusion iterations
-        */
             let mut energy: f64 = self.energy();
             println!("Energy: {}", energy);
             let mut i = first_iteration;
@@ -317,13 +356,13 @@ pub mod penalty_graph {
             self.build_depth_map(i);
         }
 
+        /// Build and save a simple depth map from minimum vertex penalties
+        ///
+        /// It is saved to `./images/results/result_{iteration}.pgm`
+        ///
+        /// # Arguments
+        /// * `iteration` - A number of a current iteration. Needed for image name
         pub fn build_depth_map(&self, iteration: usize) {
-        /*
-        For now, depth map contains a disparity for each pixel that gives
-        minimum vertex penalty for the pixel.
-        The depth map is saved as an image to ./images/results/result_i.pgm,
-        where i is an iteration number
-        */
             let mut depth_map = vec![vec![0usize; self.left_image[0].len()]; self.left_image.len()];
             for i in 0..self.left_image.len() {
                 for j in 0..self.left_image[0].len() {
@@ -339,14 +378,14 @@ pub mod penalty_graph {
             };
         }
 
+        /// Build and save left image from input right image and build disparity map
+        ///
+        /// It is saved to `./images/results/result_left_image_{iteration}.pgm`
+        ///
+        /// # Arguments
+        /// * `depth_map` - A matrix of disparities
+        /// * `iteration` - A number of a current iteration. Needed for image name
         pub fn build_left_image(&self, depth_map: Vec<Vec<usize>>, iteration: usize) {
-        /*
-        Right image and build disparity map are used to recreate a left image.
-        It is a way to test the result.
-        Recreated left image should be very similar to the original one.
-        It is saved as an image to ./images/results/result_left_image_i.pgm,
-        where i is an iteration number
-        */
             let mut left_image = vec![vec![0usize; self.left_image[0].len()]; self.left_image.len()];
             for i in 0..self.right_image.len() {
                 for j in 0..self.right_image[0].len() {
@@ -362,15 +401,14 @@ pub mod penalty_graph {
             };
         }
 
+        /// Returns minimum vertex penalty in a given pixel
+        ///
+        /// <img src="https://latex.codecogs.com/gif.latex?%5Cmin%5Climits_%7Bd%7D%20f_t%5Cleft%28d%20%5Cright%20%29">
+        ///
+        /// # Arguments
+        /// * `i` - A row of a pixel in image
+        /// * `j` - A column of a pixel in image
         pub fn min_penalty_vertex(&self, i: usize, j: usize) -> (usize, f64) {
-        /*
-        i: number of pixel row in image
-        j: number of pixel column in image
-        (i, j) defines pixel (its coordinate in image)
-        Returns minimum penalty of given pixel (updated by potentials):
-        look over each possible disparity value of pixel and choose minimum value of vertex penalty,
-        as well as a disparity value used to calculate minimum penalty
-        */
             let mut min_penalty_vertex: f64 = f64::INFINITY;
             let mut disparity: usize = 0;
             for d in 0..self.max_disparity {
@@ -386,16 +424,15 @@ pub mod penalty_graph {
             return (disparity, min_penalty_vertex);
         }
 
+        /// Returns minimum edge penalty berween two neighbors
+        ///
+        /// <img src="https://latex.codecogs.com/gif.latex?%5Cmin%20%5Climits_%7Bd%2C%20n_d%7D%20g_%7Btt%27%7D%28d%2C%20n_d%29">
+        ///
+        /// # Arguments
+        /// * `i` - A row of a pixel in image
+        /// * `j` - A column of a pixel in image
+        /// * `n` - A number of pixel neighbor
         pub fn min_penalty_edge(&self, i: usize, j: usize, n: usize) -> f64 {
-        /*
-        n: neighbor of pixel with coordinates (i, j)
-        returns min_{d, d'} g*_{tt'}(d, d'), where t is pixel (i, j), t' is it neighbor,
-        g*_{tt'}(d, d') = g_{tt'}(d, d') - phi_{tt'}(d) - phi_{t't}(d'),
-        where phi are potentials
-        So, we have fixed pixel and its neighbor;
-        and search for minimum edge penalty (with potentials) between them
-        based on pixel disparity and neighbor disparity
-        */
             let mut min_penalty_edge: f64 = f64::INFINITY;
             for d in 0..self.max_disparity {
                 for n_d in 0..self.max_disparity {
@@ -411,14 +448,13 @@ pub mod penalty_graph {
             min_penalty_edge
         }
 
+        /// Returns the energy value for the graph.
+        /// It takes the most light vertices in each object
+        /// and the most light edges between each pair of neighbor objects and
+        /// computes a sum of its penalties
+        ///
+        /// <img src="https://latex.codecogs.com/gif.latex?E%20%3D%20%5Csum_%7Bt%20%5Cin%20T%7D%20%5Cmin_%7Bd%7D%20f_t%28d%29%20&plus;%20%5Csum_%7Btt%27%20%5Cin%20%5Ctau%7D%20%5Cmin_%7Bd%2C%20n_d%7D%20g_%7Btt%27%7D%28d%2C%20n_d%29">
         pub fn energy(&self) -> f64 {
-        /*
-        Returns the value of energy for the problem:
-        E = sum_t min_{k_t} f_t(k_t) + sum_{tt' in tau} min_{k_t, k_t'} g_{tt'}(k_t, k_t')
-        It takes the most light vertices in each object
-        and the most light edges between each pair of neighbor objects and
-        computes a sum of its penalties
-        */
             let mut energy: f64 = 0.;
             for i in 0..self.left_image.len() {
                 for j in 0..self.left_image[0].len() {
@@ -436,22 +472,18 @@ pub mod penalty_graph {
             energy
         }
 
+        /// Computes penalty of zero disparity map just to be sure,
+        /// that at least this map doesn't change its penalty after diffusion act
         pub fn zero_penalty(&self) -> f64 {
-        /*
-        Computes penalty of zero disparity map just to be sure,
-        that at least this map doesn't change its penalty after diffusion act
-        */
             let disparity_map: Vec<Vec<usize>> =
                 vec![vec![0usize; self.left_image[0].len()]; self.left_image.len()];
             self.penalty(disparity_map)
         }
 
+        /// Computes penalty of disparity map where
+        /// the first column is consists of zeros and all other columns -- of ones
+        /// to be sure that this map doesn't change its penalty after diffusion act
         pub fn zero_one_penalty(&self) -> f64 {
-        /*
-        Computes penalty of disparity map where
-        the first column is consists of zeros and all other columns -- of ones
-        to be sure that this map doesn't change its penalty after diffusion act
-        */
             let mut disparity_map: Vec<Vec<usize>> =
                 vec![vec![1usize; self.left_image[0].len()]; self.left_image.len()];
             for i in 0..disparity_map.len() {
