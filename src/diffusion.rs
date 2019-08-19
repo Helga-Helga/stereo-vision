@@ -21,25 +21,26 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
+#[doc="Utils"]
 pub mod diffusion {
     use std::f64;
 
+    /// Returns `true` if requested neighbor for a given pixel exists, `false` if not.
+    /// Each pixel has maximum 4 neighbors:
+    /// * `0` for the left neighbor
+    /// * `1` for the top neighbor
+    /// * `2` for the right neighbor
+    /// * `3` for the bottom neighbor
+    /// Pixel can have less than `4` neighbors if it is in the edge of an image.
+    ///
+    /// # Arguments:
+    /// * `pixel_i` - A number of current pixel row in image
+    /// * `pixel_j` - A number of current pixel column in image
+    /// * `neighbor` - A number of pixel neighbor (from `0` to `3`)
+    /// * `height` - An image height
+    /// * `width` - An image width
     pub fn neighbor_exists(pixel_i: usize, pixel_j: usize, neighbor: usize,
                             height: usize, width: usize) -> bool {
-    /*
-    pixel_i: number of current pixel row in image
-    pixel_j: number of current pixel column in image
-    neighbor: number of pixel neighbor (from 0 to 3)
-    height: height of image
-    width: width of image
-    Each pixel has maximum 4 neighbors:
-    - 0 for the left neighbor
-    - 1 for the top neighbor
-    - 2 for the right neighbor
-    - 3 for the bottom neighbor
-    Pixel can have less than 4 neighbors if it is in the eage of an image.
-    Returns `true` if neighbor exists, `false` if not.
-    */
         match neighbor {
             0 => if pixel_j > 0 {
                 return true
@@ -65,13 +66,13 @@ pub mod diffusion {
         }
     }
 
+    /// Returns coordinates of requested neighbor and number of a given pixel as a neighbor for it
+    ///
+    /// # Arguments:
+    /// * `i` - A row of a pixel in image
+    /// * `j` - A column of a pixel in image
+    /// * `neighbor` - A number of pixel neighbor
     pub fn neighbor_index(i: usize, j: usize, neighbor: usize) -> (usize, usize, usize) {
-    /*
-    i: row of pixel in left image
-    j: column of pixel in left image
-    neighbor: number of pixel neighbor (from 0 to 3)
-    Returns coordinates of neighbor and number of pixel for neighbor
-    */
         match neighbor {
             0 => return (i, j - 1, 2),
             1 => return (i - 1, j, 3),
@@ -81,13 +82,15 @@ pub mod diffusion {
         }
     }
 
+    /// Returns number of neighbors for a given pixel.
+    /// Maximum number of neighbors is `4`, minimum is `2`
+    ///
+    /// # Arguments:
+    /// * `i` - A number of current pixel row in image
+    /// * `j` - A number of current pixel column in image
+    /// * `height` - An image height
+    /// * `width` - An image width
     pub fn number_of_neighbors(i: usize, j: usize, height: usize, width: usize) -> usize {
-    /*
-    (i, j): coordinate of pixel in an image
-    height, width: size of image
-    Returns number of neighbors for pixel (i, j).
-    Maximum number of neighbors is 4, minimum is 2
-    */
         let mut number_of_neighbors: usize = 0;
         for neighbor in 0..4 {
             if neighbor_exists(i, j, neighbor, height, width) {
@@ -97,16 +100,24 @@ pub mod diffusion {
         number_of_neighbors
     }
 
+    /// Returns `true` if given numbers differ not more that by given `epsilon`
+    ///
+    /// # Arguments:
+    /// * `x` - The first float number to compare
+    /// * `y` - The second float number to compare
+    /// * `epsilon` - A small float number for comparing `x` and `y`
     pub fn approx_equal(x: f64, y: f64, epsilon: f64) -> bool {
-    /*
-    Returns true if x and y differ by no more than epsilon
-    */
         if (x - y).abs() > epsilon {
             return false;
         }
         return true;
     }
 
+    /// Returns `true` if a given disparity map is consistent, else - `false`.
+    /// The map is consistent if there is a continuous path, connecting each pair of neighbor pixels
+    ///
+    /// # Arguments
+    /// `disparity_map` - A matrix with disparities
     pub fn check_disparity_map(disparity_map: &Vec<Vec<usize>>) -> bool {
         for i in 0..disparity_map.len() {
             for j in 0..(disparity_map[0].len() - 1) {
