@@ -21,6 +21,7 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
+#[doc="PGM handler"]
 pub mod pgm {
     use std::fs::File;
     use std::io::{BufRead, BufReader, Result};
