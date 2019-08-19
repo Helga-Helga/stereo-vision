@@ -21,6 +21,7 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
+#[doc="Crossing out graph"]
 pub mod crossing_out_graph {
     use std::f64;
     use super::super::penalty_graph::penalty_graph::PenaltyGraph;
@@ -28,16 +29,25 @@ pub mod crossing_out_graph {
     use super::super::diffusion::diffusion::neighbor_index;
 
     #[derive(Debug)]
+    /// Crossing out graph is represented here
     pub struct CrossingOutGraph {
+        /// Diffusion graph with known vertex and edge penalties
         pub penalty_graph: PenaltyGraph,
-        // A vertice is defined by pixel coordinates (i, j) and disparity value d
+        // A vertice is defined by pixel coordinates `(i, j)` and disparity value `d`
         vertices: Vec<Vec<Vec<bool>>>,
-        // And edge is defined by a vertex (i, j, d),
-        // a number of its neighbor n (from 0 to 3) and disparity n_d of the neighbor
+        // And edge is defined by a vertex `(i, j, d)`,
+        // a number of its neighbor `n` (from `0` to `3`) and disparity `n_d` of the neighbor
         edges: Vec<Vec<Vec<Vec<Vec<bool>>>>>
     }
 
     impl CrossingOutGraph {
+        /// Returns a crossing out graph with given parameters
+        ///
+        /// # Arguments
+        ///
+        /// * `penalty_graph` - A PenaltyGraph object
+        /// * `vertices` - A 3D vector of booleans (`false` for crossed out vertices)
+        /// * `edges` - A 5D vector of booleans (`false` for crossed out edges)
         pub fn initialize(penalty_graph: PenaltyGraph,
                           vertices: Vec<Vec<Vec<bool>>>,
                           edges: Vec<Vec<Vec<Vec<Vec<bool>>>>>) -> Self {
@@ -48,22 +58,24 @@ pub mod crossing_out_graph {
             }
         }
 
+        /// Makes `true` only those vertices and edges in the crossing out graph,
+        /// where penalties differ from the minimum penalty in the group not more than by epsilon
+        ///
+        /// # Arguments:
+        ///
+        /// * `epsilon` - A small float number for penalties comparison
         pub fn initialize_with_epsilon(&mut self, epsilon: f64) {
-        /*
-        epsilon: precision with which vertices and edges exist
-        Leave in the graph only those vertices and edges whoose
-        penalties differ from minimum penalty in the group not more than by epsilon
-        */
             self.initialize_vertices(epsilon);
             self.initialize_edges(epsilon);
         }
 
+        /// Makes `true` only those vertices in the crossing out graph,
+        /// where penalties differ from the minimum penalty in the pixel not more than by epsilon
+        ///
+        /// # Arguments:
+        ///
+        /// * `epsilon` - A small float number for penalties comparison
         pub fn initialize_vertices(&mut self, epsilon: f64) {
-        /*
-        epsilon: precision with which vertices exist
-        (vertex = 1 if its penalty differs from minimum not more that by epsilon, else: vertex = 0)
-        Fills self.vertices with true or false according to this rule
-        */
             for i in 0..self.penalty_graph.left_image.len() {
                 for j in 0..self.penalty_graph.left_image[0].len() {
                     let min_penalty_vertex = (self.penalty_graph.min_penalty_vertex(i, j)).1;
@@ -80,16 +92,14 @@ pub mod crossing_out_graph {
             }
         }
 
+        /// Makes `true` only those edges in the crossing out graph,
+        /// where penalties differ from the minimum penalty from the vertex to its neighbors
+        /// not more than by epsilon
+        ///
+        /// # Arguments:
+        ///
+        /// * `epsilon` - A small float number for penalties comparison
         pub fn initialize_edges(&mut self, epsilon: f64) {
-        /*
-        epsilon: precision with what edges exist
-        (edge = 1 if its penalty differs from minimum not more that by epsilon, else: edge = 0)
-        Fills self.edges with true or false according to this rule
-        Go through each pair of neighbors.
-        If edge weight of the pair is between
-        min_penalty_edge and min_penalty_edge + epsilon that this edge exists.
-        Else this edge doesn't exist
-        */
             for i in 0..self.penalty_graph.left_image.len() {
                 for j in 0..self.penalty_graph.left_image[0].len() {
                     for d in 0..self.penalty_graph.max_disparity {
@@ -119,13 +129,10 @@ pub mod crossing_out_graph {
             }
         }
 
+        /// Crosses out (makes `false`) a vertex, if an edge, that contains the vertex, is `false`.
+        /// Crosses out an edge, if a vertex, that is connected with the edge, is `false`.
+        /// Crossing out is finished when nothing was changed during one iteration
         pub fn crossing_out(&mut self) {
-        /*
-        Crosses out (makes `false`) a vertex, if an edge, that contains the vertex, is `false`.
-        Crosses out an edge, if a vertex, that is connected with the edge, is `false`.
-        Crossing out is finished when nothing was changed during one iteration
-
-        */
             let mut change_indicator = true;
             while change_indicator {
                 change_indicator = false;
@@ -175,12 +182,9 @@ pub mod crossing_out_graph {
             }
         }
 
+        /// Returns `true` if there is at least one `true` vertex in each pixel
+        /// and at least one `true` edge between each pair of neighbors
         pub fn is_not_empty(&self) -> bool {
-        /*
-        crossing_out_graph.initialize_with_epsilon(epsilon);
-        crossing_out_graph.crossing_out();ssible value of disparity
-        Returns true if there are vertices and edges in a given graph
-        */
             if self.vertices_exist() && self.edges_exist() {
                 true
             } else {
@@ -188,10 +192,8 @@ pub mod crossing_out_graph {
             }
         }
 
+        /// Returns `true` if there is at least one `true` vertex in each object (pixel) of a graph
         pub fn vertices_exist(&self) -> bool {
-        /*
-        Returns true if there is at least one vertex in each object (pixel) of a graph
-        */
             for i in 0..self.penalty_graph.left_image.len() {
                 for j in 0..self.penalty_graph.left_image[0].len() {
                     let mut found: bool = false;
@@ -208,10 +210,8 @@ pub mod crossing_out_graph {
             true
         }
 
+        /// Returns `true` if there is at least one `true` edge between each pair of neighbors in a graph
         pub fn edges_exist(&self) -> bool {
-        /*
-        Returns true if there is at least one edge between each pair of neighbors in a graph
-        */
             for i in 0..self.penalty_graph.left_image.len() {
                 for j in 0..self.penalty_graph.left_image[0].len() {
                     for n in 0..4 {
@@ -246,12 +246,12 @@ pub mod crossing_out_graph {
         }
 
         #[cfg_attr(tarpaulin, skip)]
+        /// Calls diffusion while crossing out graph is empty after crossing out with given epsilon
+        ///
+        /// # Arguments:
+        /// * `epsilon` - A small float value for comparing penalties
+        /// * `batch_size` - Number of iterations after that crossing out will be done
         pub fn diffusion_while_not_consistent(&mut self, epsilon: f64, batch_size: usize) {
-        /*
-        epsilon: needed for initialization of crossing out graph
-        batch_size: number of iterations after that crossing out will be done
-        Calls diffusion while crossing out graph is empty after crossing out with given epsilon
-        */
             let mut not_empty: bool = false;
             let mut i = 1;
             while !not_empty {
@@ -274,12 +274,14 @@ pub mod crossing_out_graph {
             println!("Graph is consistent. Diffusion is done");
         }
 
+        /// Finds a vertex with the minimum penalty among not-crossed out vertexes in pixel and
+        // returns a disparity correspondent to this vertex
+        ///
+        /// # Arguments
+        ///
+        /// * `i` - A row of a pixel in image
+        /// * `j` - A column of a pixel in image
         pub fn min_vertex_between_existing(&self, i: usize, j: usize) -> usize {
-        /*
-        (i, j): pixel coordinates
-        Finds vertex with the minimum penalty among not-crossed out vertexes in pixel
-        Returns disparity correspondent to this vertex
-        */
             let mut min_vertex: f64 = f64::INFINITY;
             let mut disparity: usize = 0;
             let mut found: bool = false;
@@ -297,12 +299,15 @@ pub mod crossing_out_graph {
             disparity
         }
 
+        /// Crosses out all vertexes `(i, j, d)` in pixel `(i, j)` except `(i, j, disparity)`
+        /// (where `d != disparity`)
+        ///
+        /// # Arguments:
+        /// * `i` - A row of a pixel in image
+        /// * `j` - A column of a pixel in image
+        /// * `disparity` - A disparity in a given pixel with which vertex shouldn't be crossed out
         pub fn cross_vertex(&mut self, i: usize, j: usize, disparity: usize) {
-        /*
-        (i, j): pixel coordinates
-        Crosses out all vertexes (i, j, d) in pixel (i, j) except (i, j, disparity)
-        (where d != given disparity)
-        */
+
             assert!(self.vertices[i][j][disparity], "Choosen vertex [{}][{}][{}] is crossed out", i, j, disparity);
             for d in 0..self.penalty_graph.max_disparity {
                 if self.vertices[i][j][d] && d != disparity {
@@ -311,11 +316,9 @@ pub mod crossing_out_graph {
             }
         }
 
+        /// Chooses the best vertex in the first pixel (0, 0) -> crosses out graph.
+        /// Repeats the same for all other pixels.
         pub fn find_best_labeling(&mut self) -> Vec<Vec<usize>> {
-        /*
-        Chooses the best vertex in the first pixel (0, 0) -> crosses out graph
-        Do the same for all other pixels, ...
-        */
             let mut disparity_map = vec![vec![0usize; self.penalty_graph.left_image[0].len()];
                                          self.penalty_graph.left_image.len()];
             for i in 0..self.penalty_graph.left_image.len() {
