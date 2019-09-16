@@ -21,8 +21,8 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-#[doc="Disparity graph"]
-pub mod penalty_graph {
+#[doc="Diffusion graph"]
+pub mod diffusion_graph {
     use rand::Rng;
     use std::f64;
     use super::super::diffusion::diffusion::neighbor_exists;
@@ -33,7 +33,7 @@ pub mod penalty_graph {
 
     #[derive(Debug)]
     /// Disparity graph is represented here
-    pub struct PenaltyGraph {
+    pub struct DiffusionGraph {
         /// Lookup table for calculation of penalties easily
         pub lookup_table: Vec<Vec<f64>>,
         /// `phi` : Potentials as dual variables
@@ -50,7 +50,7 @@ pub mod penalty_graph {
         pub smoothing_term: f64,
     }
 
-    impl PenaltyGraph {
+    impl DiffusionGraph {
         /// Returns a disparity graph with given parameters
         ///
         /// # Arguments
@@ -498,8 +498,8 @@ pub mod penalty_graph {
         let left_image = vec![vec![0u32; 1]; 1];
         let right_image = vec![vec![0u32; 1]; 1];
         let disparity_map = vec![vec![0usize; 1]; 1];
-        let penalty_graph = PenaltyGraph::initialize(left_image, right_image, 1, 1.);
-        assert_eq!(0., penalty_graph.penalty(disparity_map));
+        let diffusion_graph = DiffusionGraph::initialize(left_image, right_image, 1, 1.);
+        assert_eq!(0., diffusion_graph.penalty(disparity_map));
     }
 
     #[test]
@@ -507,8 +507,8 @@ pub mod penalty_graph {
         let left_image = [[1, 1].to_vec(), [0, 0].to_vec()].to_vec();
         let right_image = [[1, 0].to_vec(), [0, 0].to_vec()].to_vec();
         let disparity_map = vec![vec![1usize; 2]; 2];
-        let penalty_graph = PenaltyGraph::initialize(left_image, right_image, 2, 1.);
-        assert_eq!(f64::INFINITY, penalty_graph.penalty(disparity_map));
+        let diffusion_graph = DiffusionGraph::initialize(left_image, right_image, 2, 1.);
+        assert_eq!(f64::INFINITY, diffusion_graph.penalty(disparity_map));
     }
 
     #[test]
@@ -516,11 +516,11 @@ pub mod penalty_graph {
         let left_image = [[1, 1].to_vec(), [0, 0].to_vec()].to_vec();
         let right_image = [[1, 0].to_vec(), [0, 0].to_vec()].to_vec();
         let disparity_map = [[0, 1].to_vec(), [0, 1].to_vec()].to_vec();
-        let mut penalty_graph = PenaltyGraph::initialize(left_image, right_image, 2, 1.);
-        assert_eq!(2., penalty_graph.penalty(disparity_map));
-        penalty_graph.potentials[0][0][2][0] = 1.;
+        let mut diffusion_graph = DiffusionGraph::initialize(left_image, right_image, 2, 1.);
+        assert_eq!(2., diffusion_graph.penalty(disparity_map));
+        diffusion_graph.potentials[0][0][2][0] = 1.;
         let new_disparity_map = [[0, 1].to_vec(), [0, 1].to_vec()].to_vec();
-        assert_eq!(2., penalty_graph.penalty(new_disparity_map));
+        assert_eq!(2., diffusion_graph.penalty(new_disparity_map));
     }
 
     #[test]
@@ -528,227 +528,235 @@ pub mod penalty_graph {
         let left_image = [[1, 1].to_vec()].to_vec();
         let right_image = [[1, 0].to_vec()].to_vec();
         let disparity_map = [[0, 2].to_vec()].to_vec();
-        let penalty_graph = PenaltyGraph::initialize(left_image, right_image, 2, 1.);
-        assert_eq!(f64::INFINITY, penalty_graph.penalty(disparity_map));
+        let diffusion_graph = DiffusionGraph::initialize(left_image, right_image, 2, 1.);
+        assert_eq!(f64::INFINITY, diffusion_graph.penalty(disparity_map));
     }
 
     #[test]
     fn test_sum_of_potentials() {
         let left_image = [[1, 9].to_vec(), [5, 6].to_vec()].to_vec();
         let right_image = [[6, 3].to_vec(), [6, 6].to_vec()].to_vec();
-        let mut penalty_graph = PenaltyGraph::initialize(left_image, right_image, 2, 1.);
-        penalty_graph.potentials[0][0][2][0] = 9.4;
-        penalty_graph.potentials[0][0][3][0] = -1.8;
-        penalty_graph.potentials[0][1][0][0] = 6.7;
-        penalty_graph.potentials[0][1][0][1] = -1.4;
-        penalty_graph.potentials[1][0][1][0] = 4.1;
-        assert_eq!(true, approx_equal(7.6, penalty_graph.sum_of_potentials(0, 0, 0), 1E-6));
-        assert_eq!(true, approx_equal(6.7, penalty_graph.sum_of_potentials(0, 1, 0), 1E-6));
-        assert_eq!(true, approx_equal(-1.4, penalty_graph.sum_of_potentials(0, 1, 1), 1E-6));
-        assert_eq!(true, approx_equal(4.1, penalty_graph.sum_of_potentials(1, 0, 0), 1E-6));
-        assert_eq!(true, approx_equal(0., penalty_graph.sum_of_potentials(1, 1, 0), 1E-6));
-        assert_eq!(true, approx_equal(0., penalty_graph.sum_of_potentials(1, 1, 1), 1E-6));
+        let mut diffusion_graph = DiffusionGraph::initialize(left_image, right_image, 2, 1.);
+        diffusion_graph.potentials[0][0][2][0] = 9.4;
+        diffusion_graph.potentials[0][0][3][0] = -1.8;
+        diffusion_graph.potentials[0][1][0][0] = 6.7;
+        diffusion_graph.potentials[0][1][0][1] = -1.4;
+        diffusion_graph.potentials[1][0][1][0] = 4.1;
+        assert_eq!(true, approx_equal(7.6, diffusion_graph.sum_of_potentials(0, 0, 0), 1E-6));
+        assert_eq!(true, approx_equal(6.7, diffusion_graph.sum_of_potentials(0, 1, 0), 1E-6));
+        assert_eq!(true, approx_equal(-1.4, diffusion_graph.sum_of_potentials(0, 1, 1), 1E-6));
+        assert_eq!(true, approx_equal(4.1, diffusion_graph.sum_of_potentials(1, 0, 0), 1E-6));
+        assert_eq!(true, approx_equal(0., diffusion_graph.sum_of_potentials(1, 1, 0), 1E-6));
+        assert_eq!(true, approx_equal(0., diffusion_graph.sum_of_potentials(1, 1, 1), 1E-6));
     }
 
     #[test]
     fn test_vertex_penalty_with_potentials() {
         let left_image = [[166, 26, 215].to_vec(), [52, 66, 27].to_vec(), [113, 33, 214].to_vec()].to_vec();
         let right_image = [[203, 179, 158].to_vec(), [123, 160, 222].to_vec(), [90, 139, 127].to_vec()].to_vec();
-        let mut penalty_graph = PenaltyGraph::initialize(left_image, right_image, 2, 1.);
-        penalty_graph.potentials[1][1][0][0] = 0.;
-        penalty_graph.potentials[1][1][1][0] = 0.;
-        penalty_graph.potentials[1][1][2][0] = 1.;
-        penalty_graph.potentials[1][1][3][0] = 0.1;
-        penalty_graph.potentials[1][1][0][1] = 0.9;
-        penalty_graph.potentials[1][1][1][1] = 0.6;
-        penalty_graph.potentials[1][1][2][1] = 1.;
-        penalty_graph.potentials[1][1][3][1] = 0.6;
-        assert_eq!(true, approx_equal(92.9, penalty_graph.vertex_penalty_with_potentials(1, 1, 0), 1E-6));
-        assert_eq!(true, approx_equal(53.9, penalty_graph.vertex_penalty_with_potentials(1, 1, 1), 1E-6));
+        let mut diffusion_graph = DiffusionGraph::initialize(left_image, right_image, 2, 1.);
+        diffusion_graph.potentials[1][1][0][0] = 0.;
+        diffusion_graph.potentials[1][1][1][0] = 0.;
+        diffusion_graph.potentials[1][1][2][0] = 1.;
+        diffusion_graph.potentials[1][1][3][0] = 0.1;
+        diffusion_graph.potentials[1][1][0][1] = 0.9;
+        diffusion_graph.potentials[1][1][1][1] = 0.6;
+        diffusion_graph.potentials[1][1][2][1] = 1.;
+        diffusion_graph.potentials[1][1][3][1] = 0.6;
+        assert_eq!(true, approx_equal(
+            92.9, diffusion_graph.vertex_penalty_with_potentials(1, 1, 0), 1E-6));
+        assert_eq!(true, approx_equal(
+            53.9, diffusion_graph.vertex_penalty_with_potentials(1, 1, 1), 1E-6));
     }
 
     #[test]
     fn test_edge_penalty_with_potentials() {
         let left_image = [[244, 172].to_vec()].to_vec();
         let right_image = [[168, 83].to_vec()].to_vec();
-        let mut penalty_graph = PenaltyGraph::initialize(left_image, right_image, 2, 1.);
-        penalty_graph.potentials[0][0][2][0] = 0.8;
-        penalty_graph.potentials[0][1][0][0] = 0.;
-        penalty_graph.potentials[0][1][0][1] = 0.1;
-        assert_eq!(true, approx_equal(0.8, penalty_graph.edge_penalty_with_potential(0, 0, 2, 0, 0), 1E-6));
-        assert_eq!(true, approx_equal(0.8, penalty_graph.edge_penalty_with_potential(0, 1, 0, 0, 0), 1E-6));
-        assert_eq!(true, approx_equal(1.9, penalty_graph.edge_penalty_with_potential(0, 0, 2, 0, 1), 1E-6));
-        assert_eq!(true, approx_equal(1.9, penalty_graph.edge_penalty_with_potential(0, 1, 0, 1, 0), 1E-6));
+        let mut diffusion_graph = DiffusionGraph::initialize(left_image, right_image, 2, 1.);
+        diffusion_graph.potentials[0][0][2][0] = 0.8;
+        diffusion_graph.potentials[0][1][0][0] = 0.;
+        diffusion_graph.potentials[0][1][0][1] = 0.1;
+        assert_eq!(true, approx_equal(
+            0.8, diffusion_graph.edge_penalty_with_potential(0, 0, 2, 0, 0), 1E-6));
+        assert_eq!(true, approx_equal(
+            0.8, diffusion_graph.edge_penalty_with_potential(0, 1, 0, 0, 0), 1E-6));
+        assert_eq!(true, approx_equal(
+            1.9, diffusion_graph.edge_penalty_with_potential(0, 0, 2, 0, 1), 1E-6));
+        assert_eq!(true, approx_equal(
+            1.9, diffusion_graph.edge_penalty_with_potential(0, 1, 0, 1, 0), 1E-6));
     }
 
     #[test]
     fn test_edge_exists() {
         let left_image = [[244, 172, 168, 192].to_vec(), [83, 248, 38, 204].to_vec()].to_vec();
         let right_image = [[218, 138, 65, 18].to_vec(), [225, 7, 114, 127].to_vec()].to_vec();
-        let penalty_graph = PenaltyGraph::initialize(left_image, right_image, 4, 1.);
-        assert!(penalty_graph.edge_exists(0, 0, 2, 0, 0));
-        assert!(penalty_graph.edge_exists(0, 1, 0, 0, 0));
-        assert!(penalty_graph.edge_exists(0, 0, 2, 0, 1));
-        assert!(penalty_graph.edge_exists(0, 1, 0, 1, 0));
-        assert!(!penalty_graph.edge_exists(0, 0, 2, 1, 0));
-        assert!(!penalty_graph.edge_exists(0, 0, 2, 1, 1));
-        assert!(!penalty_graph.edge_exists(0, 0, 2, 2, 0));
-        assert!(!penalty_graph.edge_exists(0, 1, 0, 2, 1));
-        assert!(!penalty_graph.edge_exists(0, 0, 0, 0, 0));
-        assert!(!penalty_graph.edge_exists(0, 3, 0, 3, 0));
-        assert!(!penalty_graph.edge_exists(0, 2, 2, 0, 3));
-        assert!(!penalty_graph.edge_exists(0, 0, 2, 1, 0));
+        let diffusion_graph = DiffusionGraph::initialize(left_image, right_image, 4, 1.);
+        assert!(diffusion_graph.edge_exists(0, 0, 2, 0, 0));
+        assert!(diffusion_graph.edge_exists(0, 1, 0, 0, 0));
+        assert!(diffusion_graph.edge_exists(0, 0, 2, 0, 1));
+        assert!(diffusion_graph.edge_exists(0, 1, 0, 1, 0));
+        assert!(!diffusion_graph.edge_exists(0, 0, 2, 1, 0));
+        assert!(!diffusion_graph.edge_exists(0, 0, 2, 1, 1));
+        assert!(!diffusion_graph.edge_exists(0, 0, 2, 2, 0));
+        assert!(!diffusion_graph.edge_exists(0, 1, 0, 2, 1));
+        assert!(!diffusion_graph.edge_exists(0, 0, 0, 0, 0));
+        assert!(!diffusion_graph.edge_exists(0, 3, 0, 3, 0));
+        assert!(!diffusion_graph.edge_exists(0, 2, 2, 0, 3));
+        assert!(!diffusion_graph.edge_exists(0, 0, 2, 1, 0));
     }
 
     #[test]
     fn test_min_edge_between_neighbors() {
         let left_image = [[244, 172].to_vec()].to_vec();
         let right_image = [[168, 83].to_vec()].to_vec();
-        let mut penalty_graph = PenaltyGraph::initialize(left_image, right_image, 2, 1.);
-        penalty_graph.potentials[0][0][2][0] = 0.8;
-        penalty_graph.potentials[0][1][0][0] = 0.;
-        penalty_graph.potentials[0][1][0][1] = 0.1;
-        assert_eq!(true, approx_equal(penalty_graph.min_edge_between_neighbors(0, 0, 2, 0), 0.8, 1E-6));
-        penalty_graph.potentials[0][1][0][0] = 2.;
-        assert_eq!(true, approx_equal(penalty_graph.min_edge_between_neighbors(0, 0, 2, 0), 1.9, 1E-6));
-        assert_eq!(f64::INFINITY, penalty_graph.min_edge_between_neighbors(0, 0, 2, 1));
+        let mut diffusion_graph = DiffusionGraph::initialize(left_image, right_image, 2, 1.);
+        diffusion_graph.potentials[0][0][2][0] = 0.8;
+        diffusion_graph.potentials[0][1][0][0] = 0.;
+        diffusion_graph.potentials[0][1][0][1] = 0.1;
+        assert_eq!(true, approx_equal(
+            diffusion_graph.min_edge_between_neighbors(0, 0, 2, 0), 0.8, 1E-6));
+        diffusion_graph.potentials[0][1][0][0] = 2.;
+        assert_eq!(true, approx_equal(
+            diffusion_graph.min_edge_between_neighbors(0, 0, 2, 0), 1.9, 1E-6));
+        assert_eq!(f64::INFINITY, diffusion_graph.min_edge_between_neighbors(0, 0, 2, 1));
     }
 
     #[test]
     fn test_update_vertex_potential() {
         let left_image = [[25, 50].to_vec(), [5, 145].to_vec(), [248, 62].to_vec()].to_vec();
         let right_image = [[39, 15].to_vec(), [77, 145].to_vec(), [31, 71].to_vec()].to_vec();
-        let mut penalty_graph = PenaltyGraph::initialize(left_image, right_image, 2, 1.);
-        penalty_graph.potentials[0][0][3][0] = -0.3;
-        penalty_graph.potentials[1][0][1][0] = 2.06;
-        penalty_graph.potentials[1][0][2][0] = 2.06;
-        penalty_graph.potentials[1][0][2][1] = 2.06;
-        penalty_graph.potentials[1][0][3][0] = 2.06;
-        penalty_graph.potentials[2][0][1][0] = 0.44;
-        penalty_graph.potentials[1][1][0][0] = -1.42;
-        penalty_graph.potentials[1][1][1][0] = -1.42;
-        penalty_graph.potentials[1][1][0][1] = -0.62;
-        penalty_graph.potentials[1][1][1][1] = -0.62;
-        penalty_graph.potentials[1][1][3][1] = -0.62;
-        assert_eq!(0., penalty_graph.dummy_potentials[1][0][1][0]);
-        penalty_graph.update_vertex_potential(1, 0, 1, 0);
-        assert_eq!(true, approx_equal(penalty_graph.dummy_potentials[1][0][1][0], -1.76, 1E-6));
-        assert_eq!(0., penalty_graph.dummy_potentials[1][0][2][0]);
-        penalty_graph.update_vertex_potential(1, 0, 2, 0);
-        assert_eq!(true, approx_equal(penalty_graph.dummy_potentials[1][0][2][0], -0.64, 1E-6));
-        assert_eq!(0., penalty_graph.dummy_potentials[1][0][3][0]);
-        penalty_graph.update_vertex_potential(1, 0, 3, 0);
-        assert_eq!(true, approx_equal(penalty_graph.dummy_potentials[1][0][3][0], -2.5, 1E-6));
+        let mut diffusion_graph = DiffusionGraph::initialize(left_image, right_image, 2, 1.);
+        diffusion_graph.potentials[0][0][3][0] = -0.3;
+        diffusion_graph.potentials[1][0][1][0] = 2.06;
+        diffusion_graph.potentials[1][0][2][0] = 2.06;
+        diffusion_graph.potentials[1][0][2][1] = 2.06;
+        diffusion_graph.potentials[1][0][3][0] = 2.06;
+        diffusion_graph.potentials[2][0][1][0] = 0.44;
+        diffusion_graph.potentials[1][1][0][0] = -1.42;
+        diffusion_graph.potentials[1][1][1][0] = -1.42;
+        diffusion_graph.potentials[1][1][0][1] = -0.62;
+        diffusion_graph.potentials[1][1][1][1] = -0.62;
+        diffusion_graph.potentials[1][1][3][1] = -0.62;
+        assert_eq!(0., diffusion_graph.dummy_potentials[1][0][1][0]);
+        diffusion_graph.update_vertex_potential(1, 0, 1, 0);
+        assert_eq!(true, approx_equal(diffusion_graph.dummy_potentials[1][0][1][0], -1.76, 1E-6));
+        assert_eq!(0., diffusion_graph.dummy_potentials[1][0][2][0]);
+        diffusion_graph.update_vertex_potential(1, 0, 2, 0);
+        assert_eq!(true, approx_equal(diffusion_graph.dummy_potentials[1][0][2][0], -0.64, 1E-6));
+        assert_eq!(0., diffusion_graph.dummy_potentials[1][0][3][0]);
+        diffusion_graph.update_vertex_potential(1, 0, 3, 0);
+        assert_eq!(true, approx_equal(diffusion_graph.dummy_potentials[1][0][3][0], -2.5, 1E-6));
     }
 
     #[test]
     fn test_update_edge_potential() {
         let left_image = [[1, 1, 1].to_vec(), [1, 0, 1].to_vec(), [1, 1, 1].to_vec()].to_vec();
         let right_image = [[1, 1, 1].to_vec(), [1, 0, 1].to_vec(), [1, 1, 1].to_vec()].to_vec();
-        let mut penalty_graph = PenaltyGraph::initialize(left_image, right_image, 1, 1.);
-        penalty_graph.potentials[0][0][2][0] = -0.3;
-        penalty_graph.potentials[0][0][3][0] = 0.1;
-        penalty_graph.potentials[2][1][0][0] = 0.8;
-        penalty_graph.potentials[2][1][2][0] = -0.62;
-        assert_eq!(0., penalty_graph.dummy_potentials[0][0][2][0]);
-        penalty_graph.update_edge_potential(0, 0, 2, 0);
-        assert_eq!(true, approx_equal(penalty_graph.dummy_potentials[0][0][2][0], 0.1, 1E-6));
-        penalty_graph.update_edge_potential(1, 1, 0, 0);
-        assert_eq!(true, approx_equal(penalty_graph.dummy_potentials[1][1][0][0], 0., 1E-6));
-        penalty_graph.update_edge_potential(2, 1, 2, 0);
-        assert_eq!(true, approx_equal(penalty_graph.dummy_potentials[2][1][2][0], -0.06, 1E-6));
+        let mut diffusion_graph = DiffusionGraph::initialize(left_image, right_image, 1, 1.);
+        diffusion_graph.potentials[0][0][2][0] = -0.3;
+        diffusion_graph.potentials[0][0][3][0] = 0.1;
+        diffusion_graph.potentials[2][1][0][0] = 0.8;
+        diffusion_graph.potentials[2][1][2][0] = -0.62;
+        assert_eq!(0., diffusion_graph.dummy_potentials[0][0][2][0]);
+        diffusion_graph.update_edge_potential(0, 0, 2, 0);
+        assert_eq!(true, approx_equal(diffusion_graph.dummy_potentials[0][0][2][0], 0.1, 1E-6));
+        diffusion_graph.update_edge_potential(1, 1, 0, 0);
+        assert_eq!(true, approx_equal(diffusion_graph.dummy_potentials[1][1][0][0], 0., 1E-6));
+        diffusion_graph.update_edge_potential(2, 1, 2, 0);
+        assert_eq!(true, approx_equal(diffusion_graph.dummy_potentials[2][1][2][0], -0.06, 1E-6));
     }
 
     #[test]
     fn test_diffusion_act_vertexes() {
         let left_image = [[1].to_vec(), [0].to_vec()].to_vec();
         let right_image = [[1].to_vec(), [0].to_vec()].to_vec();
-        let mut penalty_graph = PenaltyGraph::initialize(left_image, right_image, 2, 1.);
-        penalty_graph.potentials[0][0][3][0] = -0.3;
-        penalty_graph.potentials[1][0][1][0] = 0.1;
-        assert_eq!(0., penalty_graph.dummy_potentials[0][0][3][0]);
-        penalty_graph.diffusion_act_vertexes(0, 0);
-        assert_eq!(true, approx_equal(penalty_graph.dummy_potentials[0][0][3][0], 0.2, 1E-6));
-        assert_eq!(true, approx_equal(penalty_graph.potentials[0][0][3][0], 0.2, 1E-6));
-        penalty_graph.diffusion_act_vertexes(1, 0);
-        assert_eq!(true, approx_equal(penalty_graph.dummy_potentials[1][0][1][0], -0.3, 1E-6));
-        assert_eq!(true, approx_equal(penalty_graph.potentials[1][0][1][0], -0.3, 1E-6));
+        let mut diffusion_graph = DiffusionGraph::initialize(left_image, right_image, 2, 1.);
+        diffusion_graph.potentials[0][0][3][0] = -0.3;
+        diffusion_graph.potentials[1][0][1][0] = 0.1;
+        assert_eq!(0., diffusion_graph.dummy_potentials[0][0][3][0]);
+        diffusion_graph.diffusion_act_vertexes(0, 0);
+        assert_eq!(true, approx_equal(diffusion_graph.dummy_potentials[0][0][3][0], 0.2, 1E-6));
+        assert_eq!(true, approx_equal(diffusion_graph.potentials[0][0][3][0], 0.2, 1E-6));
+        diffusion_graph.diffusion_act_vertexes(1, 0);
+        assert_eq!(true, approx_equal(diffusion_graph.dummy_potentials[1][0][1][0], -0.3, 1E-6));
+        assert_eq!(true, approx_equal(diffusion_graph.potentials[1][0][1][0], -0.3, 1E-6));
     }
 
     #[test]
     fn test_diffusion_act_edges() {
         let left_image = [[1].to_vec(), [0].to_vec()].to_vec();
         let right_image = [[1].to_vec(), [0].to_vec()].to_vec();
-        let mut penalty_graph = PenaltyGraph::initialize(left_image, right_image, 2, 1.);
-        penalty_graph.potentials[0][0][3][0] = -0.3;
-        penalty_graph.potentials[1][0][1][0] = 0.1;
-        assert_eq!(0., penalty_graph.dummy_potentials[0][0][3][0]);
-        penalty_graph.diffusion_act_edges(0, 0);
-        assert_eq!(true, approx_equal(penalty_graph.dummy_potentials[0][0][3][0], 0.3, 1E-6));
-        assert_eq!(true, approx_equal(penalty_graph.potentials[0][0][3][0], 0.3, 1E-6));
-        penalty_graph.diffusion_act_edges(1, 0);
-        assert_eq!(true, approx_equal(penalty_graph.dummy_potentials[1][0][1][0], -0.1, 1E-6));
-        assert_eq!(true, approx_equal(penalty_graph.potentials[1][0][1][0], -0.1, 1E-6));
+        let mut diffusion_graph = DiffusionGraph::initialize(left_image, right_image, 2, 1.);
+        diffusion_graph.potentials[0][0][3][0] = -0.3;
+        diffusion_graph.potentials[1][0][1][0] = 0.1;
+        assert_eq!(0., diffusion_graph.dummy_potentials[0][0][3][0]);
+        diffusion_graph.diffusion_act_edges(0, 0);
+        assert_eq!(true, approx_equal(diffusion_graph.dummy_potentials[0][0][3][0], 0.3, 1E-6));
+        assert_eq!(true, approx_equal(diffusion_graph.potentials[0][0][3][0], 0.3, 1E-6));
+        diffusion_graph.diffusion_act_edges(1, 0);
+        assert_eq!(true, approx_equal(diffusion_graph.dummy_potentials[1][0][1][0], -0.1, 1E-6));
+        assert_eq!(true, approx_equal(diffusion_graph.potentials[1][0][1][0], -0.1, 1E-6));
     }
 
     #[test]
     fn test_diffusion_act() {
         let left_image = [[1].to_vec(), [0].to_vec()].to_vec();
         let right_image = [[1].to_vec(), [0].to_vec()].to_vec();
-        let mut penalty_graph = PenaltyGraph::initialize(left_image, right_image, 2, 1.);
-        penalty_graph.potentials[0][0][3][0] = -0.3;
-        penalty_graph.potentials[1][0][1][0] = 0.1;
-        assert_eq!(0., penalty_graph.dummy_potentials[0][0][3][0]);
-        penalty_graph.diffusion_act();
-        assert_eq!(true, approx_equal(penalty_graph.dummy_potentials[0][0][3][0], 0., 1E-6));
-        assert_eq!(true, approx_equal(penalty_graph.potentials[0][0][3][0], 0., 1E-6));
-        assert_eq!(true, approx_equal(penalty_graph.dummy_potentials[1][0][1][0], 0., 1E-6));
-        assert_eq!(true, approx_equal(penalty_graph.potentials[1][0][1][0], 0., 1E-6));
+        let mut diffusion_graph = DiffusionGraph::initialize(left_image, right_image, 2, 1.);
+        diffusion_graph.potentials[0][0][3][0] = -0.3;
+        diffusion_graph.potentials[1][0][1][0] = 0.1;
+        assert_eq!(0., diffusion_graph.dummy_potentials[0][0][3][0]);
+        diffusion_graph.diffusion_act();
+        assert_eq!(true, approx_equal(diffusion_graph.dummy_potentials[0][0][3][0], 0., 1E-6));
+        assert_eq!(true, approx_equal(diffusion_graph.potentials[0][0][3][0], 0., 1E-6));
+        assert_eq!(true, approx_equal(diffusion_graph.dummy_potentials[1][0][1][0], 0., 1E-6));
+        assert_eq!(true, approx_equal(diffusion_graph.potentials[1][0][1][0], 0., 1E-6));
     }
 
     #[test]
     fn test_min_penalty_vertex() {
         let left_image = [[1, 1].to_vec(), [0, 0].to_vec()].to_vec();
         let right_image = [[1, 0].to_vec(), [0, 0].to_vec()].to_vec();
-        let mut penalty_graph = PenaltyGraph::initialize(left_image, right_image, 2, 1.);
-        penalty_graph.potentials[0][0][2][0] = 0.6;
-        penalty_graph.potentials[0][0][3][0] = 358.;
-        penalty_graph.potentials[0][1][0][0] = -13.7;
-        penalty_graph.potentials[0][1][0][1] = 80.;
-        penalty_graph.potentials[0][1][3][1] = -1E9 as f64;
-        assert_eq!(penalty_graph.min_penalty_vertex(0, 0).1, -358.6);
-        assert_eq!(0, penalty_graph.min_penalty_vertex(0, 0).0);
-        assert_eq!(penalty_graph.min_penalty_vertex(0, 1).1, 14.7);
-        assert_eq!(0, penalty_graph.min_penalty_vertex(0, 1).0);
+        let mut diffusion_graph = DiffusionGraph::initialize(left_image, right_image, 2, 1.);
+        diffusion_graph.potentials[0][0][2][0] = 0.6;
+        diffusion_graph.potentials[0][0][3][0] = 358.;
+        diffusion_graph.potentials[0][1][0][0] = -13.7;
+        diffusion_graph.potentials[0][1][0][1] = 80.;
+        diffusion_graph.potentials[0][1][3][1] = -1E9 as f64;
+        assert_eq!(diffusion_graph.min_penalty_vertex(0, 0).1, -358.6);
+        assert_eq!(0, diffusion_graph.min_penalty_vertex(0, 0).0);
+        assert_eq!(diffusion_graph.min_penalty_vertex(0, 1).1, 14.7);
+        assert_eq!(0, diffusion_graph.min_penalty_vertex(0, 1).0);
     }
 
     #[test]
     fn test_min_penalty_edge() {
         let left_image = [[1, 1].to_vec(), [0, 0].to_vec()].to_vec();
         let right_image = [[1, 0].to_vec(), [0, 0].to_vec()].to_vec();
-        let mut penalty_graph = PenaltyGraph::initialize(left_image, right_image, 2, 1.);
-        penalty_graph.potentials[0][0][2][0] = 0.6;
-        penalty_graph.potentials[0][0][3][0] = 358.;
-        penalty_graph.potentials[0][1][0][0] = -13.7;
-        penalty_graph.potentials[0][1][0][1] = 80.;
-        penalty_graph.potentials[0][1][3][1] = -1E9 as f64;
-        assert_eq!(-13.1, penalty_graph.min_penalty_edge(0, 0, 2));
-        assert_eq!(-13.1, penalty_graph.min_penalty_edge(0, 1, 0));
+        let mut diffusion_graph = DiffusionGraph::initialize(left_image, right_image, 2, 1.);
+        diffusion_graph.potentials[0][0][2][0] = 0.6;
+        diffusion_graph.potentials[0][0][3][0] = 358.;
+        diffusion_graph.potentials[0][1][0][0] = -13.7;
+        diffusion_graph.potentials[0][1][0][1] = 80.;
+        diffusion_graph.potentials[0][1][3][1] = -1E9 as f64;
+        assert_eq!(-13.1, diffusion_graph.min_penalty_edge(0, 0, 2));
+        assert_eq!(-13.1, diffusion_graph.min_penalty_edge(0, 1, 0));
     }
 
     #[test]
     fn test_energy() {
         let left_image = [[1, 1].to_vec(), [0, 0].to_vec()].to_vec();
         let right_image = [[1, 0].to_vec(), [0, 0].to_vec()].to_vec();
-        let mut penalty_graph = PenaltyGraph::initialize(left_image, right_image, 2, 1.);
-        penalty_graph.potentials[0][0][2][0] = 0.6;
-        penalty_graph.potentials[0][0][3][0] = 358.;
-        penalty_graph.potentials[0][1][0][0] = -13.7;
-        penalty_graph.potentials[0][1][0][1] = 80.;
-        penalty_graph.potentials[0][1][3][1] = -1E9 as f64;
-        assert_eq!(-999999999.0, penalty_graph.energy());
-        assert_eq!(0., penalty_graph.potentials[0][0][1][0]);
-        assert_eq!(0., penalty_graph.potentials[0][0][1][1]);
-        assert_eq!(0., penalty_graph.potentials[0][1][1][1]);
+        let mut diffusion_graph = DiffusionGraph::initialize(left_image, right_image, 2, 1.);
+        diffusion_graph.potentials[0][0][2][0] = 0.6;
+        diffusion_graph.potentials[0][0][3][0] = 358.;
+        diffusion_graph.potentials[0][1][0][0] = -13.7;
+        diffusion_graph.potentials[0][1][0][1] = 80.;
+        diffusion_graph.potentials[0][1][3][1] = -1E9 as f64;
+        assert_eq!(-999999999.0, diffusion_graph.energy());
+        assert_eq!(0., diffusion_graph.potentials[0][0][1][0]);
+        assert_eq!(0., diffusion_graph.potentials[0][0][1][1]);
+        assert_eq!(0., diffusion_graph.potentials[0][1][1][1]);
     }
  }

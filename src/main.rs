@@ -28,7 +28,7 @@ extern crate tempdir;
 
 pub mod pgm_handler;
 pub mod diffusion;
-pub mod penalty_graph;
+pub mod diffusion_graph;
 pub mod crossing_out_graph;
 pub mod epsilon_search;
 
@@ -41,7 +41,8 @@ fn main() {
     assert_eq!(r_width, l_width);
     assert_eq!(r_height, l_height);
 
-    let pgraph = penalty_graph::penalty_graph::PenaltyGraph::initialize(left_image, right_image, 5, 1.5);
+    let pgraph = diffusion_graph::diffusion_graph::DiffusionGraph::initialize(
+        left_image, right_image, 5, 1.5);
 
     let vertices = vec![vec![vec![true; pgraph.max_disparity]; l_width]; l_height];
     let edges = vec![vec![vec![vec![vec![true; pgraph.max_disparity]; 4]; pgraph.max_disparity]; l_width]; l_height];
@@ -59,10 +60,12 @@ fn main() {
 
     println!("Finding disparity map ...");
     let disparity_map: Vec<Vec<usize>> = crossing_out_graph.find_best_labeling();
-    println!("Disparity map is consistent: {}", diffusion::diffusion::check_disparity_map(&disparity_map));
+    println!(
+        "Disparity map is consistent: {}",
+        diffusion::diffusion::check_disparity_map(&disparity_map));
     let f = pgm_handler::pgm::pgm_writer(&disparity_map,
                                          "images/results/best_labeling.pgm".to_string(),
-                                         crossing_out_graph.penalty_graph.max_disparity);
+                                         crossing_out_graph.diffusion_graph.max_disparity);
     let _f = match f {
         Ok(file) => file,
         Err(error) => {
