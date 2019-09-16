@@ -25,8 +25,8 @@
 pub mod epsilon_search {
     use super::super::crossing_out_graph::crossing_out_graph::CrossingOutGraph;
     use super::super::diffusion_graph::diffusion_graph::DiffusionGraph;
-    use super::super::diffusion::diffusion::neighbor_exists;
-    use super::super::diffusion::diffusion::approx_equal;
+    use super::super::utils::utils::neighbor_exists;
+    use super::super::utils::utils::approx_equal;
 
     /// Returns array of differences between
     /// * minimum vertex weight and other vertex weights in a pixel for each pixel

@@ -22,7 +22,7 @@
  * SOFTWARE.
  */
 #[doc="Utils"]
-pub mod diffusion {
+pub mod utils {
     use std::f64;
 
     /// Returns `true` if requested neighbor for a given pixel exists, `false` if not.
@@ -132,7 +132,7 @@ pub mod diffusion {
 
 #[cfg(test)]
 mod tests {
-    use super::diffusion::*;
+    use super::utils::*;
 
     #[test]
     fn test_neighbor_exists() {

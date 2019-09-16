@@ -25,8 +25,8 @@
 pub mod crossing_out_graph {
     use std::f64;
     use super::super::diffusion_graph::diffusion_graph::DiffusionGraph;
-    use super::super::diffusion::diffusion::neighbor_exists;
-    use super::super::diffusion::diffusion::neighbor_index;
+    use super::super::utils::utils::neighbor_exists;
+    use super::super::utils::utils::neighbor_index;
 
     #[derive(Debug)]
     /// Crossing out graph is represented here

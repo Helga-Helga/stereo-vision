@@ -25,10 +25,10 @@
 pub mod diffusion_graph {
     use rand::Rng;
     use std::f64;
-    use super::super::diffusion::diffusion::neighbor_exists;
-    use super::super::diffusion::diffusion::neighbor_index;
-    use super::super::diffusion::diffusion::number_of_neighbors;
-    use super::super::diffusion::diffusion::approx_equal;
+    use super::super::utils::utils::neighbor_exists;
+    use super::super::utils::utils::neighbor_index;
+    use super::super::utils::utils::number_of_neighbors;
+    use super::super::utils::utils::approx_equal;
     use super::super::pgm_handler::pgm::pgm_writer;
 
     #[derive(Debug)]
