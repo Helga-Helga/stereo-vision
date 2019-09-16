@@ -21,17 +21,19 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
+#[doc="PGM handler"]
 pub mod pgm {
     use std::fs::File;
     use std::io::{BufRead, BufReader, Result};
     use std::io::prelude::*;
 
+    /// Returns a matrix of data (pixel intensities or disparities from file),
+    /// number of columns and number of rows in matrix (image size: width and height)
+    ///
+    /// # Arguments
+    ///
+    /// * `path` - A string containing path of an image in file system
     pub fn pgm_reader(path: String) -> (Vec<Vec<u32>>, usize, usize) {
-    /*
-    path: path of an image in file system
-    Returns a matrix of data (pixel intensities or true disparities from file),
-    number of columns and number of rows in matrix
-    */
         println!("Image path: {}", path);
         let mut f = BufReader::new(File::open(path).unwrap());
 
@@ -71,12 +73,13 @@ pub mod pgm {
         return (matrix, width, height);
     }
 
+    /// Creates or updates a .pgm image with a given matrix
+    ///
+    /// # Arguments:
+    /// * `matrix` - A 2D matrix of usize values, that represents intensities for future image
+    /// * `path` A string containing path of an image in file system
+    /// * `max_intensity` - Equals to maximum disparity value for depth map
     pub fn pgm_writer(matrix: &Vec<Vec<usize>>, path: String, max_intensity: usize) -> Result<()> {
-    /*
-    Creates or updates a .pgm file with specified `path`.
-    Maximum intensity is `max_disparity`.
-    Values are `depth map`
-    */
         let mut file = File::create(path).expect("Unable to create file");
         writeln!(file, "P2").expect("Unable to write the magic number P2");
         writeln!(file, "{} {}", matrix[0].len(), matrix.len())

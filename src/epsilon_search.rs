@@ -21,20 +21,22 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
+#[doc="Epsilon search"]
 pub mod epsilon_search {
     use super::super::crossing_out_graph::crossing_out_graph::CrossingOutGraph;
     use super::super::penalty_graph::penalty_graph::PenaltyGraph;
     use super::super::diffusion::diffusion::neighbor_exists;
     use super::super::diffusion::diffusion::approx_equal;
 
+    /// Returns array of differences between
+    /// * minimum vertex weight and other vertex weights in a pixel for each pixel
+    /// * minimum edge weight and other edge weights between two neighbor pixels
+    ///
+    /// # Arguments
+    /// * `crossing_out_graph`: An instance of CrossingOutGraph struct
+    /// * `tolerance`: A small float value for subtracting penalties
     pub fn create_array_of_epsilons(crossing_out_graph: &mut CrossingOutGraph,
                                     tolerance: f64) -> Vec<f64> {
-    /*
-    crossing_out_graph: CrossingOutGraph
-    Returns array of differences between
-    - minimum vertex weight and other vertex weights in a pixel for each pixel and
-    - minimum edge weight and other edge weights between two neighbor pixels
-    */
         let mut array: Vec<f64> = Vec::new();
         let max_disparity = crossing_out_graph.penalty_graph.max_disparity;
         for i in 0..crossing_out_graph.penalty_graph.left_image.len() {
@@ -82,15 +84,12 @@ pub mod epsilon_search {
         array
     }
 
+    /// Returns sorted array of floats from the input, but without duplicates (with some precision)
+    ///
+    /// # Arguments
+    /// * `array` - Sorted array of floats
+    /// * `tolerance`: A small float value to compare values from array
     fn dedup_f64(array: Vec<f64>, tolerance: f64) -> Vec<f64> {
-    /*
-    array: sorted array of floats
-    tolerance: if array[i + 1] of array differs from array[i] less than by tolerance,
-    then array[i + 1] is removed from array
-    tolerance is the biggest possible value,
-    with which two elements of array can be considered as equal
-    Returns input sorted array of floats, but without duplicates (with some precision)
-    */
         let mut i: usize = 0;
         let mut indices_array: Vec<usize> = vec![0; array.len()];
         let mut current_index: usize = 0;
@@ -118,12 +117,13 @@ pub mod epsilon_search {
         unique_values
     }
 
+    /// Returns minimum possible epsilon from the given array which provides epsilon-consistency of a graph.
+    /// It is an implementation of a binary search algorithm
+    ///
+    /// # Arguments:
+    /// * `crossing_out_graph` - An instance of CrossingOutGraph struct
+    /// * `array` - Array of all possible epsilons from `create_array_of_epsilons()`
     pub fn epsilon_search(crossing_out_graph: &mut CrossingOutGraph, array: &Vec<f64>) -> f64 {
-    /*
-    array: array of all possible epsilons from create_array_of_epsilons()
-    Returns minimum possible epsilon which provides epsilon-consistency of a graph
-    It is an implementation of binary search algorithm
-    */
         assert_ne!(array.len(), 0);
         let mut first_index: usize = 0;
         let mut last_index: usize = array.len() - 1;

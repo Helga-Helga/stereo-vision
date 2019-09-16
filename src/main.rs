@@ -26,11 +26,11 @@ extern crate more_asserts;
 extern crate rand;
 extern crate tempdir;
 
-mod pgm_handler;
-mod diffusion;
-mod penalty_graph;
-mod crossing_out_graph;
-mod epsilon_search;
+pub mod pgm_handler;
+pub mod diffusion;
+pub mod penalty_graph;
+pub mod crossing_out_graph;
+pub mod epsilon_search;
 
 #[cfg_attr(tarpaulin, skip)]
 fn main() {
