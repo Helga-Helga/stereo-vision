@@ -27,6 +27,7 @@ pub mod epsilon_search {
     use super::super::diffusion_graph::diffusion_graph::DiffusionGraph;
     use super::super::utils::utils::neighbor_exists;
     use super::super::utils::utils::approx_equal;
+    use super::super::utils::utils::dedup_f64;
 
     /// Returns array of differences between
     /// * minimum vertex weight and other vertex weights in a pixel for each pixel
@@ -84,39 +85,6 @@ pub mod epsilon_search {
         array
     }
 
-    /// Returns sorted array of floats from the input, but without duplicates (with some precision)
-    ///
-    /// # Arguments
-    /// * `array` - Sorted array of floats
-    /// * `tolerance`: A small float value to compare values from array
-    fn dedup_f64(array: Vec<f64>, tolerance: f64) -> Vec<f64> {
-        let mut i: usize = 0;
-        let mut indices_array: Vec<usize> = vec![0; array.len()];
-        let mut current_index: usize = 0;
-        while i < array.len() {
-            indices_array[current_index] = i;
-            current_index += 1;
-            let mut j = i + 1;
-            while j < array.len() {
-                if approx_equal(array[i], array[j], tolerance) {
-                    j += 1;
-                } else {
-                    break;
-                }
-            }
-            i = j;
-        }
-        if indices_array[current_index - 1] != array.len() - 1 {
-            indices_array[current_index] = array.len() - 1;
-            current_index += 1;
-        }
-        let mut unique_values: Vec<f64> = vec![0.; current_index];
-        for i in 0..current_index {
-            unique_values[i] = array[indices_array[i]];
-        }
-        unique_values
-    }
-
     /// Returns minimum possible epsilon from the given array which provides epsilon-consistency of a graph.
     /// It is an implementation of a binary search algorithm
     ///
@@ -141,27 +109,6 @@ pub mod epsilon_search {
         }
         println!("Median_index: {}", median_index);
         array[median_index]
-    }
-
-    #[test]
-    fn test_dedup_f64() {
-        let mut array: Vec<f64> = [1., 1.5, 2., 3.].to_vec();
-        array = dedup_f64(array, 1.);
-        assert_eq!([1., 3.].to_vec(), array);
-    }
-
-    #[test]
-    fn test_dedup_f64_one_element() {
-        let mut array: Vec<f64> = [0.].to_vec();
-        array = dedup_f64(array, 0.);
-        assert_eq!([0.].to_vec(), array);
-    }
-
-    #[test]
-    fn test_dedup_f64_no_remove() {
-        let mut array: Vec<f64> = [1., 1.5, 2., 3.].to_vec();
-        array = dedup_f64(array, 0.);
-        assert_eq!([1., 1.5, 2., 3.].to_vec(), array);
     }
 
     #[test]
