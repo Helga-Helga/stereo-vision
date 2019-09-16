@@ -18,7 +18,7 @@ You can find how to install Rust
 To compile and run the project, type
 [`cargo run`](https://doc.rust-lang.org/stable/book/ch01-03-hello-cargo.html)
 from the package folder in the terminal.
-You can use `cargo build` and `curgo run` separately.
+You can use `cargo build` and `cargo run` separately.
 To check if there are some issues in the code without build, run `cargo check`.
 
 To build and run in release mode, use flag `--release`.
@@ -27,3 +27,6 @@ It will optimize code, so it is mush faster.
 ## How to check code coverage
 To check code coverage use
 [cargo-tarpaulin tool](https://crates.io/crates/cargo-tarpaulin).
+
+## How to generate documentation
+To generate documentation use [`cargo doc`](https://doc.rust-lang.org/rustdoc/what-is-rustdoc.html).
