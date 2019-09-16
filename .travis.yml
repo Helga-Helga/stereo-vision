@@ -11,13 +11,21 @@ cache: cargo
 
 rust:
     - stable
+    - beta
+    - nightly
 
 branches:
     only:
         - master
 
+matrix:
+    allow_failures:
+        - rust: nightly
+
 before_cache: |
-    cargo install cargo-tarpaulin -f
+    if [[ "$TRAVIS_RUST_VERSION" == stable ]]; then
+        cargo install cargo-tarpaulin -f
+    fi
 
 script:
     - cargo clean
@@ -25,4 +33,6 @@ script:
     - cargo test
 
 after_success: |
-    cargo tarpaulin --ciserver travis-ci --coveralls $TRAVIS_JOB_ID
+    if [[ "$TRAVIS_RUST_VERSION" == stable ]]; then
+        cargo tarpaulin --ciserver travis-ci --coveralls $TRAVIS_JOB_ID
+    fi
