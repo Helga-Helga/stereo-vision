@@ -21,47 +21,49 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
+#[doc="Epsilon search"]
 pub mod epsilon_search {
     use super::super::crossing_out_graph::crossing_out_graph::CrossingOutGraph;
-    use super::super::penalty_graph::penalty_graph::PenaltyGraph;
-    use super::super::diffusion::diffusion::neighbor_exists;
-    use super::super::diffusion::diffusion::approx_equal;
+    use super::super::diffusion_graph::diffusion_graph::DiffusionGraph;
+    use super::super::utils::utils::neighbor_exists;
+    use super::super::utils::utils::approx_equal;
 
+    /// Returns array of differences between
+    /// * minimum vertex weight and other vertex weights in a pixel for each pixel
+    /// * minimum edge weight and other edge weights between two neighbor pixels
+    ///
+    /// # Arguments
+    /// * `crossing_out_graph`: An instance of CrossingOutGraph struct
+    /// * `tolerance`: A small float value for subtracting penalties
     pub fn create_array_of_epsilons(crossing_out_graph: &mut CrossingOutGraph,
                                     tolerance: f64) -> Vec<f64> {
-    /*
-    crossing_out_graph: CrossingOutGraph
-    Returns array of differences between
-    - minimum vertex weight and other vertex weights in a pixel for each pixel and
-    - minimum edge weight and other edge weights between two neighbor pixels
-    */
         let mut array: Vec<f64> = Vec::new();
-        let max_disparity = crossing_out_graph.penalty_graph.max_disparity;
-        for i in 0..crossing_out_graph.penalty_graph.left_image.len() {
-            for j in 0..crossing_out_graph.penalty_graph.left_image[0].len() {
+        let max_disparity = crossing_out_graph.diffusion_graph.max_disparity;
+        for i in 0..crossing_out_graph.diffusion_graph.left_image.len() {
+            for j in 0..crossing_out_graph.diffusion_graph.left_image[0].len() {
                 let min_penalty_vertex =
-                    (crossing_out_graph.penalty_graph.min_penalty_vertex(i, j)).1;
+                    (crossing_out_graph.diffusion_graph.min_penalty_vertex(i, j)).1;
                 for d in 0..max_disparity {
                     // Differences for vertices
                     if j >= d {
-                        assert_ge!(crossing_out_graph.penalty_graph
+                        assert_ge!(crossing_out_graph.diffusion_graph
                                    .vertex_penalty_with_potentials(i, j, d), min_penalty_vertex);
-                        array.push(crossing_out_graph.penalty_graph
+                        array.push(crossing_out_graph.diffusion_graph
                                    .vertex_penalty_with_potentials(i, j, d)
                                    - min_penalty_vertex);
                         // Differences for edges
                         for n in 0..4 {
                             if neighbor_exists(i, j, n,
-                                               crossing_out_graph.penalty_graph.left_image.len(),
-                                               crossing_out_graph.penalty_graph.left_image[0].len()) {
+                                               crossing_out_graph.diffusion_graph.left_image.len(),
+                                               crossing_out_graph.diffusion_graph.left_image[0].len()) {
                                 let min_penalty_edge =
-                                    crossing_out_graph.penalty_graph.min_penalty_edge(i, j, n);
+                                    crossing_out_graph.diffusion_graph.min_penalty_edge(i, j, n);
                                 for n_d in 0..max_disparity {
-                                    if crossing_out_graph.penalty_graph.edge_exists(i, j, n, d, n_d) {
-                                        assert_ge!(crossing_out_graph.penalty_graph
+                                    if crossing_out_graph.diffusion_graph.edge_exists(i, j, n, d, n_d) {
+                                        assert_ge!(crossing_out_graph.diffusion_graph
                                                   .edge_penalty_with_potential(i, j, n, d, n_d),
                                                   min_penalty_edge);
-                                        array.push(crossing_out_graph.penalty_graph
+                                        array.push(crossing_out_graph.diffusion_graph
                                                   .edge_penalty_with_potential(i, j, n, d, n_d)
                                                   - min_penalty_edge);
                                     }
@@ -82,15 +84,12 @@ pub mod epsilon_search {
         array
     }
 
+    /// Returns sorted array of floats from the input, but without duplicates (with some precision)
+    ///
+    /// # Arguments
+    /// * `array` - Sorted array of floats
+    /// * `tolerance`: A small float value to compare values from array
     fn dedup_f64(array: Vec<f64>, tolerance: f64) -> Vec<f64> {
-    /*
-    array: sorted array of floats
-    tolerance: if array[i + 1] of array differs from array[i] less than by tolerance,
-    then array[i + 1] is removed from array
-    tolerance is the biggest possible value,
-    with which two elements of array can be considered as equal
-    Returns input sorted array of floats, but without duplicates (with some precision)
-    */
         let mut i: usize = 0;
         let mut indices_array: Vec<usize> = vec![0; array.len()];
         let mut current_index: usize = 0;
@@ -118,12 +117,13 @@ pub mod epsilon_search {
         unique_values
     }
 
+    /// Returns minimum possible epsilon from the given array which provides epsilon-consistency of a graph.
+    /// It is an implementation of a binary search algorithm
+    ///
+    /// # Arguments:
+    /// * `crossing_out_graph` - An instance of CrossingOutGraph struct
+    /// * `array` - Array of all possible epsilons from `create_array_of_epsilons()`
     pub fn epsilon_search(crossing_out_graph: &mut CrossingOutGraph, array: &Vec<f64>) -> f64 {
-    /*
-    array: array of all possible epsilons from create_array_of_epsilons()
-    Returns minimum possible epsilon which provides epsilon-consistency of a graph
-    It is an implementation of binary search algorithm
-    */
         assert_ne!(array.len(), 0);
         let mut first_index: usize = 0;
         let mut last_index: usize = array.len() - 1;
@@ -169,10 +169,12 @@ pub mod epsilon_search {
         let left_image = vec![vec![0u32; 2]; 1];
         let right_image = vec![vec![0u32; 2]; 1];
         let max_disparity = 2;
-        let penalty_graph = PenaltyGraph::initialize(left_image, right_image, max_disparity, 1.);
+        let diffusion_graph =
+            DiffusionGraph::initialize(left_image, right_image, max_disparity, 1.);
         let vertices = vec![vec![vec![true; max_disparity]; 2]; 1];
         let edges = vec![vec![vec![vec![vec![true; max_disparity]; 4]; max_disparity]; 2]; 1];
-        let mut crossing_out_graph = CrossingOutGraph::initialize(penalty_graph, vertices, edges);
+        let mut crossing_out_graph =
+            CrossingOutGraph::initialize(diffusion_graph, vertices, edges);
         let array: Vec<f64> = create_array_of_epsilons(&mut crossing_out_graph, 0.01);
         let epsilon: f64 = epsilon_search(&mut crossing_out_graph, &array);
         assert_eq!(epsilon, 0.);
@@ -183,13 +185,14 @@ pub mod epsilon_search {
         let left_image = [[1, 1].to_vec()].to_vec();
         let right_image = [[1, 0].to_vec()].to_vec();
         let max_disparity = 2;
-        let mut penalty_graph = PenaltyGraph::initialize(left_image, right_image, max_disparity, 1.);
-        penalty_graph.potentials[0][0][2][0] = 9.4;
-        penalty_graph.potentials[0][1][0][0] = -1.8;
-        penalty_graph.potentials[0][1][0][1] = 6.7;
+        let mut diffusion_graph =
+            DiffusionGraph::initialize(left_image, right_image, max_disparity, 1.);
+        diffusion_graph.potentials[0][0][2][0] = 9.4;
+        diffusion_graph.potentials[0][1][0][0] = -1.8;
+        diffusion_graph.potentials[0][1][0][1] = 6.7;
         let vertices = vec![vec![vec![true; max_disparity]; 2]; 1];
         let edges = vec![vec![vec![vec![vec![true; max_disparity]; 4]; max_disparity]; 2]; 1];
-        let mut crossing_out_graph = CrossingOutGraph::initialize(penalty_graph, vertices, edges);
+        let mut crossing_out_graph = CrossingOutGraph::initialize(diffusion_graph, vertices, edges);
         let array: Vec<f64> = [0., 1., 2., 3., 4., 5., 6., 7., 8., 9.].to_vec();
         assert_eq!(9., epsilon_search(&mut crossing_out_graph, &array));
     }
@@ -199,13 +202,14 @@ pub mod epsilon_search {
         let left_image = [[1, 1].to_vec()].to_vec();
         let right_image = [[1, 0].to_vec()].to_vec();
         let max_disparity: usize = 2;
-        let mut penalty_graph = PenaltyGraph::initialize(left_image, right_image, max_disparity, 1.);
-        penalty_graph.potentials[0][0][2][0] = 0.6;
-        penalty_graph.potentials[0][1][0][0] = -0.3;
-        penalty_graph.potentials[0][1][0][1] = 0.1;
+        let mut diffusion_graph =
+            DiffusionGraph::initialize(left_image, right_image, max_disparity, 1.);
+        diffusion_graph.potentials[0][0][2][0] = 0.6;
+        diffusion_graph.potentials[0][1][0][0] = -0.3;
+        diffusion_graph.potentials[0][1][0][1] = 0.1;
         let vertices = vec![vec![vec![true; max_disparity]; 2]; 1];
         let edges = vec![vec![vec![vec![vec![true; max_disparity]; 4]; max_disparity]; 2]; 1];
-        let mut crossing_out_graph = CrossingOutGraph::initialize(penalty_graph, vertices, edges);
+        let mut crossing_out_graph = CrossingOutGraph::initialize(diffusion_graph, vertices, edges);
         let mut array: Vec<f64> = create_array_of_epsilons(&mut crossing_out_graph, 0.);
         assert_eq!(3, array.len());
         assert_eq!(0., array[0]);
