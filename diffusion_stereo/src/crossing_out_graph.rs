@@ -54,7 +54,7 @@ pub mod crossing_out_graph {
             Self {
                 diffusion_graph: diffusion_graph,
                 vertices: vertices,
-                edges: edges,
+                edges: edges
             }
         }
 
@@ -266,7 +266,7 @@ pub mod crossing_out_graph {
                     println!("Crossing out is done");
                     not_empty = self.is_not_empty();
                     if !not_empty {
-                        println!("Need more diffusion inerations");
+                        println!("Need more diffusion iterations");
                     }
                 }
                 i += batch_size;
@@ -299,6 +299,27 @@ pub mod crossing_out_graph {
             disparity
         }
 
+        pub fn top_vertex_between_existing(&self, i: usize, j: usize) -> usize {
+            for d in 0..self.diffusion_graph.max_disparity {
+                if j >= d && self.vertices[i][j][d] {
+                    return d;
+                }
+            }
+            assert!(false, "Disparity for pixel ({}, {}) wasn't found", i, j);
+            return 0;
+        }
+
+        pub fn simple_best_labeling(&self) -> Vec<Vec<usize>> {
+            let mut disparity_map = vec![vec![0usize; self.diffusion_graph.left_image[0].len()];
+                                         self.diffusion_graph.left_image.len()];
+            for i in 0..self.diffusion_graph.left_image.len() {
+                for j in 0..self.diffusion_graph.left_image[0].len() {
+                    disparity_map[i][j] = self.top_vertex_between_existing(i, j);
+                }
+            }
+            disparity_map
+        }
+
         /// Crosses out all vertexes `(i, j, d)` in pixel `(i, j)` except `(i, j, disparity)`
         /// (where `d != disparity`)
         ///
@@ -323,7 +344,8 @@ pub mod crossing_out_graph {
                                          self.diffusion_graph.left_image.len()];
             for i in 0..self.diffusion_graph.left_image.len() {
                 for j in 0..self.diffusion_graph.left_image[0].len() {
-                    disparity_map[i][j] = self.min_vertex_between_existing(i, j);
+                    // disparity_map[i][j] = self.min_vertex_between_existing(i, j);
+                    disparity_map[i][j] = self.top_vertex_between_existing(i, j);
                     assert!(disparity_map[i][j] <= j, "d > j for d = {}, j = {}, i = {}", disparity_map[i][j], j, i);
                     println!("Processed pixel ({}, {}) -> d = {}", i, j, disparity_map[i][j]);
                     self.cross_vertex(i, j, disparity_map[i][j]);

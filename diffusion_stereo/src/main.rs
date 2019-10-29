@@ -56,15 +56,31 @@ fn main() {
     let epsilon: f64 = 1. / (10 * l_width * l_height) as f64;
     println!("Epsilon: {}", epsilon);
 
-    crossing_out_graph.diffusion_while_not_consistent(epsilon, 100);
+    crossing_out_graph.diffusion_while_not_consistent(epsilon, 5000);
 
-    println!("Finding disparity map ...");
-    let disparity_map: Vec<Vec<usize>> = crossing_out_graph.find_best_labeling();
+    // println!("Finding disparity map ...");
+    // let disparity_map: Vec<Vec<usize>> = crossing_out_graph.find_best_labeling();
+    // println!(
+    //     "Disparity map is consistent: {}",
+    //     utils::utils::check_disparity_map(&disparity_map));
+    // let f = pgm_handler::pgm::pgm_writer(&disparity_map,
+    //                                      "images/results/best_labeling.pgm".to_string(),
+    //                                      crossing_out_graph.diffusion_graph.max_disparity);
+    // let _f = match f {
+    //     Ok(file) => file,
+    //     Err(error) => {
+    //         panic!("There was a problem writing a file : {:?}", error)
+    //     },
+    // };
+    // println!("Disparity map is saved to `best_labeling.pgm`");
+
+    println!("Finding simple disparity map ...");
+    let disparity_map_simple: Vec<Vec<usize>> = crossing_out_graph.simple_best_labeling();
     println!(
         "Disparity map is consistent: {}",
-        utils::utils::check_disparity_map(&disparity_map));
-    let f = pgm_handler::pgm::pgm_writer(&disparity_map,
-                                         "images/results/best_labeling.pgm".to_string(),
+        utils::utils::check_disparity_map(&disparity_map_simple));
+    let f = pgm_handler::pgm::pgm_writer(&disparity_map_simple,
+                                         "images/results/best_labeling_simple.pgm".to_string(),
                                          crossing_out_graph.diffusion_graph.max_disparity);
     let _f = match f {
         Ok(file) => file,
