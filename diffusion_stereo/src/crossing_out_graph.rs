@@ -299,6 +299,11 @@ pub mod crossing_out_graph {
             disparity
         }
 
+        /// Chooses the highest vertex (with minimum disparity) among non-crossed in te pixel
+        ///
+        /// # Arguments:
+        /// * `i` - A row of a pixel in image
+        /// * `j` - A column of a pixel in image
         pub fn top_vertex_between_existing(&self, i: usize, j: usize) -> usize {
             for d in 0..self.diffusion_graph.max_disparity {
                 if j >= d && self.vertices[i][j][d] {
@@ -309,6 +314,7 @@ pub mod crossing_out_graph {
             return 0;
         }
 
+        /// Chooses the highest vertex (with minimum disparity) among non-crossed in each pixel
         pub fn simple_best_labeling(&self) -> Vec<Vec<usize>> {
             let mut disparity_map = vec![vec![0usize; self.diffusion_graph.left_image[0].len()];
                                          self.diffusion_graph.left_image.len()];
@@ -329,7 +335,8 @@ pub mod crossing_out_graph {
         /// * `disparity` - A disparity in a given pixel with which vertex shouldn't be crossed out
         pub fn cross_vertex(&mut self, i: usize, j: usize, disparity: usize) {
 
-            assert!(self.vertices[i][j][disparity], "Choosen vertex [{}][{}][{}] is crossed out", i, j, disparity);
+            assert!(self.vertices[i][j][disparity],
+                    "Choosen vertex [{}][{}][{}] is crossed out", i, j, disparity);
             for d in 0..self.diffusion_graph.max_disparity {
                 if self.vertices[i][j][d] && d != disparity {
                     self.vertices[i][j][d] = false;
@@ -344,9 +351,9 @@ pub mod crossing_out_graph {
                                          self.diffusion_graph.left_image.len()];
             for i in 0..self.diffusion_graph.left_image.len() {
                 for j in 0..self.diffusion_graph.left_image[0].len() {
-                    // disparity_map[i][j] = self.min_vertex_between_existing(i, j);
-                    disparity_map[i][j] = self.top_vertex_between_existing(i, j);
-                    assert!(disparity_map[i][j] <= j, "d > j for d = {}, j = {}, i = {}", disparity_map[i][j], j, i);
+                    disparity_map[i][j] = self.min_vertex_between_existing(i, j);
+                    assert!(disparity_map[i][j] <= j, "d > j for d = {}, j = {}, i = {}",
+                            disparity_map[i][j], j, i);
                     println!("Processed pixel ({}, {}) -> d = {}", i, j, disparity_map[i][j]);
                     self.cross_vertex(i, j, disparity_map[i][j]);
                     self.crossing_out();
