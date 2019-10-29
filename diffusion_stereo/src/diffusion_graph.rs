@@ -381,6 +381,39 @@ pub mod diffusion_graph {
             };
         }
 
+        /// Post-processing of disparity map
+        /// It is implementation of box flur filter
+        ///
+        /// # Arguments
+        /// * `disparity_map` - Matrix of depth values
+        /// * `threshold` - A maximum difference between intensities
+        /// * `filter_radius` - Filter radius
+        pub fn box_blur(&self, disparity_map: &Vec<Vec<usize>>, threshold: usize,
+                        filter_radius: usize) -> Vec<Vec<usize>> {
+            let mut resulting_map = vec![vec![1; self.left_image[0].len()]; self.left_image.len()];
+            for i in 0..self.left_image.len() {
+                for j in 0..self.left_image[0].len() {
+                    let mut up = disparity_map[i][j];
+                    let mut down = 1;
+                    for n_i in (i - filter_radius)..(i + filter_radius) {
+                        for n_j in (j - filter_radius)..(j + filter_radius) {
+                            if n_i < self.left_image.len() && n_j < self.left_image[0].len() {
+                                let mut filter_value = 1;
+                                if ((disparity_map[n_i][n_j] - disparity_map[i][j])
+                                    as f64).abs() > threshold as f64 {
+                                    filter_value = 0;
+                                }
+                                up += disparity_map[n_i][n_j] * filter_value;
+                                down += filter_value;
+                            }
+                        }
+                    }
+                    resulting_map[i][j] = ((up * 255 / (down * (self.max_disparity - 1))) as f64).round() as usize;
+                }
+            }
+            resulting_map
+        }
+
         /// Build and save left image from input right image and build disparity map
         ///
         /// It is saved to `./images/results/result_left_image_{iteration}.pgm`

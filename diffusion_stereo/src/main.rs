@@ -88,5 +88,20 @@ fn main() {
             panic!("There was a problem writing a file : {:?}", error)
         },
     };
-    println!("Disparity map is saved to `best_labeling.pgm`");
+    println!("Disparity map is saved to `best_labeling_simple.pgm`");
+
+    let disparity_map =
+        pgm_handler::pgm::pgm_reader_usize("./images/results/best_labeling_simple.pgm".to_string());
+
+    println!("Refining disparity map ...");
+    let disparity_map_refined = crossing_out_graph.diffusion_graph.box_blur(&disparity_map, 3, 10);
+    let f = pgm_handler::pgm::pgm_writer(&disparity_map_refined,
+                                         "images/results/refined_map.pgm".to_string(), 255);
+    let _f = match f {
+        Ok(file) => file,
+        Err(error) => {
+            panic!("There was a problem writing a file : {:?}", error)
+        },
+    };
+    println!("Refined disparity map is saved to `refined_map.pgm`");
 }
