@@ -389,7 +389,7 @@ pub mod diffusion_graph {
         /// * `threshold` - A maximum difference between intensities
         /// * `filter_radius` - Filter radius
         pub fn box_blur(&self, disparity_map: &Vec<Vec<usize>>, threshold: usize,
-                        filter_radius: usize) -> Vec<Vec<usize>> {
+                        filter_radius: usize, normalization_term: usize) -> Vec<Vec<usize>> {
             let mut resulting_map = vec![vec![1; self.left_image[0].len()]; self.left_image.len()];
             for i in 0..self.left_image.len() {
                 for j in 0..self.left_image[0].len() {
@@ -408,7 +408,8 @@ pub mod diffusion_graph {
                             }
                         }
                     }
-                    resulting_map[i][j] = ((up * 255 / (down * (self.max_disparity - 1))) as f64).round() as usize;
+                    resulting_map[i][j] = ((up * 255 / (down * normalization_term))
+                                           as f64).round() as usize;
                 }
             }
             resulting_map
