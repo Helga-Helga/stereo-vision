@@ -73,6 +73,46 @@ pub mod pgm {
         return (matrix, width, height);
     }
 
+    pub fn pgm_reader_usize(path: String) -> Vec<Vec<usize>> {
+        println!("Image path: {}", path);
+        let mut f = BufReader::new(File::open(path).unwrap());
+
+        let mut num_line = String::new();
+        f.read_line(&mut num_line).unwrap();
+        println!("Format: '{}'", num_line.trim());
+        num_line = String::new();
+        f.read_line(&mut num_line).unwrap();
+        let sizes: Vec<usize> = num_line
+            .trim()
+            .split(char::is_whitespace)
+            .map(|number| number.parse().unwrap())
+            .collect();
+        println!("Image size: {:?}", sizes);
+        let width: usize = sizes[0];
+        let height: usize = sizes[1];
+        num_line = String::new();
+        f.read_line(&mut num_line).unwrap();
+        let max_intensity: u32 = num_line.trim().parse().unwrap();
+        println!("Maximum intensity: {}", max_intensity);
+
+        let lines: Vec<String> = f.lines().map(|l| l.unwrap().trim().to_string()).collect();
+        let array: Vec<i32> = lines
+            .join(" ")
+            .trim()
+            .split(char::is_whitespace)
+            .map(|number| number.parse().unwrap())
+            .collect();
+        assert_eq!(width * height, array.len());
+
+        let mut matrix = vec![vec![0usize; width]; height];
+        for i in 0..height {
+            for j in 0..width {
+                matrix[i][j] = array[i * width + j] as usize;
+            }
+        }
+        return matrix;
+    }
+
     /// Creates or updates a .pgm image with a given matrix
     ///
     /// # Arguments:
