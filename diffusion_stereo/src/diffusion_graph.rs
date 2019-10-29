@@ -113,6 +113,7 @@ pub mod diffusion_graph {
         /// * `j` - A column of a pixel in image
         /// * `d` - A disparity value fixed in pixel `t = (i, j)`
         pub fn vertex_penalty_with_potentials(&self, i: usize, j: usize, d: usize) -> f64 {
+            // (self.left_image[i][j] - self.right_image[i][j - d]).pow(2) as f64 - self.sum_of_potentials(i, j, d)
             self.lookup_table[self.left_image[i][j] as usize][self.right_image[i][j - d]
                 as usize] - self.sum_of_potentials(i, j, d)
         }
@@ -130,8 +131,10 @@ pub mod diffusion_graph {
         /// * `n_d` - A disparity value fixed in pixel `t'`
         pub fn edge_penalty_with_potential(&self, i: usize, j: usize, n: usize, d: usize, n_d: usize) -> f64 {
             let (n_i, n_j, n_index) = neighbor_index(i, j, n);
-            self.smoothing_term * self.lookup_table[d][n_d] + self.potentials[i][j][n][d]
-                + self.potentials[n_i][n_j][n_index][n_d]
+            self.smoothing_term * self.lookup_table[d][n_d] + self.potentials[i][j][n][d] + self.potentials[n_i][n_j][n_index][n_d]
+            // self.smoothing_term * (d - n_d).pow(2) as f64 + self.potentials[i][j][n][d] + self.potentials[n_i][n_j][n_index][n_d]
+            // self.smoothing_term * f64::min(self.lookup_table[d][n_d], 1.0) + self.potentials[i][j][n][d]
+            //     + self.potentials[n_i][n_j][n_index][n_d]
         }
 
         /// Returns true if edge between the given vertexes exists
