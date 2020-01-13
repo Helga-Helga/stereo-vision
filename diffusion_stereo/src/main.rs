@@ -35,13 +35,13 @@ pub mod epsilon_search;
 #[cfg_attr(tarpaulin, skip)]
 fn main() {
     let (right_image, r_width, r_height) =
-        pgm_handler::pgm::pgm_reader("./images/right_teddy_original.pgm".to_string());
+        pgm_handler::pgm::pgm_reader("./images/right_teddy.pgm".to_string());
     let (left_image, l_width, l_height) =
-        pgm_handler::pgm::pgm_reader("./images/left_teddy_original.pgm".to_string());
+        pgm_handler::pgm::pgm_reader("./images/left_teddy.pgm".to_string());
     assert_eq!(r_width, l_width);
     assert_eq!(r_height, l_height);
 
-    let max_disparity = 30;
+    let max_disparity = 15;
 
     let pgraph = diffusion_graph::diffusion_graph::DiffusionGraph::initialize(
         left_image, right_image, max_disparity, 2.5);
@@ -58,31 +58,16 @@ fn main() {
     let epsilon: f64 = 1. / (10 * l_width * l_height) as f64;
     println!("Epsilon: {}", epsilon);
 
-    crossing_out_graph.diffusion_while_not_consistent(epsilon, 5000);
+    crossing_out_graph.diffusion_while_not_consistent(epsilon, 100);
 
-    // println!("Finding disparity map ...");
+    println!("Finding disparity map ...");
     // let disparity_map: Vec<Vec<usize>> = crossing_out_graph.find_best_labeling();
-    // println!(
-    //     "Disparity map is consistent: {}",
-    //     utils::utils::check_disparity_map(&disparity_map));
-    // let f = pgm_handler::pgm::pgm_writer(&disparity_map,
-    //                                      "images/results/best_labeling.pgm".to_string(),
-    //                                      crossing_out_graph.diffusion_graph.max_disparity);
-    // let _f = match f {
-    //     Ok(file) => file,
-    //     Err(error) => {
-    //         panic!("There was a problem writing a file : {:?}", error)
-    //     },
-    // };
-    // println!("Disparity map is saved to `best_labeling.pgm`");
-
-    println!("Finding simple disparity map ...");
-    let disparity_map_simple: Vec<Vec<usize>> = crossing_out_graph.simple_best_labeling();
+    let disparity_map: Vec<Vec<usize>> = crossing_out_graph.simple_best_labeling();
     println!(
         "Disparity map is consistent: {}",
-        utils::utils::check_disparity_map(&disparity_map_simple));
-    let f = pgm_handler::pgm::pgm_writer(&disparity_map_simple,
-                                         "images/results/best_labeling_simple.pgm".to_string(),
+        utils::utils::check_disparity_map(&disparity_map));
+    let f = pgm_handler::pgm::pgm_writer(&disparity_map,
+                                         "images/results/best_labeling.pgm".to_string(),
                                          crossing_out_graph.diffusion_graph.max_disparity);
     let _f = match f {
         Ok(file) => file,
@@ -90,23 +75,24 @@ fn main() {
             panic!("There was a problem writing a file : {:?}", error)
         },
     };
-    println!("Disparity map is saved to `best_labeling_simple.pgm`");
+    println!("Disparity map is saved to `best_labeling.pgm`");
 
-    let disparity_map =
-        pgm_handler::pgm::pgm_reader_usize("./images/results/best_labeling_simple.pgm".to_string());
-
-    println!("Refining disparity map ...");
-    let mut disparity_map_refined =
-        crossing_out_graph.diffusion_graph.box_blur(&disparity_map, 20, 2, max_disparity - 1);
-    disparity_map_refined =
-        crossing_out_graph.diffusion_graph.box_blur(&disparity_map_refined, 10, 10, 255);
-    let f = pgm_handler::pgm::pgm_writer(&disparity_map_refined,
-                                         "images/results/refined_map.pgm".to_string(), 255);
-    let _f = match f {
-        Ok(file) => file,
-        Err(error) => {
-            panic!("There was a problem writing a file : {:?}", error)
-        },
-    };
-    println!("Refined disparity map is saved to `refined_map.pgm`");
+    // let disparity_map =
+    //     pgm_handler::pgm::pgm_reader_usize("./images/results/best_labeling.pgm".to_string());
+    //
+    // println!("Refining disparity map ...");
+    // let mut disparity_map_refined =
+    //     crossing_out_graph.diffusion_graph.box_blur(&disparity_map, 20, 2, max_disparity - 1);
+    // disparity_map_refined =
+    //     crossing_out_graph.diffusion_graph.box_blur(&disparity_map_refined, 10, 10, 255);
+    // let f = pgm_handler::pgm::pgm_writer(&disparity_map_refined,
+    //                                      "images/results/refined_map.pgm".to_string(),
+    //                                      crossing_out_graph.diffusion_graph.max_disparity);
+    // let _f = match f {
+    //     Ok(file) => file,
+    //     Err(error) => {
+    //         panic!("There was a problem writing a file : {:?}", error)
+    //     },
+    // };
+    // println!("Refined disparity map is saved to `refined_map.pgm`");
 }
