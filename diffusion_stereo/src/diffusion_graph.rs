@@ -356,7 +356,7 @@ pub mod diffusion_graph {
                 // self.build_left_image(depth_map, i);
                 i += 1;
             }
-            self.build_depth_map(i);
+            // self.build_depth_map(i);
         }
 
         /// Build and save a simple depth map from minimum vertex penalties
