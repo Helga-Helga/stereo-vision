@@ -1,0 +1,9 @@
+[package]
+name = "stereovision"
+version = "0.1.0"
+authors = ["helga-helga <13537448+Helga-Helga@users.noreply.github.com>"]
+
+[dependencies]
+more-asserts = "0.2.1"
+rand = "0.7.0"
+tempdir = "0.3.7"
