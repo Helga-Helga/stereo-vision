@@ -171,6 +171,14 @@ pub mod utils {
        let mid = numbers.len() / 2;
        numbers[mid]
    }
+
+   /// Returns average value of a given vector
+   ///
+   /// # Arguments
+   /// * `numbers` - array of u32
+   pub fn average(numbers: &[u32]) -> u32 {
+       (numbers.iter().sum::<u32>() as f32 / numbers.len() as f32) as u32
+   }
 }
 
 #[cfg(test)]
