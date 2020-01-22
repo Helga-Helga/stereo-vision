@@ -30,30 +30,36 @@ pub mod superpixels {
     /// Disparity graph is represented here
     pub struct SuperpixelRepresentation {
         /// Superpixel height
-        pub height: usize,
+        pub super_height: usize,
         /// Superpixel width
-        pub width: usize,
+        pub super_width: usize,
         /// Coordinates of pixels that belong to superpixel
         pub superpixels: Vec<Vec<usize>>,
         /// `L` : Left image of a stereo-pair
         pub image: Vec<Vec<u32>>,
-        }
+        /// Number of superpixels in vertical axis
+        pub number_of_vertical_superpixels: usize,
+        /// Number of superpixels in horizontal axis
+        pub number_of_horizontal_superpixels: usize,
+    }
 
-        impl SuperpixelRepresentation {
+    impl SuperpixelRepresentation {
         /// Returns a superpixel representation of input image
         ///
         /// # Arguments
         ///
         /// * `image` - A 2D vector of unsigned integers that holds image
-        /// * `height` - A usize value that holds height of rectangular window
-        /// * `width` - A usize value that holds width of rectangular window
-        pub fn initialize(image: Vec<Vec<u32>>,
-                       height: usize, width:usize) -> Self {
+        /// * `super_height` - A usize value that holds height of rectangular window
+        /// * `super_width` - A usize value that holds width of rectangular window
+        pub fn initialize(image: &Vec<Vec<u32>>,
+                          super_height: usize, super_width: usize) -> Self {
             Self {
                 superpixels: vec![vec![0usize; image[0].len()]; image.len()],
-                image: image,
-                height: height,
-                width: width
+                super_height: super_height,
+                super_width: super_width,
+                number_of_vertical_superpixels: image.len() / super_height,
+                number_of_horizontal_superpixels: image[0].len() / super_width,
+                image: image.to_vec()
             }
         }
 
@@ -63,15 +69,15 @@ pub mod superpixels {
         /// First superpixel consists of all pixels that have intensities not bigger than median.
         /// Second superpixel consists of all other pixels from the window
         pub fn split_into_superpixels(&mut self) {
-            let number_of_vertical_superpixels: usize = self.image.len() / self.height;
-            let number_of_horizontal_superpixels: usize = self.image[0].len() / self.width;
             // iterate through superpixels
-            for super_i in 0..number_of_vertical_superpixels {
-                for super_j in 0..number_of_horizontal_superpixels {
+            for super_i in 0..self.number_of_vertical_superpixels {
+                for super_j in 0..self.number_of_horizontal_superpixels {
                     // compose vector of all intensities in the window
                     let mut intensities = Vec::new();
-                    for image_i in (super_i * self.height)..(super_i * self.height + self.height) {
-                        for image_j in (super_j * self.width)..(super_j * self.width + self.width) {
+                    for image_i in (super_i * self.super_height)..(
+                                   super_i * self.super_height + self.super_height) {
+                        for image_j in (super_j * self.super_width)..(
+                                       super_j * self.super_width + self.super_width) {
                             intensities.push(self.image[image_i][image_j]);
                         }
                     }
@@ -80,8 +86,10 @@ pub mod superpixels {
                     // find average intensity in the window
                     let average_intensity = average(&intensities);
                     // split pixels in the window into two superpixels
-                    for image_i in (super_i * self.height)..(super_i * self.height + self.height) {
-                        for image_j in (super_j * self.width)..(super_j * self.width + self.width) {
+                    for image_i in (super_i * self.super_height)..(
+                                   super_i * self.super_height + self.super_height) {
+                        for image_j in (super_j * self.super_width)..(
+                                       super_j * self.super_width + self.super_width) {
                             if self.image[image_i][image_j] <= average_intensity {
                                 self.superpixels[image_i][image_j] = 0;
                             }

@@ -29,8 +29,8 @@ extern crate tempdir;
 pub mod pgm_handler;
 pub mod utils;
 pub mod diffusion_graph;
-pub mod crossing_out_graph;
-pub mod epsilon_search;
+// pub mod crossing_out_graph;
+// pub mod epsilon_search;
 pub mod superpixels;
 
 #[cfg_attr(tarpaulin, skip)]
@@ -43,7 +43,7 @@ fn main() {
     assert_eq!(r_height, l_height);
 
     let mut superpixel_representation = superpixels::superpixels::SuperpixelRepresentation
-        ::initialize(left_image, 16, 25);
+        ::initialize(&left_image, 13, 10);
     superpixel_representation.split_into_superpixels();
     let f = pgm_handler::pgm::pgm_writer(&superpixel_representation.superpixels,
                                          "images/results/superpixels.pgm".to_string(),
@@ -56,10 +56,12 @@ fn main() {
     };
     println!("Superpixel representation of left image is saved to `superpixels.pgm`");
 
-    // let max_disparity = 15;
-    //
-    // let pgraph = diffusion_graph::diffusion_graph::DiffusionGraph::initialize(
-    //     left_image, right_image, max_disparity, 2.5);
+    let max_disparity = 50;
+    println!("max disparity: {}", max_disparity);
+
+    let mut diffusion_graph = diffusion_graph::diffusion_graph::DiffusionGraph::initialize(
+        left_image, right_image, max_disparity, 2.5, superpixel_representation);
+    diffusion_graph.diffusion(0, 1);
     //
     // let vertices = vec![vec![vec![true; pgraph.max_disparity]; l_width]; l_height];
     // let edges = vec![vec![vec![vec![vec![true; pgraph.max_disparity]; 4]; pgraph.max_disparity]; l_width]; l_height];
