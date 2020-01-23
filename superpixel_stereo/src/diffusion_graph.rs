@@ -177,9 +177,12 @@ pub mod diffusion_graph {
             if neighbor_exists(super_i, super_j, n,
                                self.superpixel_representation.number_of_vertical_superpixels,
                                self.superpixel_representation.number_of_horizontal_superpixels) {
-                let (_n_i, n_j, _n_index) = neighbor_index(super_i, super_j, n, superpixel);
-                let left_j_in_window = super_j * self.superpixel_representation.super_width;
-                let left_j_in_neighbor_window = n_j * self.superpixel_representation.super_width;
+                let (n_i, n_j, _n_index) = neighbor_index(super_i, super_j, n, superpixel);
+                let n_superpixel = neighbor_superpixel(superpixel, n);
+                let left_j_in_window = self.superpixel_representation.left_j_in_superpixel(
+                    super_i, super_j, superpixel);
+                let left_j_in_neighbor_window = self.superpixel_representation.left_j_in_superpixel(
+                    n_i, n_j, n_superpixel);
                 if left_j_in_window >= d && left_j_in_neighbor_window >= n_d {
                     if (n == 5 || n == 6) && n_d > d + 1 {
                         return false;
@@ -207,7 +210,8 @@ pub mod diffusion_graph {
             for super_i in 0..self.superpixel_representation.number_of_vertical_superpixels {
                 for super_j in 0..self.superpixel_representation.number_of_horizontal_superpixels {
                     for superpixel in 0..2 {
-                        let left_j_in_window = super_j * self.superpixel_representation.super_width;
+                        let left_j_in_window = self.superpixel_representation.left_j_in_superpixel(
+                            super_i, super_j, superpixel);
                         if left_j_in_window >= disparity_map[super_i][super_j][superpixel] as usize {
                             penalty += self.vertex_penalty_with_potentials(
                                 super_i, super_j, disparity_map[super_i][super_j][superpixel], superpixel);
@@ -216,7 +220,8 @@ pub mod diffusion_graph {
                                             super_i, super_j, n,
                                             self.superpixel_representation.number_of_vertical_superpixels,
                                             self.superpixel_representation.number_of_horizontal_superpixels) {
-                                        let (n_i, n_j, _n_index) = neighbor_index(super_i, super_j, n, superpixel);
+                                        let (n_i, n_j, _n_index) = neighbor_index(
+                                            super_i, super_j, n, superpixel);
                                         if self.edge_exists(super_i, super_j, n,
                                                 disparity_map[super_i][super_j][superpixel],
                                                 disparity_map[n_i][n_j][superpixel], superpixel) {
@@ -360,7 +365,8 @@ pub mod diffusion_graph {
                         self.superpixel_representation.number_of_vertical_superpixels,
                         self.superpixel_representation.number_of_horizontal_superpixels) {
                     for d in 0..self.max_disparity {
-                        let left_j_in_window = super_j * self.superpixel_representation.super_width;
+                        let left_j_in_window = self.superpixel_representation.left_j_in_superpixel(
+                            super_i, super_j, superpixel);
                         if left_j_in_window >= d {
                             self.update_vertex_potential(super_i, super_j, n, d, superpixel);
                         }
@@ -388,7 +394,8 @@ pub mod diffusion_graph {
                         self.superpixel_representation.number_of_vertical_superpixels,
                         self.superpixel_representation.number_of_horizontal_superpixels) {
                     for d in 0..self.max_disparity {
-                        let left_j_in_window = super_j * self.superpixel_representation.super_width;
+                        let left_j_in_window = self.superpixel_representation.left_j_in_superpixel(
+                            super_i, super_j, superpixel);
                         if left_j_in_window >= d {
                             self.update_edge_potential(super_i, super_j, n, d, superpixel);
                         }
@@ -397,7 +404,8 @@ pub mod diffusion_graph {
             }
             for n in 0..9 {
                 for d in 0..self.max_disparity {
-                    self.potentials[super_i][super_j][superpixel][n][d] = self.dummy_potentials[super_i][super_j][superpixel][n][d];
+                    self.potentials[super_i][super_j][superpixel][n][d] = self.dummy_potentials[
+                        super_i][super_j][superpixel][n][d];
                 }
             }
         }
@@ -430,11 +438,13 @@ pub mod diffusion_graph {
             let mut depth_map = vec![vec![vec![0usize; 2];
                                           self.superpixel_representation.number_of_horizontal_superpixels];
                                      self.superpixel_representation.number_of_vertical_superpixels];
-            let mut depth_map_image = vec![vec![0usize; self.left_image[0].len()]; self.left_image.len()];
+            let mut depth_map_image = vec![vec![0usize; self.left_image[0].len()];
+                                           self.left_image.len()];
             for super_i in 0..self.superpixel_representation.number_of_vertical_superpixels {
                 for super_j in 0..self.superpixel_representation.number_of_horizontal_superpixels {
                     for superpixel in 0..2 {
-                        depth_map[super_i][super_j][superpixel] = self.min_penalty_vertex(super_i, super_j, superpixel).0;
+                        depth_map[super_i][super_j][superpixel] = self.min_penalty_vertex(
+                            super_i, super_j, superpixel).0;
                     }
                     for image_i in (super_i * self.superpixel_representation.super_height)..(
                                    super_i * self.superpixel_representation.super_height + self.superpixel_representation.super_height) {
@@ -495,7 +505,8 @@ pub mod diffusion_graph {
             let mut min_penalty_vertex: f64 = f64::INFINITY;
             let mut disparity: usize = 0;
             for d in 0..self.max_disparity {
-                let left_j_in_window = super_j * self.superpixel_representation.super_width;
+                let left_j_in_window = self.superpixel_representation.left_j_in_superpixel(
+                    super_i, super_j, superpixel);
                 if left_j_in_window >= d {
                     let current_vertex = self.vertex_penalty_with_potentials(super_i, super_j, d,
                                                                              superpixel);

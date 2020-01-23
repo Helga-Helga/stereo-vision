@@ -29,7 +29,7 @@ extern crate tempdir;
 pub mod pgm_handler;
 pub mod utils;
 pub mod diffusion_graph;
-// pub mod crossing_out_graph;
+pub mod crossing_out_graph;
 // pub mod epsilon_search;
 pub mod superpixels;
 
@@ -56,45 +56,38 @@ fn main() {
     };
     println!("Superpixel representation of left image is saved to `superpixels.pgm`");
 
-    let max_disparity = 50;
+    let max_disparity = 10;
     println!("max disparity: {}", max_disparity);
 
     let mut diffusion_graph = diffusion_graph::diffusion_graph::DiffusionGraph::initialize(
         left_image, right_image, max_disparity, 2.5, superpixel_representation);
-    diffusion_graph.diffusion(0, 1);
-    //
-    // let vertices = vec![vec![vec![true; pgraph.max_disparity]; l_width]; l_height];
-    // let edges = vec![vec![vec![vec![vec![true; pgraph.max_disparity]; 4]; pgraph.max_disparity]; l_width]; l_height];
-    // let mut crossing_out_graph = crossing_out_graph::crossing_out_graph::CrossingOutGraph::initialize(
-    //     pgraph, vertices, edges);
-    // -----------------------------
+    // diffusion_graph.diffusion(0, 10);
 
-    // println!("Creating array of epsilons ...");
-    // let array: Vec<f64> = epsilon_search::epsilon_search::create_array_of_epsilons(&mut crossing_out_graph, 1E-6);
-    // println!("Searching for epsilon ...");
-    // let epsilon: f64 = epsilon_search::epsilon_search::epsilon_search(&mut crossing_out_graph, &array);
-    // ------------------------------
-    // let epsilon: f64 = 1. / (10 * l_width * l_height) as f64;
-    // println!("Epsilon: {}", epsilon);
-    //
-    // crossing_out_graph.diffusion_while_not_consistent(epsilon, 100);
-    //
-    // println!("Finding disparity map ...");
-    // // let disparity_map: Vec<Vec<usize>> = crossing_out_graph.find_best_labeling();
-    // let disparity_map: Vec<Vec<usize>> = crossing_out_graph.simple_best_labeling();
-    // println!(
-    //     "Disparity map is consistent: {}",
-    //     utils::utils::check_disparity_map(&disparity_map));
-    // let f = pgm_handler::pgm::pgm_writer(&disparity_map,
-    //                                      "images/results/best_labeling.pgm".to_string(),
-    //                                      crossing_out_graph.diffusion_graph.max_disparity);
-    // let _f = match f {
-    //     Ok(file) => file,
-    //     Err(error) => {
-    //         panic!("There was a problem writing a file : {:?}", error)
-    //     },
-    // };
-    // println!("Disparity map is saved to `best_labeling.pgm`");
+    let vertices = vec![vec![vec![vec![true; diffusion_graph.max_disparity]; 2]; l_width]; l_height];
+    let edges = vec![vec![vec![vec![vec![vec![true; diffusion_graph.max_disparity]; 9]; diffusion_graph.max_disparity]; 2]; l_width]; l_height];
+    let mut crossing_out_graph = crossing_out_graph::crossing_out_graph::CrossingOutGraph::initialize(
+        diffusion_graph, vertices, edges);
+
+    let epsilon: f64 = 1. / (10 * l_width * l_height) as f64;
+    println!("Epsilon: {}", epsilon);
+
+    crossing_out_graph.diffusion_while_not_consistent(epsilon, 1000);
+
+    println!("Finding disparity map ...");
+    let disparity_map: Vec<Vec<usize>> = crossing_out_graph.simple_best_labeling();
+    println!(
+        "Disparity map is consistent: {}",
+        utils::utils::check_disparity_map(&disparity_map));
+    let f = pgm_handler::pgm::pgm_writer(&disparity_map,
+                                         "images/results/best_labeling.pgm".to_string(),
+                                         crossing_out_graph.diffusion_graph.max_disparity);
+    let _f = match f {
+        Ok(file) => file,
+        Err(error) => {
+            panic!("There was a problem writing a file : {:?}", error)
+        },
+    };
+    println!("Disparity map is saved to `best_labeling.pgm`");
     // ------------------------------
 
     // let disparity_map =
