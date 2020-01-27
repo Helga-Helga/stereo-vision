@@ -223,27 +223,35 @@ pub mod utils {
    }
 }
 
-// #[cfg(test)]
-// mod tests {
-//     use super::utils::*;
-//
-//     #[test]
-//     fn test_neighbor_exists() {
-//         assert!(neighbor_exists(1, 1, 0, 2, 2));
-//         assert!(!neighbor_exists(0, 0, 0, 2, 2));
-//         assert!(neighbor_exists(1, 0, 1, 2, 2));
-//         assert!(!neighbor_exists(0, 0, 1, 2, 2));
-//         assert!(neighbor_exists(0, 0, 2, 2, 2));
-//         assert!(!neighbor_exists(0, 1, 2, 2, 2));
-//         assert!(neighbor_exists(0, 0, 3, 2, 2));
-//         assert!(!neighbor_exists(1, 0, 3, 2, 2));
-//     }
-//
-//     #[test]
-//     #[should_panic]
-//     fn test_edge_exists_panic() {
-//         neighbor_exists(1, 1, 6, 2, 2);
-//     }
+#[cfg(test)]
+mod tests {
+    use super::utils::*;
+
+    #[test]
+    fn test_neighbor_exists() {
+        assert!(neighbor_exists(1, 1, 0, 2, 2));
+        assert!(neighbor_exists(0, 0, 0, 2, 2));
+        assert!(!neighbor_exists(1, 0, 1, 2, 2));
+        assert!(!neighbor_exists(0, 0, 1, 2, 2));
+        assert!(!neighbor_exists(0, 0, 2, 2, 2));
+        assert!(neighbor_exists(0, 1, 2, 2, 2));
+        assert!(!neighbor_exists(0, 0, 3, 2, 2));
+        assert!(neighbor_exists(1, 0, 3, 2, 2));
+        assert!(neighbor_exists(1, 0, 4, 2, 2));
+        assert!(!neighbor_exists(0, 1, 4, 2, 2));
+        assert!(neighbor_exists(0, 0, 5, 2, 2));
+        assert!(!neighbor_exists(0, 1, 5, 2, 2));
+        assert!(neighbor_exists(0, 0, 6, 2, 2));
+        assert!(!neighbor_exists(0, 1, 6, 2, 2));
+        assert!(neighbor_exists(0, 1, 7, 2, 2));
+        assert!(!neighbor_exists(1, 1, 7, 2, 2));
+    }
+
+    #[test]
+    #[should_panic]
+    fn test_edge_exists_panic() {
+        neighbor_exists(1, 1, 9, 2, 2);
+    }
 //
 //     #[test]
 //     fn test_neighbor_index() {
@@ -326,4 +334,4 @@ pub mod utils {
 //         array = dedup_f64(array, 0.);
 //         assert_eq!([1., 1.5, 2., 3.].to_vec(), array);
 //     }
-// }
+}
