@@ -43,6 +43,9 @@ pub mod utils {
     pub fn neighbor_exists(superpixel_i: usize, superpixel_j: usize, neighbor: usize,
                            number_of_vertical_superpixels: usize,
                            number_of_horizontal_superpixels: usize) -> bool {
+        if number_of_vertical_superpixels == 0 || number_of_vertical_superpixels == 0 {
+            return false;
+        }
         match neighbor {
             0 => return true, // superpixel in the same window
             1 | 2 => if superpixel_j > 0 {
@@ -132,6 +135,9 @@ pub mod utils {
     pub fn number_of_neighbors(super_i: usize, super_j: usize,
                                number_of_vertical_superpixels: usize,
                                number_of_horizontal_superpixels: usize) -> usize {
+        if number_of_vertical_superpixels == 0 || number_of_horizontal_superpixels == 0 {
+            return 0;
+        }
         let mut number_of_neighbors: usize = 0;
         for neighbor in 0..9 {
             if neighbor_exists(super_i, super_j, neighbor,
@@ -229,6 +235,7 @@ mod tests {
 
     #[test]
     fn test_neighbor_exists() {
+        assert!(!neighbor_exists(0, 0, 0, 0, 0));
         assert!(neighbor_exists(1, 1, 0, 2, 2));
         assert!(neighbor_exists(0, 0, 0, 2, 2));
         assert!(!neighbor_exists(1, 0, 1, 2, 2));
@@ -316,17 +323,17 @@ mod tests {
         assert_eq!(0, neighbor_superpixel(0, 7));
     }
 //
-//     #[test]
-//     fn test_number_of_neighbors() {
-//         assert_eq!(0, number_of_neighbors(0, 0, 0, 0));
-//         assert_eq!(0, number_of_neighbors(0, 0, 1, 0));
-//         assert_eq!(0, number_of_neighbors(0, 0, 1, 1));
-//         assert_eq!(1, number_of_neighbors(0, 0, 1, 2));
-//         assert_eq!(2, number_of_neighbors(0, 0, 2, 2));
-//         assert_eq!(2, number_of_neighbors(0, 1, 1, 3));
-//         assert_eq!(3, number_of_neighbors(0, 1, 2, 3));
-//         assert_eq!(4, number_of_neighbors(1, 1, 3, 3));
-//     }
+    #[test]
+    fn test_number_of_neighbors() {
+        assert_eq!(0, number_of_neighbors(0, 0, 0, 0));
+        assert_eq!(0, number_of_neighbors(0, 0, 1, 0));
+        assert_eq!(1, number_of_neighbors(0, 0, 1, 1));
+        assert_eq!(3, number_of_neighbors(0, 0, 1, 2));
+        assert_eq!(5, number_of_neighbors(0, 0, 2, 2));
+        assert_eq!(5, number_of_neighbors(0, 1, 1, 3));
+        assert_eq!(7, number_of_neighbors(0, 1, 2, 3));
+        assert_eq!(9, number_of_neighbors(1, 1, 3, 3));
+    }
 //
 //     #[test]
 //     fn test_approx_equal() {
