@@ -301,6 +301,20 @@ mod tests {
     fn test_neighbor_index_panic() {
         neighbor_index(0, 0, 9, 1);
     }
+
+    #[test]
+    fn test_neighbor_superpixel() {
+        assert_eq!(1, neighbor_superpixel(0, 0));
+        assert_eq!(0, neighbor_superpixel(1, 0));
+        assert_eq!(1, neighbor_superpixel(0, 2));
+        assert_eq!(1, neighbor_superpixel(0, 4));
+        assert_eq!(1, neighbor_superpixel(0, 6));
+        assert_eq!(1, neighbor_superpixel(0, 8));
+        assert_eq!(0, neighbor_superpixel(0, 1));
+        assert_eq!(0, neighbor_superpixel(0, 3));
+        assert_eq!(0, neighbor_superpixel(0, 5));
+        assert_eq!(0, neighbor_superpixel(0, 7));
+    }
 //
 //     #[test]
 //     fn test_number_of_neighbors() {
