@@ -228,7 +228,10 @@ pub mod utils {
    /// # Arguments
    /// * `numbers` - array of u32
    pub fn average(numbers: &[u32]) -> u32 {
-       (numbers.iter().sum::<u32>() as f32 / numbers.len() as f32) as u32
+       if numbers.len() == 0 {
+           panic!("Zero len of numbers list for finding average");
+       }
+       (numbers.iter().sum::<u32>() as f32 / numbers.len() as f32).round() as u32
    }
 }
 
@@ -393,5 +396,17 @@ mod tests {
     #[should_panic]
     fn test_median_empty_array() {
         median(&mut[]);
+    }
+
+    #[test]
+    fn test_average() {
+        assert_eq!(192, average(&mut [192]));
+        assert_eq!(92, average(&mut [16, 198, 75, 182, 189, 42, 65, 106, 15, 29]));
+    }
+
+    #[test]
+    #[should_panic]
+    fn test_average_empty_array() {
+        average(&mut[]);
     }
 }
