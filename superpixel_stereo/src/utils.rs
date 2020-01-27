@@ -253,30 +253,54 @@ mod tests {
         neighbor_exists(1, 1, 9, 2, 2);
     }
 //
-//     #[test]
-//     fn test_neighbor_index() {
-//         assert_eq!(0, neighbor_index(0, 1, 0).0);
-//         assert_eq!(0, neighbor_index(0, 1, 0).1);
-//         assert_eq!(2, neighbor_index(0, 1, 0).2);
-//
-//         assert_eq!(0, neighbor_index(1, 0, 1).0);
-//         assert_eq!(0, neighbor_index(1, 0, 1).1);
-//         assert_eq!(3, neighbor_index(1, 0, 1).2);
-//
-//         assert_eq!(0, neighbor_index(0, 0, 2).0);
-//         assert_eq!(1, neighbor_index(0, 0, 2).1);
-//         assert_eq!(0, neighbor_index(0, 0, 2).2);
-//
-//         assert_eq!(1, neighbor_index(0, 0, 3).0);
-//         assert_eq!(0, neighbor_index(0, 0, 3).1);
-//         assert_eq!(1, neighbor_index(0, 0, 3).2);
-//     }
-//
-//     #[test]
-//     #[should_panic]
-//     fn test_neighbor_index_panic() {
-//         neighbor_index(0, 0, 4);
-//     }
+    #[test]
+    fn test_neighbor_index() {
+        assert_eq!(0, neighbor_index(0, 1, 0, 0).0);
+        assert_eq!(1, neighbor_index(0, 1, 0, 0).1);
+        assert_eq!(0, neighbor_index(0, 1, 0, 0).2);
+
+        assert_eq!(0, neighbor_index(0, 1, 0, 1).0);
+        assert_eq!(1, neighbor_index(0, 1, 0, 1).1);
+        assert_eq!(0, neighbor_index(0, 1, 0, 1).2);
+
+        assert_eq!(0, neighbor_index(0, 1, 2, 0).0);
+        assert_eq!(0, neighbor_index(0, 1, 2, 0).1);
+        assert_eq!(5, neighbor_index(0, 1, 2, 0).2);
+
+        assert_eq!(0, neighbor_index(0, 1, 2, 1).0);
+        assert_eq!(0, neighbor_index(0, 1, 2, 1).1);
+        assert_eq!(6, neighbor_index(0, 1, 2, 1).2);
+
+        assert_eq!(0, neighbor_index(1, 0, 3, 0).0);
+        assert_eq!(0, neighbor_index(1, 0, 3, 0).1);
+        assert_eq!(7, neighbor_index(1, 0, 3, 0).2);
+
+        assert_eq!(0, neighbor_index(1, 0, 3, 1).0);
+        assert_eq!(0, neighbor_index(1, 0, 3, 1).1);
+        assert_eq!(8, neighbor_index(1, 0, 3, 1).2);
+
+        assert_eq!(0, neighbor_index(0, 0, 5, 0).0);
+        assert_eq!(1, neighbor_index(0, 0, 5, 0).1);
+        assert_eq!(1, neighbor_index(0, 0, 5, 0).2);
+
+        assert_eq!(0, neighbor_index(0, 0, 5, 1).0);
+        assert_eq!(1, neighbor_index(0, 0, 5, 1).1);
+        assert_eq!(2, neighbor_index(0, 0, 5, 1).2);
+
+        assert_eq!(1, neighbor_index(0, 0, 8, 0).0);
+        assert_eq!(0, neighbor_index(0, 0, 8, 0).1);
+        assert_eq!(3, neighbor_index(0, 0, 8, 0).2);
+
+        assert_eq!(1, neighbor_index(0, 0, 8, 1).0);
+        assert_eq!(0, neighbor_index(0, 0, 8, 1).1);
+        assert_eq!(4, neighbor_index(0, 0, 8, 1).2);
+    }
+
+    #[test]
+    #[should_panic]
+    fn test_neighbor_index_panic() {
+        neighbor_index(0, 0, 9, 1);
+    }
 //
 //     #[test]
 //     fn test_number_of_neighbors() {
