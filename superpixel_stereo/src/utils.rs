@@ -215,6 +215,9 @@ pub mod utils {
     /// # Arguments
     /// * `numbers` - array of u32
     pub fn median(numbers: &mut [u32]) -> u32 {
+        if numbers.len() == 0 {
+            panic!("Zero len of numbers list for finding median");
+        }
        numbers.sort();
        let mid = numbers.len() / 2;
        numbers[mid]
@@ -378,5 +381,17 @@ mod tests {
         let mut array: Vec<f64> = [1., 1.5, 2., 3.].to_vec();
         array = dedup_f64(array, 0.);
         assert_eq!([1., 1.5, 2., 3.].to_vec(), array);
+    }
+
+    #[test]
+    fn test_median() {
+        assert_eq!(192, median(&mut [192]));
+        assert_eq!(75, median(&mut [16, 198, 75, 182, 189, 42, 65, 106, 15, 29]));
+    }
+
+    #[test]
+    #[should_panic]
+    fn test_median_empty_array() {
+        median(&mut[]);
     }
 }
