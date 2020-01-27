@@ -166,7 +166,7 @@ pub mod utils {
     ///
     /// # Arguments
     /// `disparity_map` - A matrix with disparities
-    pub fn check_disparity_map(disparity_map: &Vec<Vec<usize>>) -> bool {
+    pub fn check_disparity_map_consistency(disparity_map: &Vec<Vec<usize>>) -> bool {
         for i in 0..disparity_map.len() {
             for j in 0..(disparity_map[0].len() - 1) {
                 if j < disparity_map[i][j] || disparity_map[i][j + 1] > disparity_map[i][j] + 1 {
@@ -344,39 +344,39 @@ mod tests {
         assert!(!approx_equal(-1., 1., 1.));
     }
 //
-//     #[test]
-//     fn test_check_disparity_map() {
-//         let mut disparity_map = vec![vec![0usize; 1]; 1];
-//         assert!(check_disparity_map(&disparity_map));
-//
-//         disparity_map = vec![vec![1usize; 2]; 2];
-//         assert!(!check_disparity_map(&disparity_map));
-//
-//         disparity_map = [[0, 2, 1].to_vec()].to_vec();
-//         assert!(!check_disparity_map(&disparity_map));
-//
-//         disparity_map = [[0, 0].to_vec(), [0, 1].to_vec()].to_vec();
-//         assert!(check_disparity_map(&disparity_map));
-//     }
-//
-//     #[test]
-//     fn test_dedup_f64() {
-//         let mut array: Vec<f64> = [1., 1.5, 2., 3.].to_vec();
-//         array = dedup_f64(array, 1.);
-//         assert_eq!([1., 3.].to_vec(), array);
-//     }
-//
-//     #[test]
-//     fn test_dedup_f64_one_element() {
-//         let mut array: Vec<f64> = [0.].to_vec();
-//         array = dedup_f64(array, 0.);
-//         assert_eq!([0.].to_vec(), array);
-//     }
-//
-//     #[test]
-//     fn test_dedup_f64_no_remove() {
-//         let mut array: Vec<f64> = [1., 1.5, 2., 3.].to_vec();
-//         array = dedup_f64(array, 0.);
-//         assert_eq!([1., 1.5, 2., 3.].to_vec(), array);
-//     }
+    #[test]
+    fn test_check_disparity_map_consistency() {
+        let mut disparity_map = vec![vec![0usize; 1]; 1];
+        assert!(check_disparity_map_consistency(&disparity_map));
+
+        disparity_map = vec![vec![1usize; 2]; 2];
+        assert!(!check_disparity_map_consistency(&disparity_map));
+
+        disparity_map = [[0, 2, 1].to_vec()].to_vec();
+        assert!(!check_disparity_map_consistency(&disparity_map));
+
+        disparity_map = [[0, 0].to_vec(), [0, 1].to_vec()].to_vec();
+        assert!(check_disparity_map_consistency(&disparity_map));
+    }
+
+    #[test]
+    fn test_dedup_f64() {
+        let mut array: Vec<f64> = [1., 1.5, 2., 3.].to_vec();
+        array = dedup_f64(array, 1.);
+        assert_eq!([1., 3.].to_vec(), array);
+    }
+
+    #[test]
+    fn test_dedup_f64_one_element() {
+        let mut array: Vec<f64> = [0.].to_vec();
+        array = dedup_f64(array, 0.);
+        assert_eq!([0.].to_vec(), array);
+    }
+
+    #[test]
+    fn test_dedup_f64_no_remove() {
+        let mut array: Vec<f64> = [1., 1.5, 2., 3.].to_vec();
+        array = dedup_f64(array, 0.);
+        assert_eq!([1., 1.5, 2., 3.].to_vec(), array);
+    }
 }
