@@ -259,7 +259,7 @@ mod tests {
     fn test_edge_exists_panic() {
         neighbor_exists(1, 1, 9, 2, 2);
     }
-//
+
     #[test]
     fn test_neighbor_index() {
         assert_eq!(0, neighbor_index(0, 1, 0, 0).0);
@@ -334,15 +334,15 @@ mod tests {
         assert_eq!(7, number_of_neighbors(0, 1, 2, 3));
         assert_eq!(9, number_of_neighbors(1, 1, 3, 3));
     }
-//
-//     #[test]
-//     fn test_approx_equal() {
-//         assert!(approx_equal(0., 0., 0.));
-//         assert!(approx_equal(1., 0., 1.));
-//         assert!(approx_equal(-0.1, -0.2, 0.3));
-//         assert!(!approx_equal(1., 0., 0.5));
-//         assert!(!approx_equal(-1., 1., 1.));
-//     }
+
+    #[test]
+    fn test_approx_equal() {
+        assert!(approx_equal(0., 0., 0.));
+        assert!(approx_equal(1., 0., 1.));
+        assert!(approx_equal(-0.1, -0.2, 0.3));
+        assert!(!approx_equal(1., 0., 0.5));
+        assert!(!approx_equal(-1., 1., 1.));
+    }
 //
 //     #[test]
 //     fn test_check_disparity_map() {
