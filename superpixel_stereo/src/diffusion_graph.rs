@@ -703,24 +703,28 @@ pub mod diffusion_graph {
         assert_eq!(true, approx_equal(
             92., diffusion_graph.vertex_penalty_with_potentials(1, 1, 0, 1), 1E-6));
     }
-    //
-    // #[test]
-    // fn test_edge_penalty_with_potentials() {
-    //     let left_image = [[244, 172].to_vec()].to_vec();
-    //     let right_image = [[168, 83].to_vec()].to_vec();
-    //     let mut diffusion_graph = DiffusionGraph::initialize(left_image, right_image, 2, 1.);
-    //     diffusion_graph.potentials[0][0][2][0] = 0.8;
-    //     diffusion_graph.potentials[0][1][0][0] = 0.;
-    //     diffusion_graph.potentials[0][1][0][1] = 0.1;
-    //     assert_eq!(true, approx_equal(
-    //         0.8, diffusion_graph.edge_penalty_with_potential(0, 0, 2, 0, 0), 1E-6));
-    //     assert_eq!(true, approx_equal(
-    //         0.8, diffusion_graph.edge_penalty_with_potential(0, 1, 0, 0, 0), 1E-6));
-    //     assert_eq!(true, approx_equal(
-    //         1.9, diffusion_graph.edge_penalty_with_potential(0, 0, 2, 0, 1), 1E-6));
-    //     assert_eq!(true, approx_equal(
-    //         1.9, diffusion_graph.edge_penalty_with_potential(0, 1, 0, 1, 0), 1E-6));
-    // }
+
+    #[test]
+    fn test_edge_penalty_with_potentials() {
+        let left_image = [[244, 172].to_vec()].to_vec();
+        let right_image = [[168, 83].to_vec()].to_vec();
+        let mut superpixel_representation = SuperpixelRepresentation::initialize(
+            &left_image, 1, 2
+        );
+        superpixel_representation.split_into_superpixels();
+        let mut diffusion_graph = DiffusionGraph::initialize(
+            left_image, right_image, 2, 1., superpixel_representation
+        );
+        diffusion_graph.potentials[0][0][0][0][0] = 0.8;
+        assert_eq!(true, approx_equal(
+            0.8, diffusion_graph.edge_penalty_with_potential(0, 0, 0, 0, 0, 0), 1E-6));
+        assert_eq!(true, approx_equal(
+            1.8, diffusion_graph.edge_penalty_with_potential(0, 0, 0, 0, 1, 0), 1E-6));
+        assert_eq!(true, approx_equal(
+            0.8, diffusion_graph.edge_penalty_with_potential(0, 0, 0, 0, 0, 1), 1E-6));
+        assert_eq!(true, approx_equal(
+            1.8, diffusion_graph.edge_penalty_with_potential(0, 0, 0, 1, 0, 1), 1E-6));
+    }
     //
     // #[test]
     // fn test_edge_exists() {
