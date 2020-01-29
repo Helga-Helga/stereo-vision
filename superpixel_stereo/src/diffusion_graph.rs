@@ -215,24 +215,26 @@ pub mod diffusion_graph {
                         if left_j_in_window >= disparity_map[super_i][super_j][superpixel] as usize {
                             penalty += self.vertex_penalty_with_potentials(
                                 super_i, super_j, disparity_map[super_i][super_j][superpixel], superpixel);
-                                for n in 5..9 {
-                                    if neighbor_exists(
-                                            super_i, super_j, n,
-                                            self.superpixel_representation.number_of_vertical_superpixels,
-                                            self.superpixel_representation.number_of_horizontal_superpixels) {
-                                        let (n_i, n_j, _n_index) = neighbor_index(
-                                            super_i, super_j, n, superpixel);
-                                        if self.edge_exists(super_i, super_j, n,
-                                                disparity_map[super_i][super_j][superpixel],
-                                                disparity_map[n_i][n_j][superpixel], superpixel) {
-                                            penalty += self.edge_penalty_with_potential(super_i, super_j,
-                                                n, disparity_map[super_i][super_j][superpixel],
-                                                disparity_map[n_i][n_j][superpixel], superpixel);
-                                        } else {
-                                            penalty += f64::INFINITY;
-                                        }
+                            let possible_neighbors = [0, 5, 6, 7, 8];
+                            for index in 0..possible_neighbors.len() {
+                                let n = possible_neighbors[index];
+                                if neighbor_exists(
+                                        super_i, super_j, n,
+                                        self.superpixel_representation.number_of_vertical_superpixels,
+                                        self.superpixel_representation.number_of_horizontal_superpixels) {
+                                    let (n_i, n_j, _n_index) = neighbor_index(
+                                        super_i, super_j, n, superpixel);
+                                    if self.edge_exists(super_i, super_j, n,
+                                            disparity_map[super_i][super_j][superpixel],
+                                            disparity_map[n_i][n_j][superpixel], superpixel) {
+                                        penalty += self.edge_penalty_with_potential(super_i, super_j,
+                                            n, disparity_map[super_i][super_j][superpixel],
+                                            disparity_map[n_i][n_j][superpixel], superpixel);
+                                    } else {
+                                        penalty += f64::INFINITY;
                                     }
                                 }
+                            }
                         } else {
                             penalty += f64::INFINITY;
                         }
@@ -598,44 +600,62 @@ pub mod diffusion_graph {
         }
     }
 
-    // #[test]
-    // fn test_penalty_one_pixel() {
-    //     let left_image = vec![vec![0u32; 1]; 1];
-    //     let right_image = vec![vec![0u32; 1]; 1];
-    //     let disparity_map = vec![vec![0usize; 1]; 1];
-    //     let diffusion_graph = DiffusionGraph::initialize(left_image, right_image, 1, 1.);
-    //     assert_eq!(0., diffusion_graph.penalty(disparity_map));
-    // }
-    //
-    // #[test]
-    // fn test_penalty_four_pixels_inf() {
-    //     let left_image = [[1, 1].to_vec(), [0, 0].to_vec()].to_vec();
-    //     let right_image = [[1, 0].to_vec(), [0, 0].to_vec()].to_vec();
-    //     let disparity_map = vec![vec![1usize; 2]; 2];
-    //     let diffusion_graph = DiffusionGraph::initialize(left_image, right_image, 2, 1.);
-    //     assert_eq!(f64::INFINITY, diffusion_graph.penalty(disparity_map));
-    // }
-    //
-    // #[test]
-    // fn test_penalty_four_pixels() {
-    //     let left_image = [[1, 1].to_vec(), [0, 0].to_vec()].to_vec();
-    //     let right_image = [[1, 0].to_vec(), [0, 0].to_vec()].to_vec();
-    //     let disparity_map = [[0, 1].to_vec(), [0, 1].to_vec()].to_vec();
-    //     let mut diffusion_graph = DiffusionGraph::initialize(left_image, right_image, 2, 1.);
-    //     assert_eq!(2., diffusion_graph.penalty(disparity_map));
-    //     diffusion_graph.potentials[0][0][2][0] = 1.;
-    //     let new_disparity_map = [[0, 1].to_vec(), [0, 1].to_vec()].to_vec();
-    //     assert_eq!(2., diffusion_graph.penalty(new_disparity_map));
-    // }
-    //
-    // #[test]
-    // fn test_penalty() {
-    //     let left_image = [[1, 1].to_vec()].to_vec();
-    //     let right_image = [[1, 0].to_vec()].to_vec();
-    //     let disparity_map = [[0, 2].to_vec()].to_vec();
-    //     let diffusion_graph = DiffusionGraph::initialize(left_image, right_image, 2, 1.);
-    //     assert_eq!(f64::INFINITY, diffusion_graph.penalty(disparity_map));
-    // }
+    #[test]
+    fn test_penalty_one_pixel() {
+        let left_image = vec![vec![0u32; 1]; 1];
+        let right_image = vec![vec![0u32; 1]; 1];
+        let disparity_map = vec![vec![vec![0usize; 2]; 1]; 1];
+        let mut superpixel_representation = SuperpixelRepresentation::initialize(
+            &left_image, 1, 1);
+        superpixel_representation.split_into_superpixels();
+        let diffusion_graph = DiffusionGraph::initialize(left_image, right_image, 1, 1.,
+                                                         superpixel_representation);
+        assert_eq!(0., diffusion_graph.penalty(disparity_map));
+    }
+
+    #[test]
+    fn test_penalty_four_pixels_inf() {
+        let left_image = [[1, 1].to_vec(), [0, 0].to_vec()].to_vec();
+        let right_image = [[1, 0].to_vec(), [0, 0].to_vec()].to_vec();
+        let disparity_map = vec![vec![vec![1usize; 2]; 2]; 2];
+        let mut superpixel_representation = SuperpixelRepresentation::initialize(
+            &left_image, 1, 1);
+        superpixel_representation.split_into_superpixels();
+        let diffusion_graph = DiffusionGraph::initialize(left_image, right_image, 2, 1.,
+                                                         superpixel_representation);
+        assert_eq!(f64::INFINITY, diffusion_graph.penalty(disparity_map));
+    }
+
+    #[test]
+    fn test_penalty_four_pixels() {
+        let left_image = [[2, 2].to_vec(), [0, 0].to_vec()].to_vec();
+        let right_image = [[2, 0].to_vec(), [0, 0].to_vec()].to_vec();
+        let disparity_map = [[[0, 0].to_vec(), [1, 1].to_vec()].to_vec()].to_vec();
+        let mut superpixel_representation = SuperpixelRepresentation::initialize(
+            &left_image, 2, 2);
+        superpixel_representation.split_into_superpixels();
+        let mut diffusion_graph = DiffusionGraph::initialize(left_image, right_image, 2, 1.,
+                                                             superpixel_representation);
+        assert_eq!(2., diffusion_graph.penalty(disparity_map));
+        diffusion_graph.potentials[0][0][0][2][0] = 1.;
+        diffusion_graph.potentials[0][0][1][2][0] = 1.;
+        let new_disparity_map = [[[0, 0].to_vec(), [1, 1].to_vec()].to_vec(),
+                                  [[0, 0].to_vec(), [1, 1].to_vec()].to_vec()].to_vec();
+        assert_eq!(2., diffusion_graph.penalty(new_disparity_map));
+    }
+
+    #[test]
+    fn test_penalty() {
+        let left_image = [[1, 1].to_vec()].to_vec();
+        let right_image = [[1, 0].to_vec()].to_vec();
+        let disparity_map = [[[0, 2].to_vec()].to_vec()].to_vec();
+        let mut superpixel_representation = SuperpixelRepresentation::initialize(
+            &left_image, 1, 2);
+        superpixel_representation.split_into_superpixels();
+        let diffusion_graph = DiffusionGraph::initialize(left_image, right_image, 2, 1.,
+                                                         superpixel_representation);
+        assert_eq!(f64::INFINITY, diffusion_graph.penalty(disparity_map));
+    }
     //
     // #[test]
     // fn test_sum_of_potentials() {

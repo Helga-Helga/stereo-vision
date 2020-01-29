@@ -103,8 +103,8 @@ pub mod superpixels {
         }
 
         pub fn left_j_in_superpixel(&self, super_i: usize, super_j: usize,
-                                        superpixel: usize) -> usize {
-            let mut left_j: usize = super_j * self.super_width + self.super_width;
+                                    superpixel: usize) -> usize {
+            let mut left_j: usize = super_j * self.super_width + self.super_width - 1;
             for image_i in (super_i * self.super_height)..(
                            super_i * self.super_height + self.super_height) {
                 for image_j in (super_j * self.super_width)..(
