@@ -725,25 +725,47 @@ pub mod diffusion_graph {
         assert_eq!(true, approx_equal(
             1.8, diffusion_graph.edge_penalty_with_potential(0, 0, 0, 1, 0, 1), 1E-6));
     }
-    //
-    // #[test]
-    // fn test_edge_exists() {
-    //     let left_image = [[244, 172, 168, 192].to_vec(), [83, 248, 38, 204].to_vec()].to_vec();
-    //     let right_image = [[218, 138, 65, 18].to_vec(), [225, 7, 114, 127].to_vec()].to_vec();
-    //     let diffusion_graph = DiffusionGraph::initialize(left_image, right_image, 4, 1.);
-    //     assert!(diffusion_graph.edge_exists(0, 0, 2, 0, 0));
-    //     assert!(diffusion_graph.edge_exists(0, 1, 0, 0, 0));
-    //     assert!(diffusion_graph.edge_exists(0, 0, 2, 0, 1));
-    //     assert!(diffusion_graph.edge_exists(0, 1, 0, 1, 0));
-    //     assert!(!diffusion_graph.edge_exists(0, 0, 2, 1, 0));
-    //     assert!(!diffusion_graph.edge_exists(0, 0, 2, 1, 1));
-    //     assert!(!diffusion_graph.edge_exists(0, 0, 2, 2, 0));
-    //     assert!(!diffusion_graph.edge_exists(0, 1, 0, 2, 1));
-    //     assert!(!diffusion_graph.edge_exists(0, 0, 0, 0, 0));
-    //     assert!(!diffusion_graph.edge_exists(0, 3, 0, 3, 0));
-    //     assert!(!diffusion_graph.edge_exists(0, 2, 2, 0, 3));
-    //     assert!(!diffusion_graph.edge_exists(0, 0, 2, 1, 0));
-    // }
+
+    #[test]
+    fn test_edge_exists() {
+        let left_image = [[244, 172, 168, 192].to_vec(),
+                          [83, 248, 38, 204].to_vec(),
+                          [197, 12, 33, 23].to_vec(),
+                          [93, 110, 103, 47].to_vec()
+                         ].to_vec();
+        let right_image = [[218, 138, 65, 18].to_vec(),
+                           [225, 7, 114, 127].to_vec(),
+                           [198, 216, 51, 208].to_vec(),
+                           [96, 98, 171, 112].to_vec()
+                          ].to_vec();
+        let mut superpixel_representation = SuperpixelRepresentation::initialize(
+            &left_image, 2, 2
+        );
+        superpixel_representation.split_into_superpixels();
+        let diffusion_graph = DiffusionGraph::initialize(
+            left_image, right_image, 4, 1., superpixel_representation
+        );
+        assert!(diffusion_graph.edge_exists(0, 1, 0, 0, 0, 0));
+        assert!(diffusion_graph.edge_exists(0, 1, 0, 0, 0, 1));
+        assert!(diffusion_graph.edge_exists(0, 0, 5, 0, 1, 0));
+        assert!(diffusion_graph.edge_exists(0, 0, 5, 0, 1, 1));
+        assert!(diffusion_graph.edge_exists(0, 0, 8, 0, 0, 0));
+        assert!(diffusion_graph.edge_exists(0, 0, 8, 0, 0, 1));
+        assert!(diffusion_graph.edge_exists(1, 1, 0, 1, 1, 0));
+        assert!(diffusion_graph.edge_exists(1, 1, 0, 1, 1, 1));
+        assert!(diffusion_graph.edge_exists(1, 1, 0, 1, 0, 1));
+        assert!(diffusion_graph.edge_exists(1, 1, 0, 1, 0, 1));
+        assert!(diffusion_graph.edge_exists(1, 1, 0, 0, 0, 1));
+        assert!(!diffusion_graph.edge_exists(0, 0, 2, 0, 0, 0));
+        assert!(!diffusion_graph.edge_exists(0, 0, 2, 0, 0, 1));
+        assert!(!diffusion_graph.edge_exists(0, 0, 3, 0, 0, 0));
+        assert!(!diffusion_graph.edge_exists(0, 0, 3, 1, 0, 0));
+        assert!(!diffusion_graph.edge_exists(0, 0, 3, 0, 1, 1));
+        assert!(!diffusion_graph.edge_exists(0, 0, 3, 1, 1, 1));
+        assert!(!diffusion_graph.edge_exists(0, 0, 5, 0, 2, 0));
+        assert!(!diffusion_graph.edge_exists(0, 1, 2, 2, 0, 0));
+        assert!(!diffusion_graph.edge_exists(0, 1, 2, 3, 3, 0));
+    }
     //
     // #[test]
     // fn test_min_edge_between_neighbors() {
