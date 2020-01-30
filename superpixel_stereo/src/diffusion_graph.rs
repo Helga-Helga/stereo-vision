@@ -788,22 +788,35 @@ pub mod diffusion_graph {
         assert!(!diffusion_graph.edge_exists(0, 1, 2, 2, 0, 0));
         assert!(!diffusion_graph.edge_exists(0, 1, 2, 3, 3, 0));
     }
-    //
-    // #[test]
-    // fn test_min_edge_between_neighbors() {
-    //     let left_image = [[244, 172].to_vec()].to_vec();
-    //     let right_image = [[168, 83].to_vec()].to_vec();
-    //     let mut diffusion_graph = DiffusionGraph::initialize(left_image, right_image, 2, 1.);
-    //     diffusion_graph.potentials[0][0][2][0] = 0.8;
-    //     diffusion_graph.potentials[0][1][0][0] = 0.;
-    //     diffusion_graph.potentials[0][1][0][1] = 0.1;
-    //     assert_eq!(true, approx_equal(
-    //         diffusion_graph.min_edge_between_neighbors(0, 0, 2, 0), 0.8, 1E-6));
-    //     diffusion_graph.potentials[0][1][0][0] = 2.;
-    //     assert_eq!(true, approx_equal(
-    //         diffusion_graph.min_edge_between_neighbors(0, 0, 2, 0), 1.9, 1E-6));
-    //     assert_eq!(f64::INFINITY, diffusion_graph.min_edge_between_neighbors(0, 0, 2, 1));
-    // }
+
+    #[test]
+    fn test_min_edge_between_neighbors() {
+        let left_image = [[244, 172].to_vec(),
+                          [0, 195].to_vec()
+                         ].to_vec();
+        let right_image = [[168, 83].to_vec(),
+                           [51, 208].to_vec()
+                          ].to_vec();
+        let mut superpixel_representation = SuperpixelRepresentation::initialize(
+            &left_image, 2, 1
+        );
+        superpixel_representation.split_into_superpixels();
+        let mut diffusion_graph = DiffusionGraph::initialize(
+            left_image, right_image, 2, 1., superpixel_representation
+        );
+        diffusion_graph.potentials[0][1][0][2][0] = 0.8;
+        diffusion_graph.potentials[0][1][0][2][1] = -0.96;
+        diffusion_graph.potentials[0][0][1][5][0] = 0.1;
+        diffusion_graph.potentials[0][0][0][5][0] = 0.98;
+        println!("{}", diffusion_graph.min_edge_between_neighbors(0, 0, 5, 0, 1));
+        assert_eq!(
+            true, approx_equal(
+                diffusion_graph.min_edge_between_neighbors(0, 0, 5, 0, 1),
+                0.14,
+                1E-6
+            )
+        );
+    }
     //
     // #[test]
     // fn test_update_vertex_potential() {
