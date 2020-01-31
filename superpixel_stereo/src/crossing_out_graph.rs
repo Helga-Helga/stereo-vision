@@ -112,32 +112,35 @@ pub mod crossing_out_graph {
             for super_i in 0..self.diffusion_graph.superpixel_representation.number_of_vertical_superpixels {
                 for super_j in 0..self.diffusion_graph.superpixel_representation.number_of_horizontal_superpixels {
                     for superpixel in 0..2 {
-                        for d in 0..self.diffusion_graph.max_disparity {
-                            for n in 0..9 {
-                                if neighbor_exists(super_i, super_j, n,
-                                    self.diffusion_graph.superpixel_representation.number_of_vertical_superpixels,
-                                    self.diffusion_graph.superpixel_representation.number_of_horizontal_superpixels) {
-                                        let min_penalty_edge =
-                                        self.diffusion_graph.min_penalty_edge(
-                                            super_i, super_j, n, superpixel);
-                                        for n_d in 0..self.diffusion_graph.max_disparity {
-                                            if self.diffusion_graph.edge_exists(
-                                                super_i, super_j, n, d, n_d, superpixel)
-                                            && self.diffusion_graph.edge_penalty_with_potential(
-                                                super_i, super_j, n, d, n_d, superpixel)
-                                            <= min_penalty_edge + epsilon {
-                                                self.edges[super_i][super_j][superpixel][d][n][n_d] = true;
-                                            } else {
-                                                self.edges[super_i][super_j][superpixel][d][n][n_d] = false;
-                                            }
-                                        }
-                                    } else {
-                                        for n_d in 0..self.diffusion_graph.max_disparity {
-                                            self.edges[super_i][super_j][superpixel][d][n][n_d] = false;
+                        for n in 0..9 {
+                            if neighbor_exists(super_i, super_j, n,
+                                self.diffusion_graph.superpixel_representation.number_of_vertical_superpixels,
+                                self.diffusion_graph.superpixel_representation.number_of_horizontal_superpixels
+                            ) {
+                                let min_penalty_edge = self.diffusion_graph.min_penalty_edge(
+                                    super_i, super_j, n, superpixel
+                                );
+                                for d in 0..self.diffusion_graph.max_disparity {
+                                    for n_d in 0..self.diffusion_graph.max_disparity {
+                                        if self.diffusion_graph.edge_exists(
+                                            super_i, super_j, n, d, n_d, superpixel
+                                        ) && self.diffusion_graph.edge_penalty_with_potential(
+                                            super_i, super_j, n, d, n_d, superpixel
+                                        ) <= min_penalty_edge + epsilon {
+                                            self.edges[super_i][super_j][superpixel][d][n][n_d] =
+                                                true;
+                                        } else {
+                                            self.edges[super_i][super_j][superpixel][d][n][n_d] =
+                                                false;
                                         }
                                     }
                                 }
+                            } else {
+                                for n_d in 0..self.diffusion_graph.max_disparity {
+                                    self.edges[super_i][super_j][superpixel][d][n][n_d] = false;
+                                }
                             }
+                        }
                     }
                 }
             }
