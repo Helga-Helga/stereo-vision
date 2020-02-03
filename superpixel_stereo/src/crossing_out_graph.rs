@@ -88,11 +88,14 @@ pub mod crossing_out_graph {
                         let min_penalty_vertex = (self.diffusion_graph.min_penalty_vertex(
                             super_i, super_j, superpixel)).1;
                         for d in 0..self.diffusion_graph.max_disparity {
-                            let left_j_in_superpixel = self.diffusion_graph.superpixel_representation.left_j_in_superpixel(
-                                super_i, super_j, superpixel);
+                            let left_j_in_superpixel =
+                                self.diffusion_graph.superpixel_representation.left_j_in_superpixel(
+                                    super_i, super_j, superpixel
+                            );
                             if left_j_in_superpixel >= d
                             && self.diffusion_graph.vertex_penalty_with_potentials(
-                                super_i, super_j, d, superpixel) <= min_penalty_vertex + epsilon {
+                                super_i, super_j, d, superpixel
+                            ) <= min_penalty_vertex + epsilon {
                                 self.vertices[super_i][super_j][superpixel][d] = true;
                             } else {
                                 self.vertices[super_i][super_j][superpixel][d] = false;
@@ -161,23 +164,30 @@ pub mod crossing_out_graph {
                     for super_j in 0..self.diffusion_graph.superpixel_representation.number_of_horizontal_superpixels {
                         for superpixel in 0..2 {
                             for d in 0..self.diffusion_graph.max_disparity {
-                                let left_j_in_superpixel = self.diffusion_graph.superpixel_representation.left_j_in_superpixel(
-                                    super_i, super_j, superpixel);
+                                let left_j_in_superpixel =
+                                    self.diffusion_graph.superpixel_representation.left_j_in_superpixel(
+                                    super_i, super_j, superpixel
+                                );
                                 if left_j_in_superpixel >= d {
                                     if !self.vertices[super_i][super_j][superpixel][d] {
                                         for n in 0..9 {
-                                            if neighbor_exists(super_i, super_j, n,
-                                                    self.diffusion_graph.superpixel_representation.number_of_vertical_superpixels,
-                                                    self.diffusion_graph.superpixel_representation.number_of_horizontal_superpixels) {
+                                            if neighbor_exists(
+                                                super_i, super_j, n,
+                                                self.diffusion_graph.superpixel_representation.number_of_vertical_superpixels,
+                                                self.diffusion_graph.superpixel_representation.number_of_horizontal_superpixels
+                                            ) {
                                                 let (n_i, n_j, n_index) = neighbor_index(
-                                                    super_i, super_j, n, superpixel);
+                                                    super_i, super_j, n, superpixel
+                                                );
                                                 let n_superpixel = neighbor_superpixel(superpixel, n);
                                                 for n_d in 0..self.diffusion_graph.max_disparity {
                                                     if self.diffusion_graph.edge_exists(
-                                                        super_i, super_j, n, d, n_d, superpixel)
-                                                    && self.edges[super_i][super_j][superpixel][d][n][n_d] {
-                                                        self.edges[super_i][super_j][superpixel][d][n][n_d] = false;
-                                                        self.edges[n_i][n_j][n_superpixel][n_d][n_index][d] = false;
+                                                        super_i, super_j, n, d, n_d, superpixel
+                                                    ) && self.edges[super_i][super_j][superpixel][d][n][n_d] {
+                                                        self.edges[super_i][super_j][superpixel][d][n][n_d] =
+                                                            false;
+                                                        self.edges[n_i][n_j][n_superpixel][n_d][n_index][d] =
+                                                            false;
                                                         change_indicator = true;
                                                     }
                                                 }
@@ -187,14 +197,15 @@ pub mod crossing_out_graph {
                                     for n in 0..9 {
                                         if !neighbor_exists(super_i, super_j, n,
                                             self.diffusion_graph.superpixel_representation.number_of_vertical_superpixels,
-                                            self.diffusion_graph.superpixel_representation.number_of_horizontal_superpixels) {
+                                            self.diffusion_graph.superpixel_representation.number_of_horizontal_superpixels
+                                        ) {
                                             continue;
                                         }
                                         let mut edge_exist = false;
                                         for n_d in 0..self.diffusion_graph.max_disparity {
                                             if self.diffusion_graph.edge_exists(
-                                                super_i, super_j, n, d, n_d, superpixel)
-                                            && self.edges[super_i][super_j][superpixel][d][n][n_d] {
+                                                super_i, super_j, n, d, n_d, superpixel
+                                            ) && self.edges[super_i][super_j][superpixel][d][n][n_d] {
                                                 edge_exist = true;
                                                 break;
                                             }
@@ -230,8 +241,10 @@ pub mod crossing_out_graph {
                     for superpixel in 0..2 {
                         let mut found: bool = false;
                         for d in 0..self.diffusion_graph.max_disparity {
-                            let left_j_in_superpixel = self.diffusion_graph.superpixel_representation.left_j_in_superpixel(
-                                super_i, super_j, superpixel);
+                            let left_j_in_superpixel =
+                                self.diffusion_graph.superpixel_representation.left_j_in_superpixel(
+                                super_i, super_j, superpixel
+                            );
                             if left_j_in_superpixel >= d
                             && self.vertices[super_i][super_j][superpixel][d] {
                                 found = true;
@@ -252,16 +265,19 @@ pub mod crossing_out_graph {
                 for super_j in 0..self.diffusion_graph.superpixel_representation.number_of_horizontal_superpixels {
                     for superpixel in 0..2 {
                         for n in 0..9 {
-                            if !neighbor_exists(super_i, super_j, n,
-                                    self.diffusion_graph.superpixel_representation.number_of_vertical_superpixels,
-                                    self.diffusion_graph.superpixel_representation.number_of_horizontal_superpixels) {
+                            if !neighbor_exists(
+                                super_i, super_j, n,
+                                self.diffusion_graph.superpixel_representation.number_of_vertical_superpixels,
+                                self.diffusion_graph.superpixel_representation.number_of_horizontal_superpixels
+                            ) {
                                 continue;
                             }
                             let mut found = false;
                             for d in 0..self.diffusion_graph.max_disparity {
                                 for n_d in 0..self.diffusion_graph.max_disparity {
                                     if !self.diffusion_graph.edge_exists(
-                                            super_i, super_j, n, d, n_d, superpixel) {
+                                        super_i, super_j, n, d, n_d, superpixel
+                                    ) {
                                         continue;
                                     } else {
                                         if self.edges[super_i][super_j][superpixel][d][n][n_d] {
@@ -327,11 +343,14 @@ pub mod crossing_out_graph {
             let mut disparity: usize = 0;
             let mut found: bool = false;
             for d in 0..self.diffusion_graph.max_disparity {
-                let left_j_in_superpixel = self.diffusion_graph.superpixel_representation.left_j_in_superpixel(
-                    super_i, super_j, superpixel);
+                let left_j_in_superpixel =
+                    self.diffusion_graph.superpixel_representation.left_j_in_superpixel(
+                        super_i, super_j, superpixel
+                    );
                 if left_j_in_superpixel >= d && self.vertices[super_i][super_j][superpixel][d] {
                     let current_vertex = self.diffusion_graph.vertex_penalty_with_potentials(
-                        super_i, super_j, d, superpixel);
+                        super_i, super_j, d, superpixel
+                    );
                     if current_vertex < min_vertex {
                         min_vertex = current_vertex;
                         disparity = d;
@@ -351,8 +370,10 @@ pub mod crossing_out_graph {
         pub fn top_vertex_between_existing(&self, super_i: usize, super_j: usize,
                                            superpixel: usize) -> usize {
             for d in 0..self.diffusion_graph.max_disparity {
-                let left_j_in_superpixel = self.diffusion_graph.superpixel_representation.left_j_in_superpixel(
-                    super_i, super_j, superpixel);
+                let left_j_in_superpixel =
+                    self.diffusion_graph.superpixel_representation.left_j_in_superpixel(
+                        super_i, super_j, superpixel
+                    );
                 if left_j_in_superpixel >= d && self.vertices[super_i][super_j][superpixel][d] {
                     return d;
                 }
@@ -373,7 +394,8 @@ pub mod crossing_out_graph {
                 for super_j in 0..self.diffusion_graph.superpixel_representation. number_of_horizontal_superpixels {
                     for superpixel in 0..2 {
                         depth_map[super_i][super_j][superpixel] = self.top_vertex_between_existing(
-                            super_i, super_j, superpixel);
+                            super_i, super_j, superpixel
+                        );
                     }
 
                     for image_i in (super_i *
@@ -396,10 +418,17 @@ pub mod crossing_out_graph {
                     }
                 }
             }
-            let mut depth_map_0 = vec![vec![0usize; self.diffusion_graph.superpixel_representation.number_of_horizontal_superpixels];
-                self.diffusion_graph.superpixel_representation.number_of_vertical_superpixels];
-            let mut depth_map_1 = vec![vec![0usize; self.diffusion_graph.superpixel_representation.number_of_horizontal_superpixels];
-                self.diffusion_graph.superpixel_representation.number_of_vertical_superpixels];
+            let mut depth_map_0 =
+                vec![vec![0usize;
+                          self.diffusion_graph.superpixel_representation.number_of_horizontal_superpixels];
+                     self.diffusion_graph.superpixel_representation.number_of_vertical_superpixels];
+            let mut depth_map_1 =
+                vec![
+                    vec![
+                        0usize;
+                        self.diffusion_graph.superpixel_representation.number_of_horizontal_superpixels];
+                    self.diffusion_graph.superpixel_representation.number_of_vertical_superpixels
+                ];
             for super_i in 0..self.diffusion_graph.superpixel_representation.number_of_vertical_superpixels {
                 for super_j in 0..self.diffusion_graph.superpixel_representation.number_of_horizontal_superpixels {
                     depth_map_0[super_i][super_j] = depth_map[super_i][super_j][0];
