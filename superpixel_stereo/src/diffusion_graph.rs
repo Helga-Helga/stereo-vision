@@ -558,10 +558,10 @@ pub mod diffusion_graph {
             let mut min_penalty_vertex: f64 = f64::INFINITY;
             let mut disparity: usize = 0;
             for d in 0..self.max_disparity {
-                let left_j_in_window = self.superpixel_representation.left_j_in_superpixel(
+                let left_j_in_superpixel = self.superpixel_representation.left_j_in_superpixel(
                     super_i, super_j, superpixel
                 );
-                if left_j_in_window >= d {
+                if left_j_in_superpixel >= d {
                     let current_vertex = self.vertex_penalty_with_potentials(
                         super_i, super_j, d, superpixel
                     );
@@ -995,22 +995,36 @@ pub mod diffusion_graph {
         assert_eq!(true, approx_equal(diffusion_graph.dummy_potentials[0][0][1][0][0], 57., 1E-6));
         assert_eq!(true, approx_equal(diffusion_graph.potentials[0][0][1][0][0], 57., 1E-6));
     }
-    //
-    // #[test]
-    // fn test_min_penalty_vertex() {
-    //     let left_image = [[1, 1].to_vec(), [0, 0].to_vec()].to_vec();
-    //     let right_image = [[1, 0].to_vec(), [0, 0].to_vec()].to_vec();
-    //     let mut diffusion_graph = DiffusionGraph::initialize(left_image, right_image, 2, 1.);
-    //     diffusion_graph.potentials[0][0][2][0] = 0.6;
-    //     diffusion_graph.potentials[0][0][3][0] = 358.;
-    //     diffusion_graph.potentials[0][1][0][0] = -13.7;
-    //     diffusion_graph.potentials[0][1][0][1] = 80.;
-    //     diffusion_graph.potentials[0][1][3][1] = -1E9 as f64;
-    //     assert_eq!(diffusion_graph.min_penalty_vertex(0, 0).1, -358.6);
-    //     assert_eq!(0, diffusion_graph.min_penalty_vertex(0, 0).0);
-    //     assert_eq!(diffusion_graph.min_penalty_vertex(0, 1).1, 14.7);
-    //     assert_eq!(0, diffusion_graph.min_penalty_vertex(0, 1).0);
-    // }
+
+    #[test]
+    fn test_min_penalty_vertex() {
+        let left_image = [[2, 2].to_vec(),
+                          [0, 0].to_vec()
+                         ].to_vec();
+        let right_image = [[2, 0].to_vec(),
+                           [0, 0].to_vec()
+                          ].to_vec();
+        let mut superpixel_representation = SuperpixelRepresentation::initialize(
+            &left_image, 2, 1
+        );
+        println!("v: {}", superpixel_representation.number_of_vertical_superpixels);
+        println!("h: {}", superpixel_representation.number_of_horizontal_superpixels);
+        superpixel_representation.split_into_superpixels();
+        println!("superpixels: {:?}", superpixel_representation.superpixels);
+        let mut diffusion_graph = DiffusionGraph::initialize(
+            left_image, right_image, 2, 1., superpixel_representation
+        );
+        diffusion_graph.potentials[0][0][0][5][0] = 0.6;
+        diffusion_graph.potentials[0][0][1][0][0] = 358.;
+        diffusion_graph.potentials[0][1][0][0][0] = -13.7;
+        diffusion_graph.potentials[0][1][1][0][0] = 80.;
+        assert_eq!(diffusion_graph.min_penalty_vertex(0, 0, 0).1, -0.6);
+        assert_eq!(0, diffusion_graph.min_penalty_vertex(0, 0, 0).0);
+        assert_eq!(diffusion_graph.min_penalty_vertex(0, 1, 0).1, 0.);
+        assert_eq!(1, diffusion_graph.min_penalty_vertex(0, 1, 0).0);
+        assert_eq!(diffusion_graph.min_penalty_vertex(0, 1, 1).1, -78.);
+        assert_eq!(0, diffusion_graph.min_penalty_vertex(0, 1, 1).0);
+    }
     //
     // #[test]
     // fn test_min_penalty_edge() {
