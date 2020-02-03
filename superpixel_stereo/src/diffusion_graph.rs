@@ -192,12 +192,13 @@ pub mod diffusion_graph {
                     n_i, n_j, n_superpixel
                 );
                 if left_j_in_window >= d && left_j_in_neighbor_window >= n_d {
-                    if (n == 5 || n == 6) && n_d > d + 1 {
-                        return false;
-                    }
-                    if (n == 1 || n == 2) && d > n_d + 1 {
-                        return false;
-                    }
+                    // With these checks there are situation when there are no edges between nodes
+                    // if (n == 5 || n == 6) && n_d > d + 1 {
+                    //     return false;
+                    // }
+                    // if (n == 1 || n == 2) && d > n_d + 1 {
+                    //     return false;
+                    // }
                     return true;
                 } else {
                     return false;
@@ -217,6 +218,7 @@ pub mod diffusion_graph {
             let mut penalty: f64 = 0.;
             for super_i in 0..self.superpixel_representation.number_of_vertical_superpixels {
                 for super_j in 0..self.superpixel_representation.number_of_horizontal_superpixels {
+                    let mut zero_neighbor_calculated = false;
                     for superpixel in 0..2 {
                         let left_j_in_window = self.superpixel_representation.left_j_in_superpixel(
                             super_i, super_j, superpixel
@@ -231,6 +233,11 @@ pub mod diffusion_graph {
                             let possible_neighbors = [0, 5, 6, 7, 8];
                             for index in 0..possible_neighbors.len() {
                                 let n = possible_neighbors[index];
+                                if n == 0 && zero_neighbor_calculated {
+                                    continue;
+                                } else if n == 0 {
+                                    zero_neighbor_calculated = true;
+                                }
                                 if neighbor_exists(
                                     super_i, super_j, n,
                                     self.superpixel_representation.number_of_vertical_superpixels,
@@ -376,11 +383,23 @@ pub mod diffusion_graph {
                         //                 super_i, super_j, n,
                         //                 self.left_image.len(), self.left_image[0].len()
                         //             ) {
-                        //                 vec.push(self.min_edge_between_neighbors(
+                        //                 let min_edge = self.min_edge_between_neighbors(
                         //                     super_i, super_j, n, d, superpixel
-                        //                 ));
+                        //                 );
+                        //                 if min_edge < f64::INFINITY {
+                        //                     vec.push(min_edge);
+                        //                 }
                         //             }
                         //         }
+                        //         assert_eq!(
+                        //             number_of_neighbors(
+                        //                 super_i,
+                        //                 super_j,
+                        //                 self.superpixel_representation.number_of_vertical_superpixels,
+                        //                 self.superpixel_representation.number_of_horizontal_superpixels
+                        //             ),
+                        //             vec.len()
+                        //         );
                         //         for i in 1..vec.len() {
                         //             assert!(approx_equal(vec[i - 1], vec[i], 1E-6));
                         //         }
@@ -613,11 +632,17 @@ pub mod diffusion_graph {
             let mut energy: f64 = 0.;
             for super_i in 0..self.superpixel_representation.number_of_vertical_superpixels {
                 for super_j in 0..self.superpixel_representation.number_of_horizontal_superpixels {
+                    let mut zero_neighbor_calculated = false;
                     for superpixel in 0..2 {
                         energy += (self.min_penalty_vertex(super_i, super_j, superpixel)).1;
                         let possible_neighbors = [0, 5, 6, 7, 8];
                         for index in 0..possible_neighbors.len() {
                             let n = possible_neighbors[index];
+                            if n == 0 && zero_neighbor_calculated {
+                                continue;
+                            } else if n == 0 {
+                                zero_neighbor_calculated = true;
+                            }
                             if neighbor_exists(
                                 super_i, super_j, n,
                                 self.superpixel_representation.number_of_vertical_superpixels,
