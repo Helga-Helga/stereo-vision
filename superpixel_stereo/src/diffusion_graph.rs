@@ -897,56 +897,83 @@ pub mod diffusion_graph {
             )
         );
     }
-    //
-    // #[test]
-    // fn test_update_edge_potential() {
-    //     let left_image = [[1, 1, 1].to_vec(), [1, 0, 1].to_vec(), [1, 1, 1].to_vec()].to_vec();
-    //     let right_image = [[1, 1, 1].to_vec(), [1, 0, 1].to_vec(), [1, 1, 1].to_vec()].to_vec();
-    //     let mut diffusion_graph = DiffusionGraph::initialize(left_image, right_image, 1, 1.);
-    //     diffusion_graph.potentials[0][0][2][0] = -0.3;
-    //     diffusion_graph.potentials[0][0][3][0] = 0.1;
-    //     diffusion_graph.potentials[2][1][0][0] = 0.8;
-    //     diffusion_graph.potentials[2][1][2][0] = -0.62;
-    //     assert_eq!(0., diffusion_graph.dummy_potentials[0][0][2][0]);
-    //     diffusion_graph.update_edge_potential(0, 0, 2, 0);
-    //     assert_eq!(true, approx_equal(diffusion_graph.dummy_potentials[0][0][2][0], 0.1, 1E-6));
-    //     diffusion_graph.update_edge_potential(1, 1, 0, 0);
-    //     assert_eq!(true, approx_equal(diffusion_graph.dummy_potentials[1][1][0][0], 0., 1E-6));
-    //     diffusion_graph.update_edge_potential(2, 1, 2, 0);
-    //     assert_eq!(true, approx_equal(diffusion_graph.dummy_potentials[2][1][2][0], -0.06, 1E-6));
-    // }
-    //
-    // #[test]
-    // fn test_diffusion_act_vertexes() {
-    //     let left_image = [[1].to_vec(), [0].to_vec()].to_vec();
-    //     let right_image = [[1].to_vec(), [0].to_vec()].to_vec();
-    //     let mut diffusion_graph = DiffusionGraph::initialize(left_image, right_image, 2, 1.);
-    //     diffusion_graph.potentials[0][0][3][0] = -0.3;
-    //     diffusion_graph.potentials[1][0][1][0] = 0.1;
-    //     assert_eq!(0., diffusion_graph.dummy_potentials[0][0][3][0]);
-    //     diffusion_graph.diffusion_act_vertexes(0, 0);
-    //     assert_eq!(true, approx_equal(diffusion_graph.dummy_potentials[0][0][3][0], 0.2, 1E-6));
-    //     assert_eq!(true, approx_equal(diffusion_graph.potentials[0][0][3][0], 0.2, 1E-6));
-    //     diffusion_graph.diffusion_act_vertexes(1, 0);
-    //     assert_eq!(true, approx_equal(diffusion_graph.dummy_potentials[1][0][1][0], -0.3, 1E-6));
-    //     assert_eq!(true, approx_equal(diffusion_graph.potentials[1][0][1][0], -0.3, 1E-6));
-    // }
-    //
-    // #[test]
-    // fn test_diffusion_act_edges() {
-    //     let left_image = [[1].to_vec(), [0].to_vec()].to_vec();
-    //     let right_image = [[1].to_vec(), [0].to_vec()].to_vec();
-    //     let mut diffusion_graph = DiffusionGraph::initialize(left_image, right_image, 2, 1.);
-    //     diffusion_graph.potentials[0][0][3][0] = -0.3;
-    //     diffusion_graph.potentials[1][0][1][0] = 0.1;
-    //     assert_eq!(0., diffusion_graph.dummy_potentials[0][0][3][0]);
-    //     diffusion_graph.diffusion_act_edges(0, 0);
-    //     assert_eq!(true, approx_equal(diffusion_graph.dummy_potentials[0][0][3][0], 0.3, 1E-6));
-    //     assert_eq!(true, approx_equal(diffusion_graph.potentials[0][0][3][0], 0.3, 1E-6));
-    //     diffusion_graph.diffusion_act_edges(1, 0);
-    //     assert_eq!(true, approx_equal(diffusion_graph.dummy_potentials[1][0][1][0], -0.1, 1E-6));
-    //     assert_eq!(true, approx_equal(diffusion_graph.potentials[1][0][1][0], -0.1, 1E-6));
-    // }
+
+    #[test]
+    fn test_update_edge_potential() {
+        let left_image = [[211, 184, 221, 133].to_vec(),
+                          [232, 77, 33, 148].to_vec(),
+                          [88, 141, 1, 164].to_vec(),
+                          [216, 19, 75, 227].to_vec()
+                         ].to_vec();
+        let right_image = [[7, 203, 58, 252].to_vec(),
+                           [245, 71, 110, 183].to_vec(),
+                           [69, 210, 30, 107].to_vec(),
+                           [231, 97, 42, 144].to_vec()].to_vec();
+        let mut superpixel_representation = SuperpixelRepresentation::initialize(
+            &left_image, 2, 2
+        );
+        superpixel_representation.split_into_superpixels();
+        let mut diffusion_graph = DiffusionGraph::initialize(
+            left_image, right_image, 1, 1., superpixel_representation
+        );
+        diffusion_graph.potentials[0][0][0][0][0] = -0.3;
+        diffusion_graph.potentials[0][0][0][5][0] = 0.1;
+        diffusion_graph.potentials[1][0][0][0][0] = 0.8;
+        diffusion_graph.potentials[1][0][0][4][0] = -0.62;
+        assert_eq!(0., diffusion_graph.dummy_potentials[0][0][0][0][0]);
+        diffusion_graph.update_edge_potential(0, 0, 0, 0, 0);
+        assert_eq!(true, approx_equal(diffusion_graph.dummy_potentials[0][0][0][0][0], 1.24, 1E-6));
+        diffusion_graph.update_edge_potential(0, 0, 5, 0, 0);
+    }
+
+    #[test]
+    fn test_diffusion_act_vertexes() {
+        let left_image = [[92, 45].to_vec(),
+                          [64, 244].to_vec()
+                         ].to_vec();
+        let right_image = [[149, 188].to_vec(),
+                           [127, 190].to_vec()
+                          ].to_vec();
+        let mut superpixel_representation = SuperpixelRepresentation::initialize(
+            &left_image, 1, 2
+        );
+        superpixel_representation.split_into_superpixels();
+        let mut diffusion_graph = DiffusionGraph::initialize(
+            left_image, right_image, 1, 1., superpixel_representation
+        );
+        diffusion_graph.potentials[0][0][0][8][0] = -0.3;
+        diffusion_graph.potentials[1][0][0][2][0] = 0.1;
+        assert_eq!(0., diffusion_graph.dummy_potentials[0][0][0][8][0]);
+        diffusion_graph.diffusion_act_vertexes(0, 0, 0);
+        assert_eq!(true, approx_equal(diffusion_graph.dummy_potentials[0][0][0][8][0], 0.3, 1E-6));
+        assert_eq!(true, approx_equal(diffusion_graph.potentials[0][0][0][8][0], 0.3, 1E-6));
+    }
+
+    #[test]
+    fn test_diffusion_act_edges() {
+        let left_image = [[92, 45].to_vec(),
+                          [64, 244].to_vec()
+                         ].to_vec();
+        let right_image = [[149, 188].to_vec(),
+                           [127, 190].to_vec()
+                          ].to_vec();
+        let mut superpixel_representation = SuperpixelRepresentation::initialize(
+            &left_image, 1, 2
+        );
+        superpixel_representation.split_into_superpixels();
+        let mut diffusion_graph = DiffusionGraph::initialize(
+            left_image, right_image, 1, 1., superpixel_representation
+        );
+        diffusion_graph.potentials[0][0][0][8][0] = -0.3;
+        diffusion_graph.potentials[1][0][0][2][0] = 0.1;
+        assert_eq!(0., diffusion_graph.dummy_potentials[0][0][0][8][0]);
+        diffusion_graph.diffusion_act_edges(0, 0, 0);
+        assert_eq!(
+            true,
+            approx_equal(diffusion_graph.dummy_potentials[0][0][0][8][0], 47.766667, 1E-6)
+        );
+        assert_eq!(true, approx_equal(diffusion_graph.potentials[0][0][0][8][0], 47.766667, 1E-6));
+    }
     //
     // #[test]
     // fn test_diffusion_act() {
