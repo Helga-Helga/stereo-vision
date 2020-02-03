@@ -974,21 +974,27 @@ pub mod diffusion_graph {
         );
         assert_eq!(true, approx_equal(diffusion_graph.potentials[0][0][0][8][0], 47.766667, 1E-6));
     }
-    //
-    // #[test]
-    // fn test_diffusion_act() {
-    //     let left_image = [[1].to_vec(), [0].to_vec()].to_vec();
-    //     let right_image = [[1].to_vec(), [0].to_vec()].to_vec();
-    //     let mut diffusion_graph = DiffusionGraph::initialize(left_image, right_image, 2, 1.);
-    //     diffusion_graph.potentials[0][0][3][0] = -0.3;
-    //     diffusion_graph.potentials[1][0][1][0] = 0.1;
-    //     assert_eq!(0., diffusion_graph.dummy_potentials[0][0][3][0]);
-    //     diffusion_graph.diffusion_act();
-    //     assert_eq!(true, approx_equal(diffusion_graph.dummy_potentials[0][0][3][0], 0., 1E-6));
-    //     assert_eq!(true, approx_equal(diffusion_graph.potentials[0][0][3][0], 0., 1E-6));
-    //     assert_eq!(true, approx_equal(diffusion_graph.dummy_potentials[1][0][1][0], 0., 1E-6));
-    //     assert_eq!(true, approx_equal(diffusion_graph.potentials[1][0][1][0], 0., 1E-6));
-    // }
+
+    #[test]
+    fn test_diffusion_act() {
+        let left_image = [[92, 45].to_vec()].to_vec();
+        let right_image = [[149, 188].to_vec()].to_vec();
+        let mut superpixel_representation = SuperpixelRepresentation::initialize(
+            &left_image, 1, 2
+        );
+        superpixel_representation.split_into_superpixels();
+        let mut diffusion_graph = DiffusionGraph::initialize(
+            left_image, right_image, 1, 1., superpixel_representation
+        );
+        diffusion_graph.potentials[0][0][0][0][0] = -0.3;
+        diffusion_graph.potentials[0][0][1][0][0] = 0.1;
+        assert_eq!(0., diffusion_graph.dummy_potentials[0][0][0][0][0]);
+        diffusion_graph.diffusion_act();
+        assert_eq!(true, approx_equal(diffusion_graph.dummy_potentials[0][0][0][0][0], 143., 1E-6));
+        assert_eq!(true, approx_equal(diffusion_graph.potentials[0][0][0][0][0], 143., 1E-6));
+        assert_eq!(true, approx_equal(diffusion_graph.dummy_potentials[0][0][1][0][0], 57., 1E-6));
+        assert_eq!(true, approx_equal(diffusion_graph.potentials[0][0][1][0][0], 57., 1E-6));
+    }
     //
     // #[test]
     // fn test_min_penalty_vertex() {
