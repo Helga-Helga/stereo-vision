@@ -28,6 +28,8 @@ pub mod crossing_out_graph {
     use super::super::utils::utils::neighbor_exists;
     use super::super::utils::utils::neighbor_index;
     use super::super::utils::utils::neighbor_superpixel;
+    use super::super::utils::utils::check_disparity_map_consistency;
+    use super::super::pgm_handler::pgm::pgm_writer;
 
     #[derive(Debug)]
     /// Crossing out graph is represented here
@@ -361,9 +363,10 @@ pub mod crossing_out_graph {
 
         /// Chooses the highest vertex (with minimum disparity) among non-crossed in each superpixel
         pub fn simple_best_labeling(&self) -> Vec<Vec<usize>> {
-            let mut depth_map = vec![vec![vec![0usize; 2];
-                                          self.diffusion_graph.superpixel_representation.number_of_horizontal_superpixels];
-                                     self.diffusion_graph.superpixel_representation.number_of_vertical_superpixels];
+            let mut depth_map = vec![
+                vec![vec![0usize; 2];
+                     self.diffusion_graph.superpixel_representation.number_of_horizontal_superpixels];
+                self.diffusion_graph.superpixel_representation.number_of_vertical_superpixels];
             let mut depth_map_image = vec![vec![0usize; self.diffusion_graph.left_image[0].len()];
                                            self.diffusion_graph.left_image.len()];
             for super_i in 0..self.diffusion_graph.superpixel_representation.number_of_vertical_superpixels {
@@ -373,11 +376,18 @@ pub mod crossing_out_graph {
                             super_i, super_j, superpixel);
                     }
 
-                    for image_i in (super_i * self.diffusion_graph.superpixel_representation.super_height)..(
-                                   super_i * self.diffusion_graph.superpixel_representation.super_height + self.diffusion_graph.superpixel_representation.super_height) {
-                        for image_j in (super_j * self.diffusion_graph.superpixel_representation.super_width)..(
-                                       super_j * self.diffusion_graph.superpixel_representation.super_width + self.diffusion_graph.superpixel_representation.super_width) {
-                            if self.diffusion_graph.superpixel_representation.superpixels[image_i][image_j] == 0 {
+                    for image_i in (super_i *
+                            self.diffusion_graph.superpixel_representation.super_height)..(
+                            super_i *
+                                self.diffusion_graph.superpixel_representation.super_height +
+                                self.diffusion_graph.superpixel_representation.super_height) {
+                        for image_j in (super_j *
+                                self.diffusion_graph.superpixel_representation.super_width)..(
+                                super_j *
+                                    self.diffusion_graph.superpixel_representation.super_width +
+                                    self.diffusion_graph.superpixel_representation.super_width) {
+                            if self.diffusion_graph.superpixel_representation.superpixels[
+                                    image_i][image_j] == 0 {
                                 depth_map_image[image_i][image_j] = depth_map[super_i][super_j][0];
                             } else {
                                 depth_map_image[image_i][image_j] = depth_map[super_i][super_j][1];
@@ -386,6 +396,46 @@ pub mod crossing_out_graph {
                     }
                 }
             }
+            let mut depth_map_0 = vec![vec![0usize; self.diffusion_graph.superpixel_representation.number_of_horizontal_superpixels];
+                self.diffusion_graph.superpixel_representation.number_of_vertical_superpixels];
+            let mut depth_map_1 = vec![vec![0usize; self.diffusion_graph.superpixel_representation.number_of_horizontal_superpixels];
+                self.diffusion_graph.superpixel_representation.number_of_vertical_superpixels];
+            for super_i in 0..self.diffusion_graph.superpixel_representation.number_of_vertical_superpixels {
+                for super_j in 0..self.diffusion_graph.superpixel_representation.number_of_horizontal_superpixels {
+                    depth_map_0[super_i][super_j] = depth_map[super_i][super_j][0];
+                    depth_map_1[super_i][super_j] = depth_map[super_i][super_j][1];
+                }
+            }
+            println!(
+                "Disparity map 0 is consistent: {}",
+                check_disparity_map_consistency(&depth_map_0));
+            println!(
+                "Disparity map 1 is consistent: {}",
+                check_disparity_map_consistency(&depth_map_1));
+            let f = pgm_writer(
+                &depth_map_0,
+                "images/results/depth_map_superpixels_0.pgm".to_string(),
+                self.diffusion_graph.max_disparity
+            );
+            let _f = match f {
+                Ok(file) => file,
+                Err(error) => {
+                    panic!("There was a problem writing a file : {:?}", error)
+                },
+            };
+            println!("Disparity map is saved to `depth_map_superpixels_0.pgm`");
+            let f = pgm_writer(
+                &depth_map_1,
+                "images/results/depth_map_superpixels_1.pgm".to_string(),
+                self.diffusion_graph.max_disparity
+            );
+            let _f = match f {
+                Ok(file) => file,
+                Err(error) => {
+                    panic!("There was a problem writing a file : {:?}", error)
+                },
+            };
+            println!("Disparity map is saved to `depth_map_superpixels_1.pgm`");
             depth_map_image
         }
     }
