@@ -136,8 +136,10 @@ pub mod crossing_out_graph {
                                     }
                                 }
                             } else {
-                                for n_d in 0..self.diffusion_graph.max_disparity {
-                                    self.edges[super_i][super_j][superpixel][d][n][n_d] = false;
+                                for d in 0..self.diffusion_graph.max_disparity {
+                                    for n_d in 0..self.diffusion_graph.max_disparity {
+                                        self.edges[super_i][super_j][superpixel][d][n][n_d] = false;
+                                    }
                                 }
                             }
                         }
