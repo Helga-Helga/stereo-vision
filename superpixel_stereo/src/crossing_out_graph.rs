@@ -165,11 +165,11 @@ pub mod crossing_out_graph {
                 for super_i in 0..self.diffusion_graph.superpixel_representation.number_of_vertical_superpixels {
                     for super_j in 0..self.diffusion_graph.superpixel_representation.number_of_horizontal_superpixels {
                         for superpixel in 0..2 {
-                            for d in 0..self.diffusion_graph.max_disparity {
-                                let left_j_in_superpixel =
-                                    self.diffusion_graph.superpixel_representation.left_j_in_superpixel(
+                            let left_j_in_superpixel =
+                                self.diffusion_graph.superpixel_representation.left_j_in_superpixel(
                                     super_i, super_j, superpixel
-                                );
+                            );
+                            for d in 0..self.diffusion_graph.max_disparity {
                                 if left_j_in_superpixel >= d {
                                     if !self.vertices[super_i][super_j][superpixel][d] {
                                         for n in 0..9 {
@@ -181,8 +181,17 @@ pub mod crossing_out_graph {
                                                 let (n_i, n_j, n_index) = neighbor_index(
                                                     super_i, super_j, n, superpixel
                                                 );
-                                                let n_superpixel = neighbor_superpixel(superpixel, n);
+                                                let n_superpixel = neighbor_superpixel(
+                                                    superpixel, n
+                                                );
+                                                let left_j_in_n_superpixel =
+                                                    self.diffusion_graph.superpixel_representation.left_j_in_superpixel(
+                                                        n_i, n_j, n_superpixel
+                                                    );
                                                 for n_d in 0..self.diffusion_graph.max_disparity {
+                                                    if left_j_in_n_superpixel < n_d {
+                                                        continue;
+                                                    }
                                                     if self.diffusion_graph.edge_exists(
                                                         super_i, super_j, n, d, n_d, superpixel
                                                     ) && self.edges[super_i][super_j][superpixel][d][n][n_d] {
@@ -490,35 +499,77 @@ pub mod crossing_out_graph {
     //     assert!(!crossing_out_graph.is_not_empty());
     // }
     //
-    // #[test]
-    // fn test_crossing_out() {
-    //     let left_image = [[1, 1].to_vec(), [1, 0].to_vec()].to_vec();
-    //     let right_image = [[1, 0].to_vec(), [0, 0].to_vec()].to_vec();
-    //     let max_disparity: usize = 2;
-    //     let diffusion_graph = DiffusionGraph::initialize(left_image, right_image, max_disparity, 1.);
-    //     let vertices = vec![vec![vec![true; max_disparity]; 2]; 2];
-    //     let edges = vec![vec![vec![vec![vec![true; max_disparity]; 4]; max_disparity]; 2]; 2];
-    //     let mut crossing_out_graph = CrossingOutGraph::initialize(diffusion_graph, vertices, edges);
-    //     crossing_out_graph.edges[0][0][0][2][0] = false;
-    //     crossing_out_graph.edges[0][1][0][0][0] = false;
-    //     crossing_out_graph.edges[0][1][1][3][1] = false;
-    //     crossing_out_graph.edges[1][1][1][1][1] = false;
-    //     crossing_out_graph.crossing_out();
-    //     assert!(crossing_out_graph.vertices[0][0][0]);
-    //     assert!(crossing_out_graph.vertices[0][1][1]);
-    //     assert!(crossing_out_graph.vertices[1][0][0]);
-    //     assert!(crossing_out_graph.vertices[1][1][0]);
-    //     assert!(!crossing_out_graph.vertices[0][1][0]);
-    //     assert!(!crossing_out_graph.vertices[1][1][1]);
-    //     assert!(crossing_out_graph.edges[0][0][0][2][1]);
-    //     assert!(crossing_out_graph.edges[0][0][0][3][0]);
-    //     assert!(crossing_out_graph.edges[1][0][0][2][0]);
-    //     assert!(!crossing_out_graph.edges[1][0][0][2][1]);
-    //     assert!(crossing_out_graph.edges[0][1][1][3][0]);
-    //     assert!(!crossing_out_graph.edges[0][1][1][3][1]);
-    //     assert!(!crossing_out_graph.edges[0][0][0][2][0]);
-    // }
-    //
+    #[test]
+    fn test_crossing_out() {
+        let left_image = [[2, 0].to_vec()].to_vec();
+        let right_image = [[2, 0].to_vec()].to_vec();
+        let max_disparity: usize = 2;
+        let mut superpixel_representation = SuperpixelRepresentation::initialize(
+            &left_image, 1, 2
+        );
+        superpixel_representation.split_into_superpixels();
+        let vertical_superpixels = superpixel_representation.number_of_vertical_superpixels;
+        let horizontal_superpixels = superpixel_representation.number_of_horizontal_superpixels;
+        let mut diffusion_graph = DiffusionGraph::initialize(
+            left_image, right_image, max_disparity, 1., superpixel_representation
+        );
+        let vertices = vec![vec![vec![vec![true; max_disparity]; 2];
+                                 horizontal_superpixels];
+                            vertical_superpixels];
+        let edges = vec![vec![vec![vec![vec![vec![true; max_disparity]; 9]; max_disparity]; 2];
+                              horizontal_superpixels];
+                         vertical_superpixels];
+        let mut crossing_out_graph = CrossingOutGraph::initialize(
+            diffusion_graph, vertices, edges
+        );
+        crossing_out_graph.edges[0][0][0][0][0][0] = false;
+        crossing_out_graph.edges[0][0][1][0][0][0] = false;
+        crossing_out_graph.crossing_out();
+        assert!(crossing_out_graph.vertices[0][0][1][0]);
+        assert!(!crossing_out_graph.vertices[0][0][0][0]);
+        assert!(crossing_out_graph.vertices[0][0][0][1]);
+        assert!(!crossing_out_graph.edges[0][0][1][0][0][0]);
+        assert!(crossing_out_graph.edges[0][0][0][0][0][1]);
+        assert!(!crossing_out_graph.edges[0][0][0][0][0][0]);
+        assert!(crossing_out_graph.edges[0][0][0][1][0][0]);
+    }
+
+    #[test]
+    fn test_crossing_out_all() {
+        let left_image = [[2, 0].to_vec()].to_vec();
+        let right_image = [[2, 0].to_vec()].to_vec();
+        let max_disparity: usize = 2;
+        let mut superpixel_representation = SuperpixelRepresentation::initialize(
+            &left_image, 1, 2
+        );
+        superpixel_representation.split_into_superpixels();
+        let vertical_superpixels = superpixel_representation.number_of_vertical_superpixels;
+        let horizontal_superpixels = superpixel_representation.number_of_horizontal_superpixels;
+        let mut diffusion_graph = DiffusionGraph::initialize(
+            left_image, right_image, max_disparity, 1., superpixel_representation
+        );
+        let vertices = vec![vec![vec![vec![true; max_disparity]; 2];
+                                 horizontal_superpixels];
+                            vertical_superpixels];
+        let edges = vec![vec![vec![vec![vec![vec![true; max_disparity]; 9]; max_disparity]; 2];
+                              horizontal_superpixels];
+                         vertical_superpixels];
+        let mut crossing_out_graph = CrossingOutGraph::initialize(
+            diffusion_graph, vertices, edges
+        );
+        crossing_out_graph.initialize_with_epsilon(100.);
+        crossing_out_graph.vertices[0][0][1][0] = false;
+        crossing_out_graph.crossing_out();
+        assert!(!crossing_out_graph.vertices[0][0][1][0]);
+        assert!(!crossing_out_graph.vertices[0][0][0][0]);
+        assert!(!crossing_out_graph.vertices[0][0][0][1]);
+        assert!(!crossing_out_graph.edges[0][0][1][0][0][0]);
+        assert!(!crossing_out_graph.edges[0][0][0][0][0][1]);
+        assert!(!crossing_out_graph.edges[0][0][0][0][0][0]);
+        assert!(!crossing_out_graph.edges[0][0][0][1][0][0]);
+    }
+
+
     #[test]
     fn test_initialize_vertices() {
         let left_image = [[2, 0].to_vec()].to_vec();
