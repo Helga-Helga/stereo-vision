@@ -25,6 +25,7 @@
 pub mod crossing_out_graph {
     use std::f64;
     use super::super::diffusion_graph::diffusion_graph::DiffusionGraph;
+    use super::super::superpixels::superpixels::SuperpixelRepresentation;
     use super::super::utils::utils::neighbor_exists;
     use super::super::utils::utils::neighbor_index;
     use super::super::utils::utils::neighbor_superpixel;
@@ -85,8 +86,9 @@ pub mod crossing_out_graph {
             for super_i in 0..self.diffusion_graph.superpixel_representation.number_of_vertical_superpixels {
                 for super_j in 0..self.diffusion_graph.superpixel_representation.number_of_horizontal_superpixels {
                     for superpixel in 0..2 {
-                        let min_penalty_vertex = (self.diffusion_graph.min_penalty_vertex(
-                            super_i, super_j, superpixel)).1;
+                        let min_penalty_vertex = (
+                            self.diffusion_graph.min_penalty_vertex(super_i, super_j, superpixel)
+                        ).1;
                         for d in 0..self.diffusion_graph.max_disparity {
                             let left_j_in_superpixel =
                                 self.diffusion_graph.superpixel_representation.left_j_in_superpixel(
@@ -468,21 +470,6 @@ pub mod crossing_out_graph {
             depth_map_image
         }
     }
-
-    // #[test]
-    // fn test_min_penalty_zero() {
-    //     let left_image = vec![vec![0u32; 2]; 1];
-    //     let right_image = vec![vec![0u32; 2]; 1];
-    //     let max_disparity = 2;
-    //     let diffusion_graph = DiffusionGraph::initialize(left_image, right_image, max_disparity, 1.);
-    //     let vertices = vec![vec![vec![true; max_disparity]; 2]; 1];
-    //     let edges = vec![vec![vec![vec![vec![true; max_disparity]; 4]; max_disparity]; 2]; 1];
-    //     let crossing_out_graph = CrossingOutGraph::initialize(diffusion_graph, vertices, edges);
-    //     let min_penalty_edge = crossing_out_graph.diffusion_graph.min_penalty_edge(0, 0, 2);
-    //     assert_eq!(0., min_penalty_edge);
-    //     let min_penalty_vertex = (crossing_out_graph.diffusion_graph.min_penalty_vertex(0, 0)).1;
-    //     assert_eq!(0., min_penalty_vertex);
-    // }
     //
     // #[test]
     // fn test_empty_crossing_out_graph() {
@@ -532,23 +519,37 @@ pub mod crossing_out_graph {
     //     assert!(!crossing_out_graph.edges[0][0][0][2][0]);
     // }
     //
-    // #[test]
-    // fn test_initialize_vertices() {
-    //     let left_image = [[1, 1].to_vec()].to_vec();
-    //     let right_image = [[1, 0].to_vec()].to_vec();
-    //     let max_disparity: usize = 2;
-    //     let mut diffusion_graph = DiffusionGraph::initialize(left_image, right_image, max_disparity, 1.);
-    //     diffusion_graph.potentials[0][0][2][0] = 0.6;
-    //     diffusion_graph.potentials[0][1][0][0] = -13.7;
-    //     diffusion_graph.potentials[0][1][0][1] = 80.;
-    //     let vertices = vec![vec![vec![false; max_disparity]; 2]; 1];
-    //     let edges = vec![vec![vec![vec![vec![false; max_disparity]; 4]; max_disparity]; 2]; 1];
-    //     let mut crossing_out_graph = CrossingOutGraph::initialize(diffusion_graph, vertices, edges);
-    //     crossing_out_graph.initialize_vertices(1.);
-    //     assert!(crossing_out_graph.vertices[0][0][0]);
-    //     assert!(!crossing_out_graph.vertices[0][1][0]);
-    //     assert!(crossing_out_graph.vertices[0][1][1]);
-    // }
+    #[test]
+    fn test_initialize_vertices() {
+        let left_image = [[2, 0].to_vec()].to_vec();
+        let right_image = [[2, 0].to_vec()].to_vec();
+        let max_disparity: usize = 2;
+        let mut superpixel_representation = SuperpixelRepresentation::initialize(
+            &left_image, 1, 2
+        );
+        superpixel_representation.split_into_superpixels();
+        let vertical_superpixels = superpixel_representation.number_of_vertical_superpixels;
+        let horizontal_superpixels = superpixel_representation.number_of_horizontal_superpixels;
+        let mut diffusion_graph = DiffusionGraph::initialize(
+            left_image, right_image, max_disparity, 1., superpixel_representation
+        );
+        diffusion_graph.potentials[0][0][1][0][0] = 0.6;
+        diffusion_graph.potentials[0][0][0][0][0] = -13.7;
+        diffusion_graph.potentials[0][0][0][0][1] = 80.;
+        let vertices = vec![vec![vec![vec![false; max_disparity]; 2];
+                                 horizontal_superpixels];
+                            vertical_superpixels];
+        let edges = vec![vec![vec![vec![vec![vec![false; max_disparity]; 4]; max_disparity]; 2];
+                              horizontal_superpixels];
+                         vertical_superpixels];
+        let mut crossing_out_graph = CrossingOutGraph::initialize(
+            diffusion_graph, vertices, edges
+        );
+        crossing_out_graph.initialize_vertices(64.);
+        assert!(crossing_out_graph.vertices[0][0][1][0]);
+        assert!(!crossing_out_graph.vertices[0][0][0][0]);
+        assert!(crossing_out_graph.vertices[0][0][0][1]);
+    }
     //
     // #[test]
     // fn test_initialize_edges() {
