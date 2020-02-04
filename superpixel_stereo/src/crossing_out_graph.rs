@@ -479,26 +479,7 @@ pub mod crossing_out_graph {
             depth_map_image
         }
     }
-    //
-    // #[test]
-    // fn test_empty_crossing_out_graph() {
-    //     let left_image = vec![vec![0u32; 2]; 1];
-    //     let right_image = vec![vec![0u32; 2]; 1];
-    //     let max_disparity = 1;
-    //     let diffusion_graph = DiffusionGraph::initialize(left_image, right_image, max_disparity, 1.);
-    //     let mut vertices = vec![vec![vec![true; max_disparity]; 2]; 1];
-    //     vertices[0][0][0] = false;
-    //     let mut edges = vec![vec![vec![vec![vec![false; max_disparity]; 4]; max_disparity]; 2]; 1];
-    //     edges[0][0][0][2][0] = true;
-    //     let mut crossing_out_graph = CrossingOutGraph::initialize(diffusion_graph, vertices, edges);
-    //     crossing_out_graph.crossing_out();
-    //     println!("{:?}", crossing_out_graph.vertices);
-    //     println!("{:?}", crossing_out_graph.edges);
-    //     assert!(!crossing_out_graph.vertices_exist());
-    //     assert!(!crossing_out_graph.edges_exist());
-    //     assert!(!crossing_out_graph.is_not_empty());
-    // }
-    //
+
     #[test]
     fn test_crossing_out() {
         let left_image = [[2, 0].to_vec()].to_vec();
