@@ -720,27 +720,34 @@ pub mod crossing_out_graph {
     //     assert!(!crossing_out_graph.edges_exist());
     //  }
     //
-    //  #[test]
-    //  fn test_is_not_empty() {
-    //      let left_image = [[1, 1].to_vec()].to_vec();
-    //      let right_image = [[1, 0].to_vec()].to_vec();
-    //      let max_disparity: usize = 2;
-    //      let diffusion_graph = DiffusionGraph::initialize(left_image, right_image, max_disparity, 1.);
-    //      let vertices = vec![vec![vec![true; max_disparity]; 2]; 1];
-    //      let edges = vec![vec![vec![vec![vec![true; max_disparity]; 4]; max_disparity]; 2]; 1];
-    //      let mut crossing_out_graph = CrossingOutGraph::initialize(diffusion_graph, vertices, edges);
-    //      crossing_out_graph.vertices[0][1][0] = false;
-    //      crossing_out_graph.edges[0][0][0][2][1] = false;
-    //      crossing_out_graph.edges[0][1][1][0][0] = false;
-    //      assert!(crossing_out_graph.is_not_empty());
-    //      crossing_out_graph.vertices[0][1][0] = true;
-    //      crossing_out_graph.vertices[0][0][0] = false;
-    //      assert!(!crossing_out_graph.is_not_empty());
-    //      crossing_out_graph.vertices[0][0][0] = true;
-    //      crossing_out_graph.edges[0][0][0][2][0] = false;
-    //      crossing_out_graph.edges[0][1][0][0][0] = false;
-    //      assert!(!crossing_out_graph.is_not_empty());
-    //  }
+     #[test]
+     fn test_is_not_empty() {
+         let left_image = [[2, 0].to_vec()].to_vec();
+         let right_image = [[2, 0].to_vec()].to_vec();
+         let max_disparity: usize = 2;
+         let mut superpixel_representation = SuperpixelRepresentation::initialize(
+             &left_image, 1, 2
+         );
+         superpixel_representation.split_into_superpixels();
+         let vertical_superpixels = superpixel_representation.number_of_vertical_superpixels;
+         let horizontal_superpixels = superpixel_representation.number_of_horizontal_superpixels;
+         let mut diffusion_graph = DiffusionGraph::initialize(
+             left_image, right_image, max_disparity, 1., superpixel_representation
+         );
+         let vertices = vec![vec![vec![vec![true; max_disparity]; 2];
+                                  horizontal_superpixels];
+                             vertical_superpixels];
+         let edges = vec![vec![vec![vec![vec![vec![true; max_disparity]; 9]; max_disparity]; 2];
+                               horizontal_superpixels];
+                          vertical_superpixels];
+         let mut crossing_out_graph = CrossingOutGraph::initialize(
+             diffusion_graph, vertices, edges
+         );
+         crossing_out_graph.initialize_with_epsilon(100.);
+         assert!(crossing_out_graph.is_not_empty());
+         crossing_out_graph.vertices[0][0][1][0] = false;
+         assert!(!crossing_out_graph.is_not_empty());
+     }
     //
     //  #[test]
     //  fn test_min_vertex_between_existing() {
