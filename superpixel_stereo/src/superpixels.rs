@@ -23,8 +23,11 @@
  */
 #[doc="Superpixel"]
 pub mod superpixels {
-    use super::super::utils::utils::median;
     use super::super::utils::utils::average;
+    use super::super::utils::utils::median;
+    use super::super::utils::utils::neighbor_exists;
+    use super::super::utils::utils::neighbor_index;
+    use super::super::utils::utils::neighbor_superpixel;
 
     #[derive(Debug)]
     /// Disparity graph is represented here
@@ -41,6 +44,8 @@ pub mod superpixels {
         pub number_of_vertical_superpixels: usize,
         /// Number of superpixels in horizontal axis
         pub number_of_horizontal_superpixels: usize,
+        /// Number of pixels on edge between two superpixels
+        pub edge_perimeters: Vec<Vec<Vec<Vec<usize>>>>
     }
 
     impl SuperpixelRepresentation {
@@ -59,7 +64,8 @@ pub mod superpixels {
                 super_width: super_width,
                 number_of_vertical_superpixels: image.len() / super_height,
                 number_of_horizontal_superpixels: image[0].len() / super_width,
-                image: image.to_vec()
+                image: image.to_vec(),
+                edge_perimeters: vec![vec![vec![vec![0usize; 9]; 2]; image[0].len()]; image.len()]
             }
         }
 
@@ -116,5 +122,105 @@ pub mod superpixels {
             }
             left_j
         }
+
+        pub fn fill_superpixel_ids(&self) -> Vec<Vec<usize>> {
+            let mut id: usize = 0;
+            let mut superpixel_ids = vec![vec![0usize; self.image[0].len()]; self.image.len()];
+            for super_i in 0..self.number_of_vertical_superpixels {
+                for super_j in 0..self.number_of_horizontal_superpixels {
+                    for image_i in (super_i * self.super_height)..(
+                                   super_i * self.super_height + self.super_height) {
+                        for image_j in (super_j * self.super_width)..(
+                                       super_j * self.super_width + self.super_width) {
+                            if self.superpixels[image_i][image_j] == 0 {
+                                superpixel_ids[image_i][image_j] = id;
+                            } else {
+                                superpixel_ids[image_i][image_j] = id + 1;
+                            }
+                        }
+                    }
+                    id += 2;
+                }
+            }
+            superpixel_ids
+        }
+
+        pub fn calculate_edge_perimeters(&mut self) {
+            let superpixel_ids: Vec<Vec<usize>> = self.fill_superpixel_ids();
+            for super_i in 0..self.number_of_vertical_superpixels {
+                for super_j in 0..self.number_of_horizontal_superpixels {
+                    let mut perimeter: usize = 0;
+                    for image_i in (super_i * self.super_height)..(
+                                   super_i * self.super_height + self.super_height - 1) {
+                        for image_j in (super_j * self.super_width)..(
+                                       super_j * self.super_width + self.super_width - 1) {
+                            if superpixel_ids[image_i][image_j] !=
+                                    superpixel_ids[image_i][image_j + 1]
+                            || image_i + 1 < super_i * self.super_height + self.super_height
+                                && superpixel_ids[image_i][image_j] !=
+                                    superpixel_ids[image_i + 1][image_j] {
+                                perimeter += 1;
+                            }
+                        }
+                    }
+                    self.edge_perimeters[super_i][super_j][0][0] = perimeter;
+                    self.edge_perimeters[super_i][super_j][1][0] = perimeter;
+                }
+            }
+        }
+    }
+
+    #[test]
+    fn test_fill_superpixel_ids() {
+        let left_image = [
+            [2, 2, 0, 2, 0, 0, 2, 2].to_vec(),
+            [2, 2, 2, 0, 0, 2, 2, 2].to_vec(),
+            [2, 2, 0, 0, 0, 2, 2, 2].to_vec(),
+            [0, 0, 2, 0, 0, 0, 0, 0].to_vec()
+        ].to_vec();
+        let right_image = [
+            [2, 2, 0, 2, 0, 0, 2, 2].to_vec(),
+            [2, 2, 2, 0, 0, 2, 2, 2].to_vec(),
+            [2, 2, 0, 0, 0, 2, 2, 2].to_vec(),
+            [0, 0, 2, 0, 0, 0, 0, 0].to_vec()
+        ].to_vec();
+        let mut superpixel_representation = SuperpixelRepresentation::initialize(
+            &left_image, 4, 4);
+        superpixel_representation.split_into_superpixels();
+        let superpixel_ids = superpixel_representation.fill_superpixel_ids();
+        assert_eq!(1, superpixel_ids[0][0]);
+        assert_eq!(1, superpixel_ids[0][1]);
+        assert_eq!(0, superpixel_ids[0][2]);
+        assert_eq!(1, superpixel_ids[0][3]);
+        assert_eq!(2, superpixel_ids[0][4]);
+        assert_eq!(2, superpixel_ids[0][5]);
+        assert_eq!(3, superpixel_ids[0][6]);
+        assert_eq!(3, superpixel_ids[0][7]);
+    }
+
+    #[test]
+    fn test_calculate_edge_perimeters() {
+        let left_image = [
+            [2, 2, 0, 2, 0, 0, 2, 2].to_vec(),
+            [2, 2, 2, 0, 0, 2, 2, 2].to_vec(),
+            [2, 2, 0, 0, 0, 2, 2, 2].to_vec(),
+            [0, 0, 2, 0, 0, 0, 0, 0].to_vec()
+        ].to_vec();
+        let right_image = [
+            [2, 2, 0, 2, 0, 0, 2, 2].to_vec(),
+            [2, 2, 2, 0, 0, 2, 2, 2].to_vec(),
+            [2, 2, 0, 0, 0, 2, 2, 2].to_vec(),
+            [0, 0, 2, 0, 0, 0, 0, 0].to_vec()
+        ].to_vec();
+        let mut superpixel_representation = SuperpixelRepresentation::initialize(
+            &left_image, 4, 4);
+        superpixel_representation.split_into_superpixels();
+        superpixel_representation.calculate_edge_perimeters();
+        assert_eq!(6, superpixel_representation.edge_perimeters[0][0][0][0]);
+        // assert_eq!(3, superpixel_representation.edge_perimeters[0][0][0][5]);
+        // assert_eq!(0, superpixel_representation.edge_perimeters[0][0][0][6]);
+        // assert_eq!(1, superpixel_representation.edge_perimeters[0][0][1][5]);
+        // assert_eq!(0, superpixel_representation.edge_perimeters[0][0][1][6]);
+        assert_eq!(5, superpixel_representation.edge_perimeters[0][1][0][0]);
     }
 }
