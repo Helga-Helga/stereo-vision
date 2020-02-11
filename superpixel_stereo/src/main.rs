@@ -43,11 +43,13 @@ fn main() {
     assert_eq!(r_height, l_height);
 
     let mut superpixel_representation = superpixels::superpixels::SuperpixelRepresentation
-        ::initialize(&left_image, 13, 10);
+        ::initialize(&left_image, 8, 5);
     superpixel_representation.split_into_superpixels();
-    let f = pgm_handler::pgm::pgm_writer(&superpixel_representation.superpixels,
-                                         "images/results/superpixels.pgm".to_string(),
-                                         1);
+    let f = pgm_handler::pgm::pgm_writer(
+        &superpixel_representation.superpixels,
+        "images/results/superpixels.pgm".to_string(),
+        1
+    );
     let _f = match f {
         Ok(file) => file,
         Err(error) => {
@@ -56,31 +58,34 @@ fn main() {
     };
     println!("Superpixel representation of left image is saved to `superpixels.pgm`");
 
-    let max_disparity = 10;
+    let max_disparity = 30;
     println!("max disparity: {}", max_disparity);
 
     let mut diffusion_graph = diffusion_graph::diffusion_graph::DiffusionGraph::initialize(
-        left_image, right_image, max_disparity, 2.5, superpixel_representation);
-    // diffusion_graph.diffusion(0, 10);
+        left_image, right_image, max_disparity, 1.2, superpixel_representation);
 
-    let vertices = vec![vec![vec![vec![true; diffusion_graph.max_disparity]; 2]; l_width]; l_height];
-    let edges = vec![vec![vec![vec![vec![vec![true; diffusion_graph.max_disparity]; 9]; diffusion_graph.max_disparity]; 2]; l_width]; l_height];
-    let mut crossing_out_graph = crossing_out_graph::crossing_out_graph::CrossingOutGraph::initialize(
-        diffusion_graph, vertices, edges);
+    let vertices = vec![vec![vec![vec![true; diffusion_graph.max_disparity]; 2]; l_width];
+                        l_height];
+    let edges = vec![vec![vec![vec![vec![vec![true; diffusion_graph.max_disparity]; 9];
+                                         diffusion_graph.max_disparity]; 2]; l_width]; l_height];
+    let mut crossing_out_graph = crossing_out_graph::crossing_out_graph::CrossingOutGraph
+        ::initialize(diffusion_graph, vertices, edges);
 
     let epsilon: f64 = 1. / (10 * l_width * l_height) as f64;
     println!("Epsilon: {}", epsilon);
 
-    crossing_out_graph.diffusion_while_not_consistent(epsilon, 1000);
+    crossing_out_graph.diffusion_while_not_consistent(epsilon, 100);
 
     println!("Finding disparity map ...");
     let disparity_map: Vec<Vec<usize>> = crossing_out_graph.simple_best_labeling();
     println!(
         "Disparity map is consistent: {}",
         utils::utils::check_disparity_map_consistency(&disparity_map));
-    let f = pgm_handler::pgm::pgm_writer(&disparity_map,
-                                         "images/results/best_labeling.pgm".to_string(),
-                                         crossing_out_graph.diffusion_graph.max_disparity);
+    let f = pgm_handler::pgm::pgm_writer(
+        &disparity_map,
+        "images/results/best_labeling.pgm".to_string(),
+        crossing_out_graph.diffusion_graph.max_disparity
+    );
     let _f = match f {
         Ok(file) => file,
         Err(error) => {
@@ -88,24 +93,4 @@ fn main() {
         },
     };
     println!("Disparity map is saved to `best_labeling.pgm`");
-    // ------------------------------
-
-    // let disparity_map =
-    //     pgm_handler::pgm::pgm_reader_usize("./images/results/best_labeling.pgm".to_string());
-    //
-    // println!("Refining disparity map ...");
-    // let mut disparity_map_refined =
-    //     crossing_out_graph.diffusion_graph.box_blur(&disparity_map, 20, 2, max_disparity - 1);
-    // disparity_map_refined =
-    //     crossing_out_graph.diffusion_graph.box_blur(&disparity_map_refined, 10, 10, 255);
-    // let f = pgm_handler::pgm::pgm_writer(&disparity_map_refined,
-    //                                      "images/results/refined_map.pgm".to_string(),
-    //                                      crossing_out_graph.diffusion_graph.max_disparity);
-    // let _f = match f {
-    //     Ok(file) => file,
-    //     Err(error) => {
-    //         panic!("There was a problem writing a file : {:?}", error)
-    //     },
-    // };
-    // println!("Refined disparity map is saved to `refined_map.pgm`");
 }
