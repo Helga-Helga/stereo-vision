@@ -163,6 +163,66 @@ pub mod superpixels {
                             }
                         }
                     }
+                    for superpixel in 0..2 {
+                        for n in 5..7 {
+                            if !neighbor_exists(
+                                super_i, super_j, n,
+                                self.number_of_vertical_superpixels,
+                                self.number_of_horizontal_superpixels
+                            ) {
+                                continue;
+                            }
+                            let mut perimeter_right: usize = 0;
+                            let n_superpixel = neighbor_superpixel(superpixel, n);
+                            let (n_i, n_j, n_index) = neighbor_index(
+                                super_i, super_j, n, superpixel
+                            );
+
+                            let image_j = super_j * self.super_width + self.super_width - 1;
+                            println!("({}, {}), s = {}, n = {}, image_j: {}", super_i, super_j, superpixel, n, image_j);
+                            for image_i in (super_i * self.super_height)..(
+                                    super_i * self.super_height + self.super_height) {
+                                println!("s: {}, n_s: {}", self.superpixels[image_i][image_j], self.superpixels[image_i][image_j + 1]);
+                                if self.superpixels[image_i][image_j] == superpixel
+                                && self.superpixels[image_i][image_j + 1] == n_superpixel {
+                                    perimeter_right += 1;
+                                    println!("+1: perimeter: {}", perimeter_right);
+                                }
+                            }
+                            self.edge_perimeters[super_i][super_j][superpixel][n] =
+                                perimeter_right;
+                            self.edge_perimeters[n_i][n_j][n_superpixel][n_index] =
+                                perimeter_right;
+                        }
+
+                        for n in 7..9 {
+                            if !neighbor_exists(
+                                super_i, super_j, n,
+                                self.number_of_vertical_superpixels,
+                                self.number_of_horizontal_superpixels
+                            ) {
+                                continue;
+                            }
+                            let mut perimeter_down: usize = 0;
+                            let n_superpixel = neighbor_superpixel(superpixel, n);
+                            let (n_i, n_j, n_index) = neighbor_index(
+                                super_i, super_j, n, superpixel
+                            );
+                            let image_i = super_i * self.super_height + self.super_height - 1;
+                            println!("({}, {}), s = {}, n = {}, image_i: {}", super_i, super_j, superpixel, n, image_i);
+                            for image_j in (super_i * self.super_width)..(
+                                    super_i * self.super_width + self.super_width) {
+                                if self.superpixels[image_i][image_j] == superpixel
+                                && self.superpixels[image_i + 1][image_j] == n_superpixel {
+                                    perimeter_down += 1;
+                                }
+                            }
+                            self.edge_perimeters[super_i][super_j][superpixel][n] =
+                                perimeter_down;
+                            self.edge_perimeters[n_i][n_j][n_superpixel][n_index] =
+                                perimeter_down;
+                        }
+                    }
                     self.edge_perimeters[super_i][super_j][0][0] = perimeter;
                     self.edge_perimeters[super_i][super_j][1][0] = perimeter;
                 }
@@ -217,10 +277,10 @@ pub mod superpixels {
         superpixel_representation.split_into_superpixels();
         superpixel_representation.calculate_edge_perimeters();
         assert_eq!(6, superpixel_representation.edge_perimeters[0][0][0][0]);
-        // assert_eq!(3, superpixel_representation.edge_perimeters[0][0][0][5]);
-        // assert_eq!(0, superpixel_representation.edge_perimeters[0][0][0][6]);
-        // assert_eq!(1, superpixel_representation.edge_perimeters[0][0][1][5]);
-        // assert_eq!(0, superpixel_representation.edge_perimeters[0][0][1][6]);
+        assert_eq!(3, superpixel_representation.edge_perimeters[0][0][0][5]);
+        assert_eq!(0, superpixel_representation.edge_perimeters[0][0][0][6]);
+        assert_eq!(1, superpixel_representation.edge_perimeters[0][0][1][5]);
+        assert_eq!(0, superpixel_representation.edge_perimeters[0][0][1][6]);
         assert_eq!(5, superpixel_representation.edge_perimeters[0][1][0][0]);
     }
 }
