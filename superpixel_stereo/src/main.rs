@@ -21,7 +21,6 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-#[macro_use]
 extern crate more_asserts;
 extern crate rand;
 extern crate tempdir;
@@ -62,7 +61,7 @@ fn main() {
     let max_disparity = 30;
     println!("max disparity: {}", max_disparity);
 
-    let mut diffusion_graph = diffusion_graph::diffusion_graph::DiffusionGraph::initialize(
+    let diffusion_graph = diffusion_graph::diffusion_graph::DiffusionGraph::initialize(
         left_image, right_image, max_disparity, 1.2, superpixel_representation);
 
     let vertices = vec![vec![vec![vec![true; diffusion_graph.max_disparity]; 2]; l_width];

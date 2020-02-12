@@ -491,7 +491,7 @@ pub mod crossing_out_graph {
         superpixel_representation.split_into_superpixels();
         let vertical_superpixels = superpixel_representation.number_of_vertical_superpixels;
         let horizontal_superpixels = superpixel_representation.number_of_horizontal_superpixels;
-        let mut diffusion_graph = DiffusionGraph::initialize(
+        let diffusion_graph = DiffusionGraph::initialize(
             left_image, right_image, max_disparity, 1., superpixel_representation
         );
         let vertices = vec![vec![vec![vec![true; max_disparity]; 2];
@@ -526,7 +526,7 @@ pub mod crossing_out_graph {
         superpixel_representation.split_into_superpixels();
         let vertical_superpixels = superpixel_representation.number_of_vertical_superpixels;
         let horizontal_superpixels = superpixel_representation.number_of_horizontal_superpixels;
-        let mut diffusion_graph = DiffusionGraph::initialize(
+        let diffusion_graph = DiffusionGraph::initialize(
             left_image, right_image, max_disparity, 1., superpixel_representation
         );
         let vertices = vec![vec![vec![vec![true; max_disparity]; 2];
@@ -663,7 +663,7 @@ pub mod crossing_out_graph {
         superpixel_representation.split_into_superpixels();
         let vertical_superpixels = superpixel_representation.number_of_vertical_superpixels;
         let horizontal_superpixels = superpixel_representation.number_of_horizontal_superpixels;
-        let mut diffusion_graph = DiffusionGraph::initialize(
+        let diffusion_graph = DiffusionGraph::initialize(
             left_image, right_image, max_disparity, 1., superpixel_representation
         );
 
@@ -731,7 +731,7 @@ pub mod crossing_out_graph {
          superpixel_representation.split_into_superpixels();
          let vertical_superpixels = superpixel_representation.number_of_vertical_superpixels;
          let horizontal_superpixels = superpixel_representation.number_of_horizontal_superpixels;
-         let mut diffusion_graph = DiffusionGraph::initialize(
+         let diffusion_graph = DiffusionGraph::initialize(
              left_image, right_image, max_disparity, 1., superpixel_representation
          );
          let vertices = vec![vec![vec![vec![true; max_disparity]; 2];

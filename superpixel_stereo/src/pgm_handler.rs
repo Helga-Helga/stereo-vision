@@ -137,7 +137,6 @@ pub mod pgm {
 mod tests {
     use tempdir::TempDir;
     use std::fs::File;
-    use std::path::Path;
     use std::io::{Write};
     use super::pgm::*;
 

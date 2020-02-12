@@ -23,7 +23,6 @@
  */
 #[doc="Diffusion graph"]
 pub mod diffusion_graph {
-    use rand::Rng;
     use std::f64;
     use super::super::utils::utils::neighbor_exists;
     use super::super::utils::utils::neighbor_index;

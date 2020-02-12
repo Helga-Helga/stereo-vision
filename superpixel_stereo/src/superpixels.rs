@@ -24,7 +24,6 @@
 #[doc="Superpixel"]
 pub mod superpixels {
     use super::super::utils::utils::average;
-    use super::super::utils::utils::median;
     use super::super::utils::utils::neighbor_exists;
     use super::super::utils::utils::neighbor_index;
     use super::super::utils::utils::neighbor_superpixel;
@@ -234,12 +233,6 @@ pub mod superpixels {
             [2, 2, 0, 0, 0, 2, 2, 2].to_vec(),
             [0, 0, 2, 0, 0, 0, 0, 0].to_vec()
         ].to_vec();
-        let right_image = [
-            [2, 2, 0, 2, 0, 0, 2, 2].to_vec(),
-            [2, 2, 2, 0, 0, 2, 2, 2].to_vec(),
-            [2, 2, 0, 0, 0, 2, 2, 2].to_vec(),
-            [0, 0, 2, 0, 0, 0, 0, 0].to_vec()
-        ].to_vec();
         let mut superpixel_representation = SuperpixelRepresentation::initialize(
             &left_image, 4, 4);
         superpixel_representation.split_into_superpixels();
@@ -257,12 +250,6 @@ pub mod superpixels {
     #[test]
     fn test_calculate_edge_perimeters() {
         let left_image = [
-            [2, 2, 0, 2, 0, 0, 2, 2].to_vec(),
-            [2, 2, 2, 0, 0, 2, 2, 2].to_vec(),
-            [2, 2, 0, 0, 0, 2, 2, 2].to_vec(),
-            [0, 0, 2, 0, 0, 0, 0, 0].to_vec()
-        ].to_vec();
-        let right_image = [
             [2, 2, 0, 2, 0, 0, 2, 2].to_vec(),
             [2, 2, 2, 0, 0, 2, 2, 2].to_vec(),
             [2, 2, 0, 0, 0, 2, 2, 2].to_vec(),
