@@ -179,14 +179,11 @@ pub mod superpixels {
                             );
 
                             let image_j = super_j * self.super_width + self.super_width - 1;
-                            println!("({}, {}), s = {}, n = {}, image_j: {}", super_i, super_j, superpixel, n, image_j);
                             for image_i in (super_i * self.super_height)..(
                                     super_i * self.super_height + self.super_height) {
-                                println!("s: {}, n_s: {}", self.superpixels[image_i][image_j], self.superpixels[image_i][image_j + 1]);
                                 if self.superpixels[image_i][image_j] == superpixel
                                 && self.superpixels[image_i][image_j + 1] == n_superpixel {
                                     perimeter_right += 1;
-                                    println!("+1: perimeter: {}", perimeter_right);
                                 }
                             }
                             self.edge_perimeters[super_i][super_j][superpixel][n] =
@@ -209,7 +206,6 @@ pub mod superpixels {
                                 super_i, super_j, n, superpixel
                             );
                             let image_i = super_i * self.super_height + self.super_height - 1;
-                            println!("({}, {}), s = {}, n = {}, image_i: {}", super_i, super_j, superpixel, n, image_i);
                             for image_j in (super_i * self.super_width)..(
                                     super_i * self.super_width + self.super_width) {
                                 if self.superpixels[image_i][image_j] == superpixel
