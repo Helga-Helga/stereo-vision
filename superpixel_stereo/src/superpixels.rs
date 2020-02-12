@@ -145,6 +145,8 @@ pub mod superpixels {
         }
 
         pub fn calculate_edge_perimeters(&mut self) {
+            let u: usize = 1;
+            let v: usize = 4;
             let superpixel_ids: Vec<Vec<usize>> = self.fill_superpixel_ids();
             for super_i in 0..self.number_of_vertical_superpixels {
                 for super_j in 0..self.number_of_horizontal_superpixels {
@@ -155,10 +157,15 @@ pub mod superpixels {
                                        super_j * self.super_width + self.super_width - 1) {
                             if superpixel_ids[image_i][image_j] !=
                                     superpixel_ids[image_i][image_j + 1]
-                            || image_i + 1 < super_i * self.super_height + self.super_height
+                            || (image_i + 1 < super_i * self.super_height + self.super_height
                                 && superpixel_ids[image_i][image_j] !=
-                                    superpixel_ids[image_i + 1][image_j] {
-                                perimeter += 1;
+                                    superpixel_ids[image_i + 1][image_j]) {
+                                perimeter += u;
+                            }
+                            if image_i + 1 < super_i * self.super_height + self.super_height
+                            && superpixel_ids[image_i][image_j] !=
+                                    superpixel_ids[image_i + 1][image_j + 1] {
+                                perimeter -= v;
                             }
                         }
                     }
@@ -182,7 +189,12 @@ pub mod superpixels {
                                     super_i * self.super_height + self.super_height) {
                                 if self.superpixels[image_i][image_j] == superpixel
                                 && self.superpixels[image_i][image_j + 1] == n_superpixel {
-                                    perimeter_right += 1;
+                                    perimeter_right += u;
+                                }
+                                if self.superpixels[image_i][image_j] == superpixel
+                                && image_i + 1 < super_i * self.super_height + self.super_height
+                                && self.superpixels[image_i + 1][image_j + 1] == n_superpixel {
+                                    perimeter_right += v;
                                 }
                             }
                             self.edge_perimeters[super_i][super_j][superpixel][n] =
@@ -209,7 +221,12 @@ pub mod superpixels {
                                     super_i * self.super_width + self.super_width) {
                                 if self.superpixels[image_i][image_j] == superpixel
                                 && self.superpixels[image_i + 1][image_j] == n_superpixel {
-                                    perimeter_down += 1;
+                                    perimeter_down += u;
+                                }
+                                if self.superpixels[image_i][image_j] == superpixel
+                                && image_i + 1 < super_i * self.super_height + self.super_height
+                                && self.superpixels[image_i + 1][image_j + 1] == n_superpixel {
+                                    perimeter_down += v;
                                 }
                             }
                             self.edge_perimeters[super_i][super_j][superpixel][n] =
