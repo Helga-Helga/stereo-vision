@@ -45,6 +45,7 @@ fn main() {
     let mut superpixel_representation = superpixels::superpixels::SuperpixelRepresentation
         ::initialize(&left_image, 8, 5);
     superpixel_representation.split_into_superpixels();
+    superpixel_representation.calculate_edge_perimeters();
     let f = pgm_handler::pgm::pgm_writer(
         &superpixel_representation.superpixels,
         "images/results/superpixels.pgm".to_string(),
