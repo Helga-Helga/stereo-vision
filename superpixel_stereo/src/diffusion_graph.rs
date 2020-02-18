@@ -657,8 +657,8 @@ pub mod diffusion_graph {
                     }
                 }
             }
-            println!("Penalty of zero disparity map: {}", self.zero_penalty());
-            println!("Penalty of zero-one disparity map: {}", self.zero_one_penalty());
+            // println!("Penalty of zero disparity map: {}", self.zero_penalty());
+            // println!("Penalty of zero-one disparity map: {}", self.zero_one_penalty());
             energy
         }
 
