@@ -35,16 +35,16 @@ pub mod epsilon_search;
 #[cfg_attr(tarpaulin, skip)]
 fn main() {
     let (right_image, r_width, r_height) =
-        pgm_handler::pgm::pgm_reader("./images/right_teddy.pgm".to_string());
+        pgm_handler::pgm::pgm_reader("./images/cloth_right_400.pgm".to_string());
     let (left_image, l_width, l_height) =
-        pgm_handler::pgm::pgm_reader("./images/left_teddy.pgm".to_string());
+        pgm_handler::pgm::pgm_reader("./images/cloth_left_400.pgm".to_string());
     assert_eq!(r_width, l_width);
     assert_eq!(r_height, l_height);
 
-    let max_disparity = 15;
+    let max_disparity = 40;
 
     let pgraph = diffusion_graph::diffusion_graph::DiffusionGraph::initialize(
-        left_image, right_image, max_disparity, 2.5);
+        left_image, right_image, max_disparity, 1.2);
 
     let vertices = vec![vec![vec![true; pgraph.max_disparity]; l_width]; l_height];
     let edges = vec![vec![vec![vec![vec![true; pgraph.max_disparity]; 4]; pgraph.max_disparity]; l_width]; l_height];
@@ -58,7 +58,7 @@ fn main() {
     let epsilon: f64 = 1. / (10 * l_width * l_height) as f64;
     println!("Epsilon: {}", epsilon);
 
-    crossing_out_graph.diffusion_while_not_consistent(epsilon, 100);
+    crossing_out_graph.diffusion_while_not_consistent(epsilon, 200);
 
     println!("Finding disparity map ...");
     // let disparity_map: Vec<Vec<usize>> = crossing_out_graph.find_best_labeling();
