@@ -44,7 +44,7 @@ pub mod superpixels {
         /// Number of superpixels in horizontal axis
         pub number_of_horizontal_superpixels: usize,
         /// Number of pixels on edge between two superpixels
-        pub edge_perimeters: Vec<Vec<Vec<Vec<usize>>>>
+        pub edge_perimeters: Vec<Vec<Vec<Vec<f64>>>>
     }
 
     impl SuperpixelRepresentation {
@@ -64,7 +64,7 @@ pub mod superpixels {
                 number_of_vertical_superpixels: image.len() / super_height,
                 number_of_horizontal_superpixels: image[0].len() / super_width,
                 image: image.to_vec(),
-                edge_perimeters: vec![vec![vec![vec![0usize; 9]; 2]; image[0].len()]; image.len()]
+                edge_perimeters: vec![vec![vec![vec![0.; 9]; 2]; image[0].len()]; image.len()]
             }
         }
 
@@ -145,12 +145,13 @@ pub mod superpixels {
         }
 
         pub fn calculate_edge_perimeters(&mut self) {
-            let u: usize = 1;
-            let v: usize = 4;
+            let two: f64 = 2.0;
+            let u: f64 = (2. - two.sqrt()) / 3.;
+            let v: f64 = (2. * two.sqrt() - 1.) / 3.;
             let superpixel_ids: Vec<Vec<usize>> = self.fill_superpixel_ids();
             for super_i in 0..self.number_of_vertical_superpixels {
                 for super_j in 0..self.number_of_horizontal_superpixels {
-                    let mut perimeter: usize = 0;
+                    let mut perimeter: f64 = 0.;
                     for image_i in (super_i * self.super_height)..(
                                    super_i * self.super_height + self.super_height - 1) {
                         for image_j in (super_j * self.super_width)..(
@@ -165,7 +166,7 @@ pub mod superpixels {
                             if image_i + 1 < super_i * self.super_height + self.super_height
                             && superpixel_ids[image_i][image_j] !=
                                     superpixel_ids[image_i + 1][image_j + 1] {
-                                perimeter -= v;
+                                perimeter += v;
                             }
                         }
                     }
@@ -178,7 +179,7 @@ pub mod superpixels {
                             ) {
                                 continue;
                             }
-                            let mut perimeter_right: usize = 0;
+                            let mut perimeter_right: f64 = 0.;
                             let n_superpixel = neighbor_superpixel(superpixel, n);
                             let (n_i, n_j, n_index) = neighbor_index(
                                 super_i, super_j, n, superpixel
@@ -211,7 +212,7 @@ pub mod superpixels {
                             ) {
                                 continue;
                             }
-                            let mut perimeter_down: usize = 0;
+                            let mut perimeter_down: f64 = 0.;
                             let n_superpixel = neighbor_superpixel(superpixel, n);
                             let (n_i, n_j, n_index) = neighbor_index(
                                 super_i, super_j, n, superpixel

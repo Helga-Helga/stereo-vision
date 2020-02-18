@@ -162,7 +162,7 @@ pub mod diffusion_graph {
                                            d: usize, n_d: usize, superpixel: usize) -> f64 {
             let (n_i, n_j, n_index) = neighbor_index(super_i, super_j, n, superpixel);
             let n_superpixel = neighbor_superpixel(superpixel, n);
-            self.superpixel_representation.edge_perimeters[super_i][super_j][superpixel][n] as f64 *
+            self.superpixel_representation.edge_perimeters[super_i][super_j][superpixel][n] *
                 self.smoothing_term *
                 self.lookup_table[d][n_d] +
                 self.potentials[super_i][super_j][superpixel][n][d] +
