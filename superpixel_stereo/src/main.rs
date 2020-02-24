@@ -60,7 +60,7 @@ fn main() {
     let max_disparity = 40;
     println!("max disparity: {}", max_disparity);
 
-    let mut diffusion_graph = diffusion_graph::diffusion_graph::DiffusionGraph::initialize(
+    let diffusion_graph = diffusion_graph::diffusion_graph::DiffusionGraph::initialize(
         left_image, right_image, max_disparity, 1.2, superpixel_representation);
 
     let vertices = vec![vec![vec![vec![true; diffusion_graph.max_disparity]; 2]; l_width]; l_height];
