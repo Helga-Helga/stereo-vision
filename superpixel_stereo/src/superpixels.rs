@@ -145,9 +145,8 @@ pub mod superpixels {
         }
 
         pub fn calculate_edge_perimeters(&mut self) {
-            let two: f64 = 2.0;
-            let u: f64 = (2. - two.sqrt()) / 3.;
-            let v: f64 = (2. * two.sqrt() - 1.) / 3.;
+            let v: f64 = 1. - 1. / (2 as f64).sqrt();
+            let u: f64 = (2 as f64).sqrt() - 1.;
             let superpixel_ids: Vec<Vec<usize>> = self.fill_superpixel_ids();
             for super_i in 0..self.number_of_vertical_superpixels {
                 for super_j in 0..self.number_of_horizontal_superpixels {
@@ -164,9 +163,17 @@ pub mod superpixels {
                                 perimeter += u;
                             }
                             if image_i + 1 < super_i * self.super_height + self.super_height
+                            && image_j + 1 < super_j * self.super_width + self.super_width
                             && superpixel_ids[image_i][image_j] !=
                                     superpixel_ids[image_i + 1][image_j + 1] {
                                 perimeter += v;
+                            }
+                            if image_j > 0 {
+                                if image_i + 1 < super_i * self.super_height + self.super_height
+                                && superpixel_ids[image_i][image_j] !=
+                                superpixel_ids[image_i + 1][image_j - 1] {
+                                    perimeter += v;
+                                }
                             }
                         }
                     }
@@ -189,12 +196,19 @@ pub mod superpixels {
                             for image_i in (super_i * self.super_height)..(
                                     super_i * self.super_height + self.super_height) {
                                 if self.superpixels[image_i][image_j] == superpixel
+                                && image_j + 1 < super_j * self.super_width + self.super_width
                                 && self.superpixels[image_i][image_j + 1] == n_superpixel {
                                     perimeter_right += u;
                                 }
                                 if self.superpixels[image_i][image_j] == superpixel
                                 && image_i + 1 < super_i * self.super_height + self.super_height
+                                && image_j + 1 < super_j * self.super_width + self.super_width
                                 && self.superpixels[image_i + 1][image_j + 1] == n_superpixel {
+                                    perimeter_right += v;
+                                }
+                                if self.superpixels[image_i][image_j] == superpixel
+                                && image_j + 1 < super_j * self.super_width + self.super_width
+                                && self.superpixels[image_i - 1][image_j + 1] == n_superpixel {
                                     perimeter_right += v;
                                 }
                             }
@@ -221,13 +235,22 @@ pub mod superpixels {
                             for image_j in (super_i * self.super_width)..(
                                     super_i * self.super_width + self.super_width) {
                                 if self.superpixels[image_i][image_j] == superpixel
+                                && image_i + 1 < super_i * self.super_height + self.super_height
                                 && self.superpixels[image_i + 1][image_j] == n_superpixel {
                                     perimeter_down += u;
                                 }
                                 if self.superpixels[image_i][image_j] == superpixel
                                 && image_i + 1 < super_i * self.super_height + self.super_height
+                                && image_j + 1 < super_j * self.super_width + self.super_width
                                 && self.superpixels[image_i + 1][image_j + 1] == n_superpixel {
                                     perimeter_down += v;
+                                }
+                                if image_j > 0 {
+                                    if self.superpixels[image_i][image_j] == superpixel
+                                    && image_i + 1 < super_i * self.super_height + self.super_height
+                                    && self.superpixels[image_i + 1][image_j - 1] == n_superpixel {
+                                        perimeter_down += v;
+                                    }
                                 }
                             }
                             self.edge_perimeters[super_i][super_j][superpixel][n] =
