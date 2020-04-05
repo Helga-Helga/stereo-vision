@@ -25,6 +25,7 @@
 pub mod diffusion_graph {
     use rand::Rng;
     use std::f64;
+    use std::time::Instant;
     use super::super::utils::utils::neighbor_exists;
     use super::super::utils::utils::neighbor_index;
     use super::super::utils::utils::number_of_neighbors;
@@ -261,8 +262,10 @@ pub mod diffusion_graph {
         pub fn diffusion_act(&mut self) {
             for i in 0..self.left_image.len() {
                 for j in 0..self.left_image[0].len() {
+                    let start_time = Instant::now();
                     self.diffusion_act_vertexes(i, j);
                     self.diffusion_act_edges(i, j);
+                    println!("Elementay step time: {}", start_time.elapsed().as_millis());
 
                     // Check if vertexes are zero after diffusion act on them
                     // for d in 0..self.max_disparity {

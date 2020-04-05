@@ -24,6 +24,7 @@
 #[doc="Diffusion graph"]
 pub mod diffusion_graph {
     use std::f64;
+    use std::time::Instant;
     use super::super::utils::utils::neighbor_exists;
     use super::super::utils::utils::neighbor_index;
     use super::super::utils::utils::neighbor_superpixel;
@@ -355,8 +356,10 @@ pub mod diffusion_graph {
             for super_i in 0..self.superpixel_representation.number_of_vertical_superpixels {
                 for super_j in 0..self.superpixel_representation.number_of_horizontal_superpixels {
                     for superpixel in 0..2 {
+                        let start_time = Instant::now();
                         self.diffusion_act_vertexes(super_i, super_j, superpixel);
                         self.diffusion_act_edges(super_i, super_j, superpixel);
+                        std::println!("Elementary step time: {}", start_time.elapsed().as_millis());
 
                         // Check if vertexes are zero after diffusion act on them
                         // let left_j_in_window = self.superpixel_representation.left_j_in_superpixel(
