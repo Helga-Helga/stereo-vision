@@ -24,6 +24,8 @@
 #[doc="Diffusion graph"]
 pub mod diffusion_graph {
     use std::f64;
+    use std::fs::File;
+    use std::io::prelude::*;
     use std::time::Instant;
     use super::super::utils::utils::neighbor_exists;
     use super::super::utils::utils::neighbor_index;
@@ -356,10 +358,8 @@ pub mod diffusion_graph {
             for super_i in 0..self.superpixel_representation.number_of_vertical_superpixels {
                 for super_j in 0..self.superpixel_representation.number_of_horizontal_superpixels {
                     for superpixel in 0..2 {
-                        let start_time = Instant::now();
                         self.diffusion_act_vertexes(super_i, super_j, superpixel);
                         self.diffusion_act_edges(super_i, super_j, superpixel);
-                        std::println!("Elementary step time: {}", start_time.elapsed().as_millis());
 
                         // Check if vertexes are zero after diffusion act on them
                         // let left_j_in_window = self.superpixel_representation.left_j_in_superpixel(
@@ -487,19 +487,24 @@ pub mod diffusion_graph {
         /// * `first_iteration` - First iteration to start diffusion
         /// * `number_of_iterations` - Number of times to update potentials
         #[cfg_attr(tarpaulin, skip)]
-        pub fn diffusion(&mut self, first_iteration: usize, number_of_iterations: usize) {
+        pub fn diffusion(&mut self, first_iteration: usize, number_of_iterations: usize) ->
+                std::io::Result<()> {
+            let mut file = File::create("elapsed_time.txt")?;
             let mut energy: f64 = self.energy();
             println!("Energy: {}", energy);
             let mut i = first_iteration;
             while i < first_iteration + number_of_iterations {
                 println!("Iteration # {}", i);
+                let start_time = Instant::now();
                 self.diffusion_act();
+                write!(&mut file, "{:?}", start_time.elapsed())?;
                 energy = self.energy();
                 println!("Energy: {}", energy);
                 i += 1;
             }
-            let depth_map = self.build_depth_map();
-            self.build_left_image(depth_map);
+            // let depth_map = self.build_depth_map();
+            // self.build_left_image(depth_map);
+            Ok(())
         }
 
         /// Build and save a simple depth map from minimum vertex penalties

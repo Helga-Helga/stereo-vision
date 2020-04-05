@@ -25,6 +25,8 @@
 pub mod diffusion_graph {
     use rand::Rng;
     use std::f64;
+    use std::fs::File;
+    use std::io::prelude::*;
     use std::time::Instant;
     use super::super::utils::utils::neighbor_exists;
     use super::super::utils::utils::neighbor_index;
@@ -262,10 +264,8 @@ pub mod diffusion_graph {
         pub fn diffusion_act(&mut self) {
             for i in 0..self.left_image.len() {
                 for j in 0..self.left_image[0].len() {
-                    let start_time = Instant::now();
                     self.diffusion_act_vertexes(i, j);
                     self.diffusion_act_edges(i, j);
-                    println!("Elementay step time: {}", start_time.elapsed().as_millis());
 
                     // Check if vertexes are zero after diffusion act on them
                     // for d in 0..self.max_disparity {
@@ -346,13 +346,17 @@ pub mod diffusion_graph {
         /// * `first_iteration` - First iteration to start diffusion
         /// * `number_of_iterations` - Number of times to update potentials
         #[cfg_attr(tarpaulin, skip)]
-        pub fn diffusion(&mut self, first_iteration: usize, number_of_iterations: usize) {
+        pub fn diffusion(&mut self, first_iteration: usize, number_of_iterations: usize) ->
+                std::io::Result<()> {
+            let mut file = File::create("elapsed_time.txt")?;
             let mut energy: f64 = self.energy();
             println!("Energy: {}", energy);
             let mut i = first_iteration;
             while i < first_iteration + number_of_iterations {
                 println!("Iteration # {}", i);
+                let start_time = Instant::now();
                 self.diffusion_act();
+                write!(&mut file, "{:?}", start_time.elapsed())?;
                 energy = self.energy();
                 println!("Energy: {}", energy);
                 // self.build_depth_map(i);
@@ -360,6 +364,7 @@ pub mod diffusion_graph {
                 i += 1;
             }
             // self.build_depth_map(i);
+            Ok(())
         }
 
         /// Build and save a simple depth map from minimum vertex penalties
